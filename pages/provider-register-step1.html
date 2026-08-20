@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="HandyHire - Service Provider Registration Step 1. Tell us about yourself to start offering services." />
+    <meta name="theme-color" content="#68865C" />
+    <title>Provider Registration - Step 1 | HandyHire</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="../css/provider-register-step1.css" />
+</head>
+<body>
+    <main class="register-screen" role="main">
+        <!-- Top tagline above the card -->
+        <p class="brand-tagline" aria-hidden="true">we need to know you</p>
+
+        <!-- Registration Card -->
+        <section class="register-card" aria-labelledby="cardTitle">
+            <h1 id="cardTitle" class="card-title">Personal Details</h1>
+
+            <form id="providerRegisterStep1Form" class="register-form" novalidate>
+                <!-- Full Name -->
+                <div class="form-group">
+                    <label for="fullName" class="form-label">Full Name</label>
+                    <input
+                        type="text"
+                        id="fullName"
+                        name="fullName"
+                        class="form-input"
+                        placeholder="Enter your full name"
+                        autocomplete="name"
+                        required
+                        aria-required="true"
+                        aria-describedby="fullNameError"
+                    />
+                    <span class="form-error" id="fullNameError" role="alert" aria-live="polite"></span>
+                </div>
+
+                <!-- Age -->
+                <div class="form-group">
+                    <label for="age" class="form-label">Age</label>
+                    <input
+                        type="number"
+                        id="age"
+                        name="age"
+                        class="form-input"
+                        placeholder="Enter your age"
+                        inputmode="numeric"
+                        min="18"
+                        max="99"
+                        autocomplete="off"
+                        required
+                        aria-required="true"
+                        aria-describedby="ageError"
+                    />
+                    <span class="form-error" id="ageError" role="alert" aria-live="polite"></span>
+                </div>
+
+                <!-- Qualification Dropdown -->
+                <div class="form-group">
+                    <label for="qualification" class="form-label">Qualification</label>
+                    <div class="select-wrapper">
+                        <select
+                            id="qualification"
+                            name="qualification"
+                            class="form-input form-select"
+                            required
+                            aria-required="true"
+                            aria-describedby="qualificationError"
+                        >
+                            <option value="" disabled selected>Select your qualification</option>
+                            <option value="below-10th">Below 10th</option>
+                            <option value="10th">10th Pass</option>
+                            <option value="12th">12th Pass</option>
+                            <option value="diploma">Diploma</option>
+                            <option value="graduate">Graduate</option>
+                            <option value="post-graduate">Post Graduate</option>
+                            <option value="doctorate">Doctorate</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <span class="select-arrow" aria-hidden="true">&#9662;</span>
+                    </div>
+                    <span class="form-error" id="qualificationError" role="alert" aria-live="polite"></span>
+                </div>
+
+                <!-- Skills Dropdown -->
+                <div class="form-group">
+                    <label for="skills" class="form-label">Skills</label>
+                    <div class="select-wrapper">
+                        <select
+                            id="skills"
+                            name="skills"
+                            class="form-input form-select"
+                            required
+                            aria-required="true"
+                            aria-describedby="skillsError"
+                        >
+                            <option value="" disabled selected>Select your primary skill</option>
+                            <option value="plumber">Plumber</option>
+                            <option value="electrician">Electrician</option>
+                            <option value="carpenter">Carpenter</option>
+                            <option value="painter">Painter</option>
+                            <option value="cleaner">Cleaner</option>
+                            <option value="ac-repair">AC / Appliance Repair</option>
+                            <option value="pest-control">Pest Control</option>
+                            <option value="moving">Moving & Packing</option>
+                            <option value="gardener">Gardener</option>
+                            <option value="handyman">General Handyman</option>
+                        </select>
+                        <span class="select-arrow" aria-hidden="true">&#9662;</span>
+                    </div>
+                    <span class="form-error" id="skillsError" role="alert" aria-live="polite"></span>
+                </div>
+
+                <!-- Next Button -->
+                <button type="submit" class="next-btn" aria-label="Continue to step 2">
+                    Next &rarr;
+                </button>
+
+                <p style="text-align: center; margin-top: 16px; font-size: 14px;">
+                    Already have an account? <a href="login.html" style="color: #68865C; text-decoration: underline; font-weight: 600;">Sign in</a>
+                </p>
+            </form>
+        </section>
+    </main>
+
+    <script src="../js/provider-register-step1.js"></script>
+</body>
+</html>

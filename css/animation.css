@@ -1,0 +1,217 @@
+/* =========================================================
+   HandyHire - Welcome Animation Stylesheet
+   Centered olive-green brand stage with a progress bar
+   that auto-redirects to customer-register.html.
+   ========================================================= */
+
+/* ---------- CSS Reset ---------- */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* ---------- Root Variables ---------- */
+:root {
+    --color-primary: #68865C;
+    --color-primary-dark: #566f4b;
+    --color-surface: #ffffff;
+    --color-text: #ffffff;
+    --color-text-muted: rgba(255, 255, 255, 0.78);
+
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --transition: 300ms ease;
+    --anim-duration: 2800ms;
+}
+
+/* ---------- Global ---------- */
+html,
+body {
+    width: 100%;
+    min-height: 100vh;
+    font-family: var(--font-family);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--color-primary);
+    color: var(--color-text);
+}
+
+body {
+    overflow-x: hidden;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+    font-family: inherit;
+}
+
+/* =========================================================
+   STAGE
+   ========================================================= */
+.anim-page {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+}
+
+.anim-stage {
+    width: 100%;
+    max-width: 480px;
+    text-align: center;
+    position: relative;
+}
+
+/* ---------- Logo mark ---------- */
+.anim-logo {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 18px;
+}
+
+.anim-logo-mark {
+    width: 92px;
+    height: 92px;
+    border-radius: 50%;
+    background-color: var(--color-surface);
+    color: var(--color-primary);
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 92px;
+    text-align: center;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
+    animation: anim-pop 700ms ease-out both;
+}
+
+@keyframes anim-pop {
+    0%   { transform: scale(0.6); opacity: 0; }
+    60%  { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* ---------- Title + tagline ---------- */
+.anim-title {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    animation: anim-fade 900ms ease-out 200ms both;
+}
+
+.anim-tagline {
+    font-size: 14px;
+    color: var(--color-text-muted);
+    margin-bottom: 28px;
+    animation: anim-fade 900ms ease-out 400ms both;
+}
+
+@keyframes anim-fade {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- Progress bar ---------- */
+.anim-progress {
+    width: 100%;
+    max-width: 240px;
+    height: 4px;
+    margin: 0 auto;
+    background-color: rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.anim-progress-bar {
+    display: block;
+    width: 0%;
+    height: 100%;
+    background-color: var(--color-surface);
+    border-radius: 999px;
+    animation: anim-fill var(--anim-duration) linear forwards;
+}
+
+@keyframes anim-fill {
+    from { width: 0%; }
+    to   { width: 100%; }
+}
+
+/* ---------- Skip link ---------- */
+.anim-skip {
+    display: inline-block;
+    margin-top: 22px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text);
+    background-color: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    border-radius: 999px;
+    transition:
+        background-color var(--transition),
+        color var(--transition);
+    animation: anim-fade 900ms ease-out 600ms both;
+}
+
+.anim-skip:hover {
+    background-color: var(--color-surface);
+    color: var(--color-primary);
+}
+
+.anim-skip:focus-visible {
+    outline: 2px solid var(--color-surface);
+    outline-offset: 2px;
+}
+
+/* =========================================================
+   Responsive Breakpoints
+   ========================================================= */
+
+@media (max-width: 374px) {
+    .anim-logo-mark {
+        width: 80px;
+        height: 80px;
+        line-height: 80px;
+        font-size: 42px;
+    }
+
+    .anim-title {
+        font-size: 28px;
+    }
+}
+
+@media (min-width: 768px) {
+    .anim-logo-mark {
+        width: 104px;
+        height: 104px;
+        line-height: 104px;
+        font-size: 54px;
+    }
+
+    .anim-title {
+        font-size: 38px;
+    }
+
+    .anim-tagline {
+        font-size: 15px;
+    }
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+    .anim-logo-mark,
+    .anim-title,
+    .anim-tagline,
+    .anim-progress-bar,
+    .anim-skip {
+        animation: none;
+    }
+
+    .anim-progress-bar {
+        width: 100%;
+    }
+}

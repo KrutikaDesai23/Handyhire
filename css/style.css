@@ -1,0 +1,149 @@
+/* =========================================================
+   HandyHire - Main Stylesheet
+   Welcome Screen Styling
+   ========================================================= */
+
+/* ---------- CSS Reset ---------- */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* ---------- Root Variables ---------- */
+:root {
+    --color-bg: #68865C;
+    --color-text: #ffffff;
+    --color-btn-bg: #ffffff;
+    --color-btn-text: #000000;
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --btn-radius: 10px;
+    --btn-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+    --btn-shadow-hover: 0 10px 24px rgba(0, 0, 0, 0.22);
+    --transition: 300ms ease;
+}
+
+/* ---------- Global Styles ---------- */
+html,
+body {
+    width: 100%;
+    min-height: 100vh;
+    font-family: var(--font-family);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    overflow-x: hidden;
+}
+
+/* ---------- Welcome Screen Layout ---------- */
+.welcome-screen {
+    /* Full viewport height with safe area support for mobile */
+    min-height: 100vh;
+    min-height: 100dvh;
+
+    /* Flexbox centers the content vertically and horizontally */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+
+    /* Layout spacing */
+    padding: 70px 0 60px;
+
+    /* Solid olive green background */
+    background-color: var(--color-bg);
+}
+
+/* ---------- Header Section ---------- */
+.welcome-header {
+    text-align: center;
+    margin-top: 0;
+    padding: 0 1rem;
+}
+
+.welcome-title {
+    /* Large bold heading */
+    font-size: 52px;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: 0.5px;
+    color: var(--color-text);
+    margin-bottom: 12px;
+}
+
+.welcome-subtitle {
+    /* Small subtitle with subtle opacity */
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--color-text);
+    opacity: 0.8;
+    letter-spacing: 1px;
+}
+
+/* ---------- Action Buttons Section ---------- */
+.welcome-actions {
+    /* Container for the two primary CTAs */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: 35px;
+    padding: 0 1rem;
+    margin-bottom: 40px;
+}
+
+/* ---------- Primary Button Styles ---------- */
+.action-btn {
+    /* White button with black text */
+    background-color: var(--color-btn-bg);
+    color: var(--color-btn-text);
+
+    /* Dimensions */
+    width: 82%;
+    max-width: 420px;
+    height: 68px;
+
+    /* Typography */
+    font-family: var(--font-family);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+
+    /* Appearance */
+    border: none;
+    border-radius: var(--btn-radius);
+    box-shadow: var(--btn-shadow);
+    cursor: pointer;
+
+    /* Interaction transitions */
+    transition:
+        transform var(--transition),
+        box-shadow var(--transition),
+        background-color var(--transition);
+}
+
+/* Hover: subtle scale-up and deeper shadow */
+.action-btn:hover {
+    transform: scale(1.03);
+    box-shadow: var(--btn-shadow-hover);
+    background-color: #fafafa;
+}
+
+/* Focus: accessible keyboard outline */
+.action-btn:focus-visible {
+    outline: 3px solid rgba(255, 255, 255, 0.6);
+    outline-offset: 3px;
+}
+
+/* Active / Click: subtle press feedback */
+.action-btn:active {
+    transform: scale(0.98);
+    box-shadow: var(--btn-shadow);
+}

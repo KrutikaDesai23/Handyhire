@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="HandyHire - Side navigation menu for the customer area." />
+    <meta name="theme-color" content="#68865C" />
+    <title>Menu | HandyHire</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="../css/provider-menu.css" />
+</head>
+<body>
+    <!-- ========== TOP HEADER ========== -->
+    <header class="menu-header" role="banner">
+        <button
+            type="button"
+            class="icon-btn"
+            id="menuCloseBtn"
+            aria-label="Close navigation menu"
+        >
+            <span class="hamburger" aria-hidden="true">
+                <span></span><span></span><span></span>
+            </span>
+        </button>
+        <h1 class="menu-header-title">Menu</h1>
+        <span class="icon-btn-spacer" aria-hidden="true"></span>
+    </header>
+
+    <!-- ========== BACKDROP ========== -->
+    <div class="menu-backdrop" id="menuBackdrop" aria-hidden="true"></div>
+
+    <!-- ========== SIDE DRAWER ========== -->
+    <aside
+        class="menu-drawer"
+        id="menuDrawer"
+        role="navigation"
+        aria-label="Side navigation"
+        aria-hidden="true"
+    >
+        <!-- Profile section -->
+        <section class="drawer-profile">
+            <div class="drawer-avatar" id="drawerAvatar" aria-hidden="true"></div>
+            <div class="drawer-profile-text">
+                <p class="drawer-greeting">Hello,</p>
+                <p class="drawer-name" id="drawerName">Customer</p>
+            </div>
+        </section>
+
+        <!-- Primary navigation -->
+        <nav class="drawer-nav" aria-label="Menu items">
+            <ul class="drawer-list">
+                <li>
+                    <a href="provider-worker-profile.html" class="drawer-item" data-target="provider-worker-profile.html">
+                        <span class="drawer-icon" aria-hidden="true">&#128100;</span>
+                        <span class="drawer-label">Profile</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="provider-activity.html" class="drawer-item" data-target="provider-activity.html">
+                        <span class="drawer-icon" aria-hidden="true">&#128197;</span>
+                        <span class="drawer-label">Bookings</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="provider-notifications.html" class="drawer-item" data-target="provider-notifications.html">
+                        <span class="drawer-icon" aria-hidden="true">&#128276;</span>
+                        <span class="drawer-label">Notifications</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="provider-settings.html" class="drawer-item" data-target="provider-settings.html">
+                        <span class="drawer-icon" aria-hidden="true">&#9881;</span>
+                        <span class="drawer-label">Settings</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="provider-about.html" class="drawer-item" data-target="provider-about.html">
+                        <span class="drawer-icon" aria-hidden="true">&#8505;</span>
+                        <span class="drawer-label">About Us</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="provider-contact.html" class="drawer-item" data-target="provider-contact.html">
+                        <span class="drawer-icon" aria-hidden="true">&#9993;</span>
+                        <span class="drawer-label">Contact Us</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Logout -->
+        <div class="drawer-footer">
+            <a href="../index.html" class="drawer-item drawer-item--logout" data-target="../index.html">
+                <span class="drawer-icon" aria-hidden="true">&#9211;</span>
+                <span class="drawer-label">Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- ========== PLACEHOLDER MAIN CONTENT ========== -->
+    <main class="menu-page" role="main">
+        <p class="menu-placeholder">
+            Tap the menu icon to open the navigation drawer.
+        </p>
+    </main>
+
+    <script src="../js/provider-menu.js"></script>
+</body>
+</html>

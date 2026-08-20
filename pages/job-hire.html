@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="HandyHire - View worker details and book a service professional." />
+    <meta name="theme-color" content="#68865C" />
+    <title>Job Hire | HandyHire</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="../css/job-hire.css" />
+</head>
+<body>
+    <!-- ========== TOP BAR ========== -->
+    <header class="hire-topbar" role="banner">
+        <a href="home.html" class="brand-mark" aria-label="HandyHire home">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M14.7 6.3a4 4 0 0 1-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 1 5.4-5.4l-1.4 1.4-2.6-2.6 1.4-1.4Z" />
+            </svg>
+        </a>
+
+        <nav class="app-nav" aria-label="Primary navigation">
+            <a href="home.html" class="nav-tab">Home</a>
+            <a href="activity.html" class="nav-tab">Activity</a>
+            <a href="profile.html" class="nav-tab">Profile</a>
+        </nav>
+
+        <span class="icon-btn-spacer" aria-hidden="true"></span>
+    </header>
+
+    <main class="hire-page" role="main">
+        <section class="hire-card" aria-label="Worker profile and booking">
+
+            <!-- ========== AVAILABILITY STRIP ========== -->
+            <div class="availability-strip" id="availabilityStrip" role="status">
+                <span class="availability-dot" aria-hidden="true"></span>
+                <span class="availability-text" id="availabilityText">Available today</span>
+            </div>
+
+            <!-- ========== HERO PROFILE ========== -->
+            <section class="hero-profile" aria-label="Professional profile">
+                <div class="hero-avatar" id="heroAvatar" aria-hidden="true"></div>
+
+                <h1 class="hero-name" id="heroName">Loading...</h1>
+                <p class="hero-profession" id="heroProfession">Profession</p>
+                <p class="hero-bio" id="heroBio">Professional details will appear here.</p>
+
+                <div class="hero-rating" id="heroRating" aria-label="Overall rating">
+                    <span class="hero-stars" id="heroStars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+                    <span class="hero-rating-value" id="heroRatingValue">0.0</span>
+                    <span class="hero-rating-divider" aria-hidden="true">&middot;</span>
+                    <span class="hero-rating-count" id="heroRatingCount">0 reviews</span>
+                </div>
+            </section>
+
+            <!-- ========== QUICK INFO ========== -->
+            <section class="quick-info-section" aria-label="Quick info">
+                <h2 class="section-title">Quick Info</h2>
+                <div class="info-grid" id="infoGrid">
+                    <!-- Filled by js/job-hire.js -->
+                </div>
+            </section>
+
+            <!-- ========== ABOUT PROFESSIONAL ========== -->
+            <section class="about-section" aria-label="About professional">
+                <h2 class="section-title">About Professional</h2>
+                <p class="about-text" id="aboutText">Professional details will appear here.</p>
+
+                <h3 class="services-title">Services Offered</h3>
+                <ul class="services-pills" id="servicesPills" aria-label="Services offered">
+                    <!-- Pills injected by js/job-hire.js -->
+                </ul>
+            </section>
+
+            <!-- ========== RATING & REVIEWS ========== -->
+            <section class="reviews-section" aria-label="Rating and Reviews">
+                <h2 class="section-title">Rating &amp; Reviews</h2>
+
+                <div class="reviews-summary">
+                    <div class="reviews-summary-left">
+                        <span class="reviews-summary-score" id="reviewsScore">0.0</span>
+                        <span class="reviews-summary-info">
+                            <span class="reviews-summary-stars" id="reviewsSummaryStars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+                            <span class="reviews-summary-count" id="reviewsSummaryCount">Based on 0 reviews</span>
+                        </span>
+                    </div>
+                </div>
+
+                <ul class="reviews-list" id="reviewsList">
+                    <!-- Reviews injected by js/job-hire.js -->
+                </ul>
+
+                <p class="reviews-empty" id="reviewsEmpty" hidden>
+                    No reviews yet for this professional.
+                </p>
+            </section>
+
+            <!-- ========== BOOK NOW CTA ========== -->
+            <button type="button" class="book-now-btn" id="bookNowBtn">
+                Book Now
+            </button>
+
+            <!-- ========== BACK CONTROLS ========== -->
+            <a href="home.html" class="secondary-link back-link" id="backLink">Back</a>
+
+            <a href="team-page.html" class="secondary-link back-to-team-link" id="backToTeamBtn" hidden>
+                Back to Team
+            </a>
+        </section>
+    </main>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/job-hire.js"></script>
+</body>
+</html>

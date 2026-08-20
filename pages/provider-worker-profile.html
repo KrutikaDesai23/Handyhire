@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="HandyHire - Provider professional profile." />
+    <meta name="theme-color" content="#68865C" />
+    <title>Profile | HandyHire</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="../css/provider-worker-profile.css" />
+</head>
+<body>
+    <!-- ========== TOP BAR ========== -->
+    <header class="profile-topbar" role="banner">
+        <a href="provider-home.html" class="brand-mark" aria-label="HandyHire home">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M14.7 6.3a4 4 0 0 1-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 1 5.4-5.4l-1.4 1.4-2.6-2.6 1.4-1.4Z" />
+            </svg>
+        </a>
+
+        <nav class="app-nav" aria-label="Primary navigation">
+            <a href="provider-home.html" class="nav-tab">Home</a>
+            <a href="provider-request.html" class="nav-tab" id="requestTab">Request<span class="nav-count" data-request-count hidden>0</span></a>
+            <a href="provider-activity.html" class="nav-tab">Activity</a>
+            <a href="provider-worker-profile.html" class="nav-tab is-active" aria-current="page">Profile</a>
+        </nav>
+
+        <span class="icon-btn-spacer" aria-hidden="true"></span>
+    </header>
+
+    <main class="profile-page" role="main">
+
+        <!-- ========== PROFESSIONAL HERO ========== -->
+        <section class="profile-hero-card" aria-label="Professional profile">
+            <div class="profile-hero-avatar" id="profileHeroAvatar" aria-hidden="true"></div>
+            <h1 class="profile-hero-name" id="profileHeroName">Loading...</h1>
+            <span class="profile-hero-badge">PROVIDER</span>
+            <p class="profile-hero-tagline" id="profileHeroTagline">Professional details will appear here.</p>
+
+            <div class="availability-badge" id="availabilityBadge">
+                <span class="availability-dot" aria-hidden="true"></span>
+                <span class="availability-text">Available today</span>
+            </div>
+        </section>
+
+        <!-- ========== PROFESSIONAL STATS ========== -->
+        <section class="stats-section" aria-label="Professional statistics">
+            <div class="stat-card">
+                <span class="stat-value" id="statJobs">--</span>
+                <span class="stat-label">Jobs Completed</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" id="statRating">--</span>
+                <span class="stat-label">Rating</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" id="statReviews">--</span>
+                <span class="stat-label">Reviews</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" id="statExperience">--</span>
+                <span class="stat-label">Experience</span>
+            </div>
+        </section>
+
+        <!-- ========== PROFESSIONAL INFORMATION ========== -->
+        <section class="profile-section" aria-label="Professional information">
+            <h2 class="section-title">Professional Information</h2>
+            <div class="info-card-list">
+                <div class="info-card">
+                    <span class="info-card-icon" aria-hidden="true">&#128188;</span>
+                    <div class="info-card-text">
+                        <p class="info-card-label">Profession</p>
+                        <p class="info-card-value" id="infoProfession">--</p>
+                    </div>
+                </div>
+                <div class="info-card">
+                    <span class="info-card-icon" aria-hidden="true">&#128188;</span>
+                    <div class="info-card-text">
+                        <p class="info-card-label">Experience</p>
+                        <p class="info-card-value" id="infoExperience">--</p>
+                    </div>
+                </div>
+                <div class="info-card">
+                    <span class="info-card-icon" aria-hidden="true">&#127891;</span>
+                    <div class="info-card-text">
+                        <p class="info-card-label">Qualification</p>
+                        <p class="info-card-value" id="infoQualification">--</p>
+                    </div>
+                </div>
+                <div class="info-card">
+                    <span class="info-card-icon" aria-hidden="true">&#127968;</span>
+                    <div class="info-card-text">
+                        <p class="info-card-label">Service Location</p>
+                        <p class="info-card-value" id="infoLocation">--</p>
+                    </div>
+                </div>
+                <div class="info-card">
+                    <span class="info-card-icon" aria-hidden="true">&#128241;</span>
+                    <div class="info-card-text">
+                        <p class="info-card-label">Mobile Number</p>
+                        <p class="info-card-value" id="infoMobile">--</p>
+                    </div>
+                </div>
+                <div class="info-card">
+                    <span class="info-card-icon" aria-hidden="true">&#9993;</span>
+                    <div class="info-card-text">
+                        <p class="info-card-label">Email</p>
+                        <p class="info-card-value" id="infoEmail">--</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== MY SERVICES ========== -->
+        <section class="profile-section" aria-label="My services">
+            <h2 class="section-title">My Services</h2>
+            <ul class="services-pills" id="servicesPills">
+                <!-- Injected by js/provider-worker-profile.js -->
+            </ul>
+        </section>
+
+        <!-- ========== AVAILABILITY ========== -->
+        <section class="profile-section" aria-label="Availability">
+            <h2 class="section-title">Availability</h2>
+            <div class="availability-card">
+                <span class="availability-dot" aria-hidden="true"></span>
+                <span class="availability-text">Available today</span>
+            </div>
+        </section>
+
+        <!-- ========== MANAGE PROFILE ========== -->
+        <section class="profile-section" aria-label="Professional profile management">
+            <div class="manage-card">
+                <span class="manage-icon" aria-hidden="true">&#128221;</span>
+                <div class="manage-text">
+                    <p class="manage-title">Manage Professional Profile</p>
+                    <p class="manage-desc">Keep your professional information up to date so customers can find the right services.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== SIGN OUT ========== -->
+        <button type="button" class="signout-btn" id="signOutBtn">Sign Out</button>
+
+    </main>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/provider-worker-profile.js"></script>
+</body>
+</html>

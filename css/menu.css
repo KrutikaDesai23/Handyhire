@@ -1,0 +1,371 @@
+/* =========================================================
+   HandyHire - Side Navigation Menu Stylesheet
+   Mobile-first drawer + white header bar
+   ========================================================= */
+
+/* ---------- CSS Reset ---------- */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* ---------- Root Variables ---------- */
+:root {
+    --color-primary: #68865C;
+    --color-primary-dark: #566f4b;
+    --color-bg: #f5f7f5;
+    --color-surface: #ffffff;
+    --color-text: #1a1a1a;
+    --color-text-muted: #6a6a6a;
+    --color-border: #e2e6e2;
+    --color-danger: #c0392b;
+
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --radius-card: 14px;
+    --radius-avatar: 50%;
+    --transition: 300ms ease;
+    --drawer-width: 280px;
+}
+
+/* ---------- Global ---------- */
+html,
+body {
+    width: 100%;
+    min-height: 100vh;
+    font-family: var(--font-family);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+}
+
+body {
+    overflow-x: hidden;
+}
+
+button {
+    font-family: inherit;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* =========================================================
+   TOP HEADER (white)
+   ========================================================= */
+.menu-header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    padding: 12px 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.menu-header-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.icon-btn {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: var(--color-text);
+    cursor: pointer;
+    transition: background-color var(--transition);
+}
+
+.icon-btn:hover {
+    background-color: rgba(104, 134, 92, 0.12);
+}
+
+.icon-btn:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.icon-btn-spacer {
+    width: 40px;
+    height: 40px;
+}
+
+/* Hamburger icon */
+.hamburger {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 22px;
+}
+.hamburger span {
+    display: block;
+    height: 2px;
+    background-color: var(--color-text);
+    border-radius: 2px;
+}
+
+/* =========================================================
+   PAGE PLACEHOLDER (so the screen isn't empty when closed)
+   ========================================================= */
+.menu-page {
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.menu-placeholder {
+    color: var(--color-text-muted);
+    font-size: 14px;
+}
+
+/* =========================================================
+   BACKDROP
+   ========================================================= */
+.menu-backdrop {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition);
+    z-index: 40;
+}
+
+.menu-backdrop.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* =========================================================
+   SIDE DRAWER
+   ========================================================= */
+.menu-drawer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    height: 100dvh;
+    width: var(--drawer-width);
+    max-width: 85vw;
+    background-color: var(--color-primary);
+    color: #ffffff;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform var(--transition);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 4px 0 18px rgba(0, 0, 0, 0.18);
+    padding-top: env(safe-area-inset-top, 0);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.menu-drawer.is-open {
+    transform: translateX(0);
+}
+
+/* ---------- Profile section ---------- */
+.drawer-profile {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.drawer-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-avatar);
+    background-color: rgba(255, 255, 255, 0.22);
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
+    border: 2px solid rgba(255, 255, 255, 0.85);
+}
+
+.drawer-profile-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.drawer-greeting {
+    font-size: 12px;
+    font-weight: 400;
+    opacity: 0.85;
+    line-height: 1.2;
+}
+
+.drawer-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ---------- Menu list ---------- */
+.drawer-nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+}
+
+.drawer-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.drawer-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 22px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #ffffff;
+    border-left: 3px solid transparent;
+    transition:
+        background-color var(--transition),
+        border-color var(--transition),
+        padding-left var(--transition);
+}
+
+.drawer-item:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+    border-left-color: rgba(255, 255, 255, 0.6);
+    padding-left: 26px;
+}
+
+.drawer-item:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.85);
+    outline-offset: -2px;
+}
+
+.drawer-item.is-active {
+    background-color: rgba(255, 255, 255, 0.18);
+    border-left-color: #ffffff;
+    font-weight: 600;
+}
+
+.drawer-icon {
+    font-size: 18px;
+    line-height: 1;
+    width: 22px;
+    display: inline-flex;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.drawer-label {
+    flex: 1;
+}
+
+/* ---------- Logout (red text) ---------- */
+.drawer-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.18);
+    padding: 8px 0 12px;
+}
+
+.drawer-item--logout {
+    color: var(--color-danger);
+    font-weight: 600;
+}
+
+.drawer-item--logout:hover {
+    background-color: rgba(192, 57, 43, 0.14);
+    border-left-color: var(--color-danger);
+    padding-left: 26px;
+}
+
+.drawer-item--logout:focus-visible {
+    outline: 2px solid var(--color-danger);
+    outline-offset: -2px;
+}
+
+/* =========================================================
+   Responsive Breakpoints
+   ========================================================= */
+
+/* ---------- Small phones (≤ 374px) ---------- */
+@media (max-width: 374px) {
+    .menu-header {
+        padding: 10px 12px;
+    }
+
+    .drawer-profile {
+        padding: 20px 16px 16px;
+    }
+
+    .drawer-item {
+        padding: 12px 18px;
+        font-size: 13px;
+    }
+}
+
+/* ---------- Tablets (≥ 768px) ---------- */
+@media (min-width: 768px) {
+    :root {
+        --drawer-width: 320px;
+    }
+
+    .menu-header {
+        padding: 14px 24px;
+    }
+
+    .menu-page {
+        padding: 60px 32px;
+    }
+
+    .drawer-profile {
+        padding: 28px 24px 22px;
+    }
+
+    .drawer-avatar {
+        width: 64px;
+        height: 64px;
+    }
+
+    .drawer-name {
+        font-size: 17px;
+    }
+
+    .drawer-item {
+        padding: 16px 26px;
+        font-size: 15px;
+    }
+}
+
+/* ---------- Desktops (≥ 1024px) ---------- */
+@media (min-width: 1024px) {
+    :root {
+        --drawer-width: 340px;
+    }
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+    .menu-drawer,
+    .menu-backdrop,
+    .drawer-item,
+    .icon-btn {
+        transition: none;
+    }
+}

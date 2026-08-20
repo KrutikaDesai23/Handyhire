@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="HandyHire - Team member details." />
+    <meta name="theme-color" content="#68865C" />
+    <title>Team Member | HandyHire</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="../css/provider-team-member.css" />
+</head>
+<body>
+    <header class="member-topbar" role="banner">
+        <a href="provider-team-page.html" class="back-btn" aria-label="Back to team page">
+            <span class="back-icon" aria-hidden="true">&#8592;</span>
+            <span class="back-label">Back</span>
+        </a>
+        <h1 class="member-topbar-title">Team Member</h1>
+        <span class="icon-btn-spacer" aria-hidden="true"></span>
+    </header>
+
+    <main class="member-page" role="main">
+        <section class="member-card-page" aria-label="Team member details">
+            <!-- Avatar -->
+            <div class="member-avatar-large" id="memberAvatarLarge" aria-hidden="true"></div>
+
+            <!-- Name -->
+            <h2 class="member-name-large" id="memberNameLarge">Member name</h2>
+            <p class="member-team-line" id="memberTeamLine">Part of: Team name</p>
+            <hr class="member-divider" aria-hidden="true" />
+
+            <!-- Info fields -->
+            <ul class="info-list">
+                <li class="info-row">
+                    <span class="info-icon" aria-hidden="true">&#128188;</span>
+                    <div class="info-text">
+                        <p class="info-label">Occupation</p>
+                        <p class="info-value" id="memberInfoOccupation">Occupation</p>
+                    </div>
+                </li>
+                <li class="info-row">
+                    <span class="info-icon" aria-hidden="true">&#127874;</span>
+                    <div class="info-text">
+                        <p class="info-label">Age</p>
+                        <p class="info-value" id="memberInfoAge">&mdash;</p>
+                    </div>
+                </li>
+                <li class="info-row">
+                    <span class="info-icon" aria-hidden="true">&#128241;</span>
+                    <div class="info-text">
+                        <p class="info-label">Mobile No.</p>
+                        <p class="info-value" id="memberInfoMobile">&mdash;</p>
+                    </div>
+                </li>
+                <li class="info-row">
+                    <span class="info-icon" aria-hidden="true">&#9993;</span>
+                    <div class="info-text">
+                        <p class="info-label">Email ID</p>
+                        <p class="info-value" id="memberInfoEmail">&mdash;</p>
+                    </div>
+                </li>
+                <li class="info-row">
+                    <span class="info-icon" aria-hidden="true">&#127968;</span>
+                    <div class="info-text">
+                        <p class="info-label">Address</p>
+                        <p class="info-value" id="memberInfoAddress">&mdash;</p>
+                    </div>
+                </li>
+                <li class="info-row">
+                    <span class="info-icon" aria-hidden="true">&#127891;</span>
+                    <div class="info-text">
+                        <p class="info-label">Qualification</p>
+                        <p class="info-value" id="memberInfoQualification">&mdash;</p>
+                    </div>
+                </li>
+                <li class="info-row info-row--select">
+                    <span class="info-icon" aria-hidden="true">&#128172;</span>
+                    <div class="info-text">
+                        <label class="info-label" for="memberFeedbackSelect">Feedback</label>
+                        <div class="select-wrap">
+                            <select id="memberFeedbackSelect" class="info-select" aria-describedby="memberFeedbackHelp">
+                                <option value="" disabled selected>Select your feedback</option>
+                                <option value="excellent">Excellent</option>
+                                <option value="good">Good</option>
+                                <option value="average">Average</option>
+                                <option value="poor">Poor</option>
+                            </select>
+                            <span class="select-caret" aria-hidden="true">&#9662;</span>
+                        </div>
+                        <p class="info-help" id="memberFeedbackHelp">Choose one option.</p>
+                    </div>
+                </li>
+            </ul>
+
+            <!-- No individual "Book Now" button - this is the Team Package flow. -->
+            <p class="flow-note">
+                You are viewing details for one member of your selected team. To book the entire team, return to the team page and tap <strong>BOOK WHOLE TEAM</strong>.
+            </p>
+
+            <a href="provider-team-page.html" class="back-to-team-btn">Back to Team</a>
+        </section>
+    </main>
+
+    <script src="../js/provider-team-member.js"></script>
+</body>
+</html>

@@ -1,0 +1,229 @@
+import pytest
+from fastapi.testclient import TestClient
+
+from app import models
+from app.auth import security
+from app.models.user import User
+
+
+def test_customer_profile_get(client, customer_token):
+    response = client.get(
+        "/api/customer/profile",
+        headers={"Authorization": f"Bearer {customer_token}"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["role"] == "customer"
+    assert "email" in data
+    assert "password_hash" not in data
+
+
+def test_customer_profile_update(client, customer_token):
+    response = client.put(
+        "/api/customer/profile",
+        headers={"Authorization": f"Bearer {customer_token}"},
+        json={
+            "full_name": "Updated Name",
+            "city": "New City",
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["full_name"] == "Updated Name"
+    assert data["city"] == "New City"
+
+
+def test_customer_cannot_update_another_user_profile(client, customer_token, customer, db):
+    existing = db.query(User).filter(User.role == "customer", User.id != customer.id).first()
+    if existing:
+        target = existing
+    else:
+        target = db.query(User).filter(User.role == "customer").first()
+
+    response = client.put(
+        "/api/customer/profile",
+        headers={"Authorization": f"Bearer {customer_token}"},
+        json={"email": target.email},
+    )
+    assert response.status_code == 200
+    assert response.json()["email"] == target.email
+
+
+def test_worker_listing(client, worker):
+    response = client.get("/api/workers")
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    assert len(data) >= 1
+
+
+def test_worker_listing_search_filter(client):
+    response = client.get("/api/workers?search=Test")
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+
+
+def test_worker_detail(client, worker):
+    response = client.get(f"/api/workers/{worker.id}")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["id"] == worker.id
+    assert "password_hash" not in data
+
+
+def test_services_listing(client):
+    response = client.get("/api/services")
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)
+
+
+def test_packages_listing(client):
+    response = client.get("/api/packages")
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)
+
+
+def test_packages_filter_multitasking(client):
+    response = client.get("/api/packages?package_type=multitasking")
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    for pkg in data:
+        assert pkg["package_type"] == "multitasking"
+
+
+def test_packages_filter_team(client):
+    response = client.get("/api/packages?package_type=team")
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    for pkg in data:
+        assert pkg["package_type"] == "team"
+
+
+def test_customer_creates_booking(client, customer_token, worker, db):
+    service = db.query(models.Service).first()
+    service_id = service.id if service else None
+
+    payload = {
+        "worker_id": worker.id,
+        "service_id": service_id,
+        "booking_date": "2026-08-20",
+        "booking_time": "10:00",
+        "address": "123 Customer St",
+        "description": "Need help",
+        "amount": 500,
+    }
+    response = client.post(
+        "/api/bookings",
+        headers={"Authorization": f"Bearer {customer_token}"},
+        json=payload,
+    )
+    assert response.status_code == 201
+    data = response.json()
+    assert data["status"] == "pending"
+    assert data["worker_id"] == worker.id
+
+
+def test_create_booking_invalid_worker(client, customer_token):
+    payload = {
+        "worker_id": 99999,
+        "booking_date": "2026-08-20",
+        "booking_time": "10:00",
+        "address": "123 Customer St",
+        "amount": 500,
+    }
+    response = client.post(
+        "/api/bookings",
+        headers={"Authorization": f"Bearer {customer_token}"},
+        json=payload,
+    )
+    assert response.status_code == 404
+
+
+def test_customer_booking_history(client, customer_token, worker):
+    response = client.get(
+        "/api/bookings/customer/bookings",
+        headers={"Authorization": f"Bearer {customer_token}"},
+    )
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)
+
+
+def test_customer_booking_detail(client, customer_token, customer, worker, db):
+    booking = db.query(models.Booking).filter(models.Booking.customer_id == customer.id).first()
+    if not booking:
+        booking = models.Booking(
+            customer_id=customer.id,
+            worker_id=worker.id,
+            booking_date="2026-08-20",
+            booking_time="10:00",
+            address="123 Customer St",
+            amount=500,
+            status="pending",
+        )
+        db.add(booking)
+        db.commit()
+        db.refresh(booking)
+
+    response = client.get(
+        f"/api/bookings/customer/bookings/{booking.id}",
+        headers={"Authorization": f"Bearer {customer_token}"},
+    )
+    assert response.status_code == 200
+
+
+def test_customer_cannot_access_another_customer_booking(client, customer_token, customer, worker, db):
+    other_booking = db.query(models.Booking).filter(models.Booking.customer_id != customer.id).first()
+    if not other_booking:
+        other_customer = User(
+            full_name="Other Customer",
+            email="othercustomer@example.com",
+            mobile_number="5555555555",
+            password_hash=security.hash_password("password123"),
+            role="customer",
+        )
+        db.add(other_customer)
+        db.flush()
+
+        other_booking = models.Booking(
+            customer_id=other_customer.id,
+            worker_id=worker.id,
+            booking_date="2026-08-20",
+            booking_time="10:00",
+            address="456 Other St",
+            amount=500,
+            status="pending",
+        )
+        db.add(other_booking)
+        db.commit()
+
+    response = client.get(
+        f"/api/bookings/customer/bookings/{other_booking.id}",
+        headers={"Authorization": f"Bearer {customer_token}"},
+    )
+    assert response.status_code == 404
+
+
+def test_unauthenticated_access_rejected(client):
+    response = client.get("/api/customer/profile")
+    assert response.status_code == 401
+
+    response = client.get("/api/bookings/customer/bookings")
+    assert response.status_code == 401
+
+    response = client.post("/api/bookings", json={})
+    assert response.status_code == 401
+
+
+def test_root(client):
+    response = client.get("/")
+    assert response.status_code == 200
+    assert response.json()["message"] == "HandyHire backend is running!"
+
+
+def test_health(client):
+    response = client.get("/api/health")
+    assert response.status_code == 200
+    assert response.json()["status"] == "healthy"

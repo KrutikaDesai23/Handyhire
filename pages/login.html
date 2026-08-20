@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="HandyHire - Log in to your account." />
+    <meta name="theme-color" content="#68865C" />
+    <title>Log In | HandyHire</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="../css/customer-register.css" />
+</head>
+<body>
+    <main class="register-screen" role="main">
+        <p class="brand-tagline" aria-hidden="true">welcome back</p>
+
+        <section class="register-card" aria-labelledby="cardTitle">
+            <h1 id="cardTitle" class="card-title">Log In</h1>
+
+            <form id="loginForm" class="register-form" novalidate>
+                <div class="form-group">
+                    <label for="email" class="form-label">Email</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        class="form-input"
+                        placeholder="Enter your email"
+                        autocomplete="email"
+                        required
+                        aria-required="true"
+                        aria-describedby="emailError"
+                    />
+                    <span class="form-error" id="emailError" role="alert" aria-live="polite"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        class="form-input"
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
+                        required
+                        aria-required="true"
+                        aria-describedby="passwordError"
+                    />
+                    <span class="form-error" id="passwordError" role="alert" aria-live="polite"></span>
+                </div>
+
+                <button type="submit" class="next-btn" aria-label="Log in">
+                    Log In
+                </button>
+
+                <p style="text-align: center; margin-top: 16px; font-size: 14px;">
+                    Don't have an account? <a href="customer-register.html" style="color: #68865C; text-decoration: underline; font-weight: 600;">Customer</a> &middot; <a href="provider-register-step1.html" style="color: #68865C; text-decoration: underline; font-weight: 600;">Provider</a>
+                </p>
+            </form>
+        </section>
+    </main>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/login.js"></script>
+</body>
+</html>

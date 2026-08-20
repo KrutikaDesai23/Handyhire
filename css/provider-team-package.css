@@ -1,0 +1,586 @@
+/* =========================================================
+   HandyHire - Team Packages Stylesheet
+   Narrow mobile-app layout. Olive top bar with the project
+   hammer/tools logo on the left. Below the header, a
+   back-arrow + search row, a Team Size filter, and a
+   vertical list of green rounded package cards.
+   ========================================================= */
+
+/* ---------- CSS Reset ---------- */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* ---------- Root Variables ---------- */
+:root {
+    --color-bg: #f5f7f5;
+    --color-surface: #ffffff;
+    --color-primary: #68865C;
+    --color-primary-dark: #566f4b;
+    --color-text: #1a1a1a;
+    --color-text-muted: #6a6a6a;
+    --color-border: #e2e6e2;
+
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --radius-card: 14px;
+    --radius-pill: 999px;
+    --shadow-card: 0 4px 14px rgba(0, 0, 0, 0.08);
+    --transition: 300ms ease;
+}
+
+/* ---------- Global ---------- */
+html,
+body {
+    width: 100%;
+    min-height: 100vh;
+    font-family: var(--font-family);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+}
+
+body {
+    overflow-x: hidden;
+}
+
+button,
+select {
+    font-family: inherit;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+ul {
+    list-style: none;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* =========================================================
+   TOP BAR
+   ========================================================= */
+.pkg-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--color-primary);
+    color: #ffffff;
+    padding: 12px 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.brand-mark {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: background-color var(--transition);
+}
+
+.brand-mark svg {
+    display: block;
+    color: inherit;
+}
+
+.brand-mark:hover {
+    background-color: rgba(255, 255, 255, 0.28);
+}
+
+.brand-mark:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.7);
+    outline-offset: 2px;
+}
+
+.icon-btn-spacer {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+}
+
+/* =========================================================
+   NARROW MOBILE-APP LAYOUT
+   ========================================================= */
+.pkg-page {
+    width: 100%;
+    max-width: 460px;
+    margin: 0 auto;
+    padding: 14px 14px 28px;
+}
+
+/* =========================================================
+   BACK + SEARCH ROW
+   ========================================================= */
+.back-search-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0 12px;
+}
+
+.back-btn {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: transparent;
+    color: var(--color-text);
+    border-radius: 50%;
+    transition: background-color var(--transition);
+}
+
+.back-btn:hover {
+    background-color: rgba(104, 134, 92, 0.12);
+}
+
+.back-btn:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.back-icon {
+    font-size: 20px;
+    line-height: 1;
+}
+
+.search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+}
+
+.search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    line-height: 1;
+    color: var(--color-text-muted);
+    pointer-events: none;
+}
+
+.search-input {
+    width: 100%;
+    height: 42px;
+    padding: 0 14px 0 40px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--color-text);
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    transition:
+        border-color var(--transition),
+        box-shadow var(--transition);
+    -webkit-appearance: none;
+}
+
+.search-input::placeholder {
+    color: var(--color-text-muted);
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(104, 134, 92, 0.18);
+}
+
+/* =========================================================
+   TEAM SIZE FILTER
+   ========================================================= */
+.filter-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 0 14px;
+}
+
+.filter-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.select-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+}
+
+.team-select {
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    height: 40px;
+    padding: 0 36px 0 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text);
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition:
+        border-color var(--transition),
+        box-shadow var(--transition);
+}
+
+.team-select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(104, 134, 92, 0.18);
+}
+
+.team-select option {
+    color: var(--color-text);
+    background-color: var(--color-surface);
+}
+
+.select-caret {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: var(--color-text-muted);
+    pointer-events: none;
+}
+
+/* =========================================================
+   PACKAGE LIST (vertical stack of cards)
+   ========================================================= */
+.packages-section {
+    padding: 0;
+}
+
+.package-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 0;
+    margin: 0;
+}
+
+/* ---------- Package card ---------- */
+.package-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background-color: var(--color-primary);
+    color: #ffffff;
+    border-radius: var(--radius-card);
+    padding: 14px 16px;
+    box-shadow: var(--shadow-card);
+    transition:
+        background-color var(--transition),
+        box-shadow var(--transition),
+        transform var(--transition);
+}
+
+.package-card:hover {
+    background-color: var(--color-primary-dark);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.10);
+    transform: translateY(-1px);
+}
+
+.package-card:focus-within {
+    outline: 2px solid var(--color-primary-dark);
+    outline-offset: 2px;
+}
+
+.package-avatar {
+    flex-shrink: 0;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.22);
+    background-size: cover;
+    background-position: center;
+    border: 2px solid var(--color-surface);
+}
+
+.package-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.package-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.3;
+    margin-bottom: 4px;
+    word-break: break-word;
+}
+
+.package-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.22);
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    line-height: 1.2;
+}
+
+.package-meta .meta-label {
+    opacity: 0.85;
+    font-weight: 500;
+}
+
+/* Whole-team card extras: description, rating, member list, price, CTA */
+.package-description {
+    font-size: 12px;
+    font-weight: 400;
+    color: #ffffff;
+    opacity: 0.92;
+    line-height: 1.4;
+    margin: 0 0 6px;
+    word-break: break-word;
+}
+
+.package-rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0 0 8px;
+}
+
+.package-rating .stars {
+    color: var(--color-rating);
+    letter-spacing: 1px;
+    font-size: 13px;
+    line-height: 1;
+}
+
+.package-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #ffffff;
+    opacity: 0.92;
+    margin: 4px 0 4px;
+    line-height: 1.2;
+}
+
+.package-members {
+    list-style: disc;
+    padding-left: 18px;
+    margin: 0 0 8px;
+    color: #ffffff;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.package-members li {
+    word-break: break-word;
+}
+
+.package-price-row {
+    display: flex;
+    align-items: center;
+    margin: 4px 0 10px;
+}
+
+.package-price-label {
+    display: inline-block;
+    padding: 4px 10px;
+    background-color: rgba(255, 255, 255, 0.22);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: var(--radius-pill);
+    line-height: 1.2;
+}
+
+.package-book-cta {
+    align-self: flex-start;
+    margin-top: 4px;
+    padding: 10px 18px;
+    background-color: var(--color-surface);
+    color: var(--color-primary);
+    border: none;
+    border-radius: var(--radius-pill);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+        background-color var(--transition),
+        color var(--transition),
+        transform var(--transition),
+        box-shadow var(--transition);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.10);
+}
+
+.package-book-cta:hover {
+    background-color: #f0f4ee;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.14);
+}
+
+.package-book-cta:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+}
+
+/* ---------- Empty state ---------- */
+.empty-state {
+    text-align: center;
+    padding: 32px 16px;
+    color: var(--color-text-muted);
+    font-size: 14px;
+}
+
+/* =========================================================
+   Responsive Breakpoints
+   ========================================================= */
+
+/* ---------- Small phones (≤ 374px) ---------- */
+@media (max-width: 374px) {
+    .pkg-topbar {
+        padding: 10px 12px;
+    }
+
+    .pkg-page {
+        padding: 12px 12px 24px;
+    }
+
+    .back-search-row {
+        gap: 8px;
+    }
+
+    .back-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    .back-icon {
+        font-size: 18px;
+    }
+
+    .search-input {
+        height: 40px;
+        font-size: 12px;
+    }
+
+    .filter-label {
+        font-size: 11px;
+    }
+
+    .team-select {
+        height: 38px;
+        font-size: 12px;
+    }
+
+    .package-card {
+        padding: 12px 14px;
+        gap: 12px;
+    }
+
+    .package-avatar {
+        width: 46px;
+        height: 46px;
+    }
+
+    .package-name {
+        font-size: 14px;
+    }
+}
+
+/* ---------- Larger phones (≥ 414px) ---------- */
+@media (min-width: 414px) {
+    .package-avatar {
+        width: 56px;
+        height: 56px;
+    }
+}
+
+/* ---------- Tablets (≥ 768px) ---------- */
+@media (min-width: 768px) {
+    .pkg-topbar {
+        padding: 14px 24px;
+    }
+
+    .pkg-page {
+        max-width: 520px;
+        padding: 20px 24px 36px;
+    }
+
+    .search-input {
+        height: 46px;
+        font-size: 14px;
+    }
+
+    .filter-label {
+        font-size: 13px;
+    }
+
+    .team-select {
+        height: 44px;
+        font-size: 14px;
+    }
+
+    .package-card {
+        padding: 16px 18px;
+        gap: 16px;
+    }
+
+    .package-avatar {
+        width: 60px;
+        height: 60px;
+    }
+
+    .package-name {
+        font-size: 16px;
+    }
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+    .package-card,
+    .package-card:hover,
+    .search-input,
+    .team-select,
+    .brand-mark,
+    .back-btn {
+        transition: none;
+        transform: none;
+    }
+}

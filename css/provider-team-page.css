@@ -1,0 +1,506 @@
+/* =========================================================
+   HandyHire - Team Page Stylesheet
+   Mobile-first: team header + vertical member cards +
+   expandable arrow button at the bottom
+   ========================================================= */
+
+/* ---------- CSS Reset ---------- */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* ---------- Root Variables ---------- */
+:root {
+    --color-bg: #f5f7f5;
+    --color-surface: #ffffff;
+    --color-primary: #68865C;
+    --color-primary-dark: #566f4b;
+    --color-text: #1a1a1a;
+    --color-text-muted: #6a6a6a;
+    --color-border: #e2e6e2;
+    --color-rating: #f5a623;
+
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --radius-card: 14px;
+    --radius-pill: 999px;
+    --shadow-card: 0 4px 14px rgba(0, 0, 0, 0.08);
+    --shadow-elevated: 0 10px 24px rgba(0, 0, 0, 0.12);
+    --transition: 300ms ease;
+}
+
+/* ---------- Global ---------- */
+html,
+body {
+    width: 100%;
+    min-height: 100vh;
+    font-family: var(--font-family);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+}
+
+body {
+    overflow-x: hidden;
+}
+
+button {
+    font-family: inherit;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* =========================================================
+   TOP BAR
+   ========================================================= */
+.team-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    padding: 12px 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.team-topbar-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.icon-btn-spacer {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+}
+
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: 40px;
+    height: 40px;
+    justify-content: center;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--color-text);
+    font-size: 14px;
+    font-weight: 600;
+    transition:
+        background-color var(--transition),
+        color var(--transition);
+    flex-shrink: 0;
+}
+
+.back-btn:hover {
+    background-color: rgba(104, 134, 92, 0.12);
+    color: var(--color-primary);
+}
+
+.back-btn:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.back-icon {
+    font-size: 18px;
+    line-height: 1;
+}
+
+.back-label {
+    display: none;
+}
+
+/* =========================================================
+   PAGE LAYOUT
+   ========================================================= */
+.team-page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 20px 16px 32px;
+}
+
+/* =========================================================
+   TEAM HEADER
+   ========================================================= */
+.team-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 0 18px;
+}
+
+.team-avatar {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background-color: var(--color-primary);
+    background-size: cover;
+    background-position: center;
+    border: 4px solid var(--color-surface);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14);
+    margin-bottom: 14px;
+}
+
+.team-name {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.team-rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.team-rating .stars {
+    color: var(--color-rating);
+    font-size: 14px;
+    letter-spacing: 1px;
+    line-height: 1;
+}
+
+.team-rating .rating-value {
+    color: var(--color-text);
+}
+
+/* =========================================================
+   MEMBER CARDS (vertical list)
+   ========================================================= */
+.members-section {
+    margin-top: 8px;
+}
+
+.members-help {
+    font-size: 12px;
+    color: var(--color-text-muted);
+    margin: 4px 2px 10px;
+    line-height: 1.4;
+}
+
+.members-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* =========================================================
+   BOOK WHOLE TEAM CTA
+   ========================================================= */
+.book-cta-section {
+    margin-top: 12px;
+    display: flex;
+    justify-content: center;
+}
+
+.book-whole-team-btn {
+    width: 100%;
+    max-width: 320px;
+    height: 54px;
+    background-color: var(--color-primary);
+    color: #ffffff;
+    border: none;
+    border-radius: var(--radius-pill);
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(104, 134, 92, 0.35);
+    transition:
+        background-color var(--transition),
+        transform var(--transition),
+        box-shadow var(--transition);
+}
+
+.book-whole-team-btn:hover {
+    background-color: var(--color-primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(104, 134, 92, 0.45);
+}
+
+.book-whole-team-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 12px rgba(104, 134, 92, 0.35);
+}
+
+.book-whole-team-btn:focus-visible {
+    outline: 3px solid rgba(104, 134, 92, 0.45);
+    outline-offset: 3px;
+}
+
+.member-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background-color: var(--color-primary);
+    color: #ffffff;
+    border-radius: var(--radius-card);
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow-card);
+    cursor: pointer;
+    transition:
+        transform var(--transition),
+        box-shadow var(--transition),
+        background-color var(--transition);
+}
+
+.member-card:last-child {
+    margin-bottom: 0;
+}
+
+.member-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
+    background-color: var(--color-primary-dark);
+}
+
+.member-card:focus-visible {
+    outline: 2px solid var(--color-primary-dark);
+    outline-offset: 2px;
+}
+
+.member-avatar {
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.22);
+    background-size: cover;
+    background-position: center;
+    border: 2px solid var(--color-surface);
+}
+
+.member-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.member-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.3;
+    margin-bottom: 2px;
+    word-break: break-word;
+}
+
+.member-occupation {
+    font-size: 12px;
+    font-weight: 400;
+    color: #ffffff;
+    opacity: 0.92;
+    line-height: 1.3;
+}
+
+/* Hidden extra members, revealed when the arrow is pressed */
+.member-card.is-extra {
+    display: none;
+}
+
+.members-list.is-expanded .member-card.is-extra {
+    display: flex;
+}
+
+/* =========================================================
+   EXPAND ARROW
+   ========================================================= */
+.expand-section {
+    margin-top: 18px;
+    display: flex;
+    justify-content: center;
+}
+
+.expand-btn {
+    width: 52px;
+    height: 52px;
+    border: none;
+    border-radius: 50%;
+    background-color: var(--color-primary);
+    color: #ffffff;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 18px rgba(104, 134, 92, 0.35);
+    transition:
+        background-color var(--transition),
+        transform var(--transition),
+        box-shadow var(--transition);
+}
+
+.expand-btn:hover {
+    background-color: var(--color-primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(104, 134, 92, 0.45);
+}
+
+.expand-btn:active {
+    transform: translateY(0);
+}
+
+.expand-btn:focus-visible {
+    outline: 3px solid rgba(104, 134, 92, 0.45);
+    outline-offset: 3px;
+}
+
+.expand-icon {
+    font-size: 22px;
+    line-height: 1;
+    transition: transform var(--transition);
+}
+
+.expand-btn[aria-expanded="true"] .expand-icon {
+    transform: rotate(180deg);
+}
+
+/* =========================================================
+   Responsive Breakpoints
+   ========================================================= */
+
+/* ---------- Small phones (≤ 374px) ---------- */
+@media (max-width: 374px) {
+    .team-topbar {
+        padding: 10px 12px;
+    }
+
+    .team-page {
+        padding: 16px 12px 28px;
+    }
+
+    .team-avatar {
+        width: 92px;
+        height: 92px;
+    }
+
+    .team-name {
+        font-size: 20px;
+    }
+
+    .member-card {
+        padding: 12px 14px;
+        gap: 12px;
+    }
+
+    .member-avatar {
+        width: 48px;
+        height: 48px;
+    }
+
+    .member-name {
+        font-size: 14px;
+    }
+
+    .member-occupation {
+        font-size: 11px;
+    }
+
+    .expand-btn {
+        width: 48px;
+        height: 48px;
+    }
+
+    .expand-icon {
+        font-size: 20px;
+    }
+}
+
+/* ---------- Larger phones (≥ 414px) ---------- */
+@media (min-width: 414px) {
+    .back-btn {
+        width: auto;
+        padding: 0 12px 0 8px;
+    }
+
+    .back-label {
+        display: inline;
+    }
+
+    .team-avatar {
+        width: 124px;
+        height: 124px;
+    }
+}
+
+/* ---------- Tablets (≥ 768px) ---------- */
+@media (min-width: 768px) {
+    .team-topbar {
+        padding: 14px 24px;
+    }
+
+    .team-page {
+        padding: 28px 24px 40px;
+    }
+
+    .team-avatar {
+        width: 140px;
+        height: 140px;
+    }
+
+    .team-name {
+        font-size: 26px;
+    }
+
+    .team-rating {
+        font-size: 14px;
+        padding: 8px 16px;
+    }
+
+    .member-card {
+        padding: 16px 18px;
+    }
+
+    .member-avatar {
+        width: 64px;
+        height: 64px;
+    }
+
+    .member-name {
+        font-size: 16px;
+    }
+
+    .member-occupation {
+        font-size: 13px;
+    }
+}
+
+/* ---------- Desktops (≥ 1024px) ---------- */
+@media (min-width: 1024px) {
+    .team-page {
+        padding: 36px 24px 56px;
+    }
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+    .member-card,
+    .member-card:hover,
+    .expand-btn,
+    .expand-btn:hover,
+    .expand-btn:active,
+    .expand-icon,
+    .back-btn {
+        transition: none;
+        transform: none;
+    }
+}

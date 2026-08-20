@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="HandyHire - Meet the team behind a service package." />
+    <meta name="theme-color" content="#68865C" />
+    <title>Team | HandyHire</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="../css/team-page.css" />
+</head>
+<body>
+    <!-- ========== TOP BAR ========== -->
+    <header class="team-topbar" role="banner">
+        <a href="team-package.html" class="back-btn" aria-label="Back to team packages">
+            <span class="back-icon" aria-hidden="true">&#8592;</span>
+            <span class="back-label">Back</span>
+        </a>
+        <h1 class="team-topbar-title">Team</h1>
+        <span class="icon-btn-spacer" aria-hidden="true"></span>
+    </header>
+
+    <main class="team-page" role="main">
+        <!-- ========== TEAM HEADER ========== -->
+        <section class="team-header" aria-label="Team summary">
+            <div class="team-avatar" id="teamAvatar" aria-hidden="true"></div>
+            <h2 class="team-name" id="teamName">BuildRight Crew</h2>
+            <div class="team-rating" id="teamRating" aria-label="Team rated 4.7 out of 5">
+                <span class="stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9734;</span>
+                <span class="rating-value">4.7</span>
+            </div>
+        </section>
+
+        <!-- ========== BOOK WHOLE TEAM CTA ========== -->
+        <section class="book-cta-section" aria-label="Book the whole team">
+            <button type="button" class="book-whole-team-btn" id="bookWholeTeamBtn">
+                BOOK WHOLE TEAM
+            </button>
+        </section>
+
+        <!-- ========== MEMBER LIST ========== -->
+        <section class="members-section" aria-label="Team members">
+            <p class="members-help">Tap a member to view their details. Selecting a member does not book them individually.</p>
+            <ul class="members-list" id="membersList">
+                <!-- Member cards rendered by js/team-page.js -->
+            </ul>
+        </section>
+
+        <!-- ========== EXPANDABLE ARROW ========== -->
+        <section class="expand-section" aria-label="Show more members">
+            <button
+                type="button"
+                class="expand-btn"
+                id="expandBtn"
+                aria-expanded="false"
+                aria-controls="membersList"
+                aria-label="Show more team members"
+            >
+                <span class="expand-icon" aria-hidden="true">&#9662;</span>
+            </button>
+        </section>
+    </main>
+
+    <script src="../js/team-page.js"></script>
+</body>
+</html>

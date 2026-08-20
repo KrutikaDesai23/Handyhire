@@ -1,0 +1,142 @@
+/* =========================================================
+   HandyHire - Responsive Stylesheet
+   Breakpoints: 320 / 375 / 390 / 414 / 768 / 1024 / 1440
+   ========================================================= */
+
+/* ---------- Small phones (320px - 374px) ---------- */
+@media (max-width: 374px) {
+    .welcome-screen {
+        padding: 50px 0 40px;
+    }
+
+    .welcome-title {
+        font-size: 42px;
+    }
+
+    .welcome-subtitle {
+        font-size: 12px;
+    }
+
+    .action-btn {
+        width: 86%;
+        height: 60px;
+        font-size: 13px;
+    }
+
+    .welcome-actions {
+        gap: 28px;
+        margin-bottom: 30px;
+    }
+}
+
+/* ---------- Standard phones (375px - 413px) ---------- */
+@media (min-width: 375px) and (max-width: 413px) {
+    .welcome-title {
+        font-size: 46px;
+    }
+
+    .action-btn {
+        height: 64px;
+    }
+}
+
+/* ---------- Larger phones (414px - 767px) ---------- */
+@media (min-width: 414px) and (max-width: 767px) {
+    .welcome-title {
+        font-size: 50px;
+    }
+
+    .action-btn {
+        width: 80%;
+        height: 68px;
+        font-size: 15px;
+    }
+}
+
+/* ---------- Tablets (768px - 1023px) ---------- */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .welcome-screen {
+        padding: 90px 0 80px;
+    }
+
+    .welcome-title {
+        font-size: 64px;
+    }
+
+    .welcome-subtitle {
+        font-size: 15px;
+    }
+
+    .action-btn {
+        width: 60%;
+        max-width: 480px;
+        height: 76px;
+        font-size: 16px;
+    }
+
+    .welcome-actions {
+        gap: 40px;
+    }
+}
+
+/* ---------- Small desktops / laptops (1024px - 1439px) ---------- */
+@media (min-width: 1024px) and (max-width: 1439px) {
+    .welcome-screen {
+        padding: 110px 0 100px;
+    }
+
+    .welcome-title {
+        font-size: 72px;
+    }
+
+    .welcome-subtitle {
+        font-size: 16px;
+    }
+
+    .action-btn {
+        width: 40%;
+        max-width: 420px;
+        height: 80px;
+        font-size: 16px;
+    }
+
+    .welcome-actions {
+        gap: 45px;
+    }
+}
+
+/* ---------- Large desktops (1440px and up) ---------- */
+@media (min-width: 1440px) {
+    .welcome-screen {
+        padding: 130px 0 110px;
+    }
+
+    .welcome-title {
+        font-size: 80px;
+    }
+
+    .welcome-subtitle {
+        font-size: 18px;
+    }
+
+    .action-btn {
+        width: 30%;
+        max-width: 460px;
+        height: 84px;
+        font-size: 17px;
+    }
+
+    .welcome-actions {
+        gap: 50px;
+    }
+}
+
+/* ---------- Reduced motion preference ---------- */
+@media (prefers-reduced-motion: reduce) {
+    .action-btn,
+    .action-btn:hover,
+    .action-btn:active {
+        transition: none;
+        transform: none;
+    }
+}

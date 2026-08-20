@@ -1,0 +1,568 @@
+/* =========================================================
+   HandyHire - Customer Profile Stylesheet
+   Premium mobile-app layout with olive theme,
+   white rounded cards, soft shadows, and Inter typography.
+   ========================================================= */
+
+/* ---------- CSS Reset ---------- */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* ---------- Root Variables ---------- */
+:root {
+    --color-bg: #f5f7f5;
+    --color-surface: #ffffff;
+    --color-primary: #68865C;
+    --color-primary-dark: #566f4b;
+    --color-text: #1a1a1a;
+    --color-text-muted: #6a6a6a;
+    --color-border: #e2e6e2;
+    --color-accent-bg: #f3f6f3;
+    --color-danger: #c0392b;
+    --color-danger-dark: #a93226;
+    --color-rating: #f4b400;
+
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --radius-card: 18px;
+    --radius-pill: 999px;
+    --shadow-card: 0 4px 14px rgba(0, 0, 0, 0.06);
+    --shadow-elevated: 0 14px 32px rgba(0, 0, 0, 0.10);
+    --transition: 300ms ease;
+}
+
+/* ---------- Global ---------- */
+html,
+body {
+    width: 100%;
+    min-height: 100vh;
+    font-family: var(--font-family);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+}
+
+body {
+    overflow-x: hidden;
+}
+
+button,
+select {
+    font-family: inherit;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+ul {
+    list-style: none;
+}
+
+/* =========================================================
+   TOP BAR
+   ========================================================= */
+.profile-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--color-primary);
+    color: #ffffff;
+    padding: 12px 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.brand-mark {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #ffffff;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    text-decoration: none;
+}
+.brand-logo {
+    width: 90%;
+    height: 90%;
+    object-fit: cover;
+    border-radius: 0%;
+    display: block;
+}
+
+
+.brand-mark svg {
+    display: block;
+    color: inherit;
+}
+
+.brand-mark:hover {
+    background-color: rgba(255, 255, 255, 0.28);
+}
+
+.brand-mark:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.7);
+    outline-offset: 2px;
+}
+
+.icon-btn-spacer {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+}
+
+.app-nav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    justify-content: center;
+}
+
+.nav-tab {
+    padding: 8px 14px;
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.78);
+    text-decoration: none;
+    border-radius: var(--radius-pill);
+    transition:
+        background-color var(--transition),
+        color var(--transition);
+}
+
+.nav-tab:hover {
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-tab.is-active {
+    color: var(--color-primary);
+    background-color: #ffffff;
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.nav-tab:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.7);
+    outline-offset: 2px;
+}
+
+/* =========================================================
+   PAGE LAYOUT
+   ========================================================= */
+.profile-page {
+    width: 100%;
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 20px 16px 32px;
+}
+
+/* =========================================================
+   PROFILE HERO CARD
+   ========================================================= */
+.profile-hero-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    background-color: var(--color-surface);
+    border-radius: var(--radius-card);
+    padding: 28px 22px 26px;
+    box-shadow: var(--shadow-elevated);
+    margin-bottom: 16px;
+}
+
+.profile-hero-avatar {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background-color: #e7ebe7;
+    background-size: cover;
+    background-position: center;
+    margin: 0 auto 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
+}
+
+.profile-hero-name {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--color-text);
+    text-align: center;
+    line-height: 1.2;
+    margin-bottom: 10px;
+}
+
+.profile-hero-badge {
+    display: inline-block;
+    padding: 5px 14px;
+    background-color: #e8f5e9;
+    color: var(--color-primary-dark);
+    border-radius: var(--radius-pill);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.profile-hero-tagline {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+    max-width: 360px;
+}
+
+/* =========================================================
+   QUICK STATS
+   ========================================================= */
+.stats-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.stat-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    padding: 16px 12px;
+    box-shadow: var(--shadow-card);
+    transition:
+        box-shadow var(--transition),
+        transform var(--transition);
+}
+
+.stat-card:hover {
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+}
+
+.stat-value {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--color-text);
+    line-height: 1.1;
+}
+
+.stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--color-text-muted);
+}
+
+/* =========================================================
+   SECTIONS (Personal Info / Account)
+   ========================================================= */
+.profile-section {
+    margin-bottom: 16px;
+}
+
+.section-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--color-primary);
+    margin: 0 0 10px;
+    padding: 0 4px;
+}
+
+/* =========================================================
+   INFO CARD LIST (Personal Information)
+   ========================================================= */
+.info-card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.info-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background-color: var(--color-accent-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    padding: 14px 16px;
+    transition:
+        background-color var(--transition),
+        box-shadow var(--transition);
+}
+
+.info-card:hover {
+    background-color: #e8ede8;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.info-card-icon {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    background-color: rgba(104, 134, 92, 0.15);
+    color: var(--color-primary);
+    border-radius: 50%;
+}
+
+.info-card-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.info-card-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--color-text-muted);
+    line-height: 1.2;
+    margin-bottom: 2px;
+}
+
+.info-card-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text);
+    line-height: 1.35;
+    word-break: break-word;
+}
+
+/* =========================================================
+    MEMBER CARD
+    ========================================================= */
+.member-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background-color: #e8f5e9;
+    border: 1px solid #c8e6c9;
+    border-radius: var(--radius-card);
+    padding: 16px 18px;
+    margin-bottom: 16px;
+}
+
+.member-icon {
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    background-color: rgba(104, 134, 92, 0.2);
+    color: var(--color-primary-dark);
+    border-radius: 50%;
+}
+
+.member-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 2px;
+}
+
+.member-desc {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--color-text-muted);
+    line-height: 1.4;
+}
+
+/* =========================================================
+   SIGN OUT
+   ========================================================= */
+.signout-btn {
+    display: block;
+    width: 100%;
+    height: 54px;
+    background-color: transparent;
+    color: var(--color-danger);
+    border: 2px solid var(--color-danger);
+    border-radius: var(--radius-pill);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    cursor: pointer;
+    transition:
+        background-color var(--transition),
+        color var(--transition),
+        transform var(--transition),
+        box-shadow var(--transition);
+}
+
+.signout-btn:hover {
+    background-color: var(--color-danger);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(192, 57, 43, 0.30);
+}
+
+.signout-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 12px rgba(192, 57, 43, 0.20);
+}
+
+.signout-btn:focus-visible {
+    outline: 3px rgba(192, 57, 43, 0.45);
+    outline-offset: 3px;
+}
+
+/* =========================================================
+   RESPONSIVE BREAKPOINTS
+   ========================================================= */
+
+/* ---------- Small phones (≤ 374px) ---------- */
+@media (max-width: 374px) {
+    .profile-topbar {
+        padding: 10px 12px;
+    }
+
+    .nav-tab {
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+
+    .profile-page {
+        padding: 16px 12px 28px;
+    }
+
+    .profile-hero-card {
+        padding: 22px 16px 20px;
+    }
+
+    .profile-hero-avatar {
+        width: 90px;
+        height: 90px;
+    }
+
+    .profile-hero-name {
+        font-size: 19px;
+    }
+
+    .stats-section {
+        gap: 8px;
+    }
+
+    .stat-card {
+        padding: 14px 10px;
+    }
+
+    .stat-value {
+        font-size: 18px;
+    }
+
+    .info-card {
+        padding: 12px;
+        gap: 10px;
+    }
+
+    .info-card-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 15px;
+    }
+
+    .info-card-value {
+        font-size: 12px;
+    }
+
+    .signout-btn {
+        height: 50px;
+        font-size: 15px;
+    }
+}
+
+/* ---------- Larger phones (≥ 414px) ---------- */
+@media (min-width: 414px) {
+    .profile-hero-avatar {
+        width: 120px;
+        height: 120px;
+    }
+
+    .profile-hero-name {
+        font-size: 24px;
+    }
+}
+
+/* ---------- Tablets (≥ 768px) ---------- */
+@media (min-width: 768px) {
+    .profile-topbar {
+        padding: 14px 24px;
+    }
+
+    .profile-page {
+        max-width: 540px;
+        padding: 28px 24px 40px;
+    }
+
+    .profile-hero-card {
+        padding: 32px 28px 28px;
+    }
+
+    .profile-hero-avatar {
+        width: 130px;
+        height: 130px;
+    }
+
+    .profile-hero-name {
+        font-size: 26px;
+    }
+
+    .stat-card {
+        padding: 18px 14px;
+    }
+
+    .stat-value {
+        font-size: 22px;
+    }
+
+    .info-card {
+        padding: 16px 18px;
+    }
+
+    .info-card-value {
+        font-size: 15px;
+    }
+
+    .signout-btn {
+        height: 58px;
+        font-size: 17px;
+    }
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+    .stat-card,
+    .stat-card:hover,
+    .signout-btn,
+    .signout-btn:hover,
+    .brand-mark,
+    .nav-tab {
+        transition: none;
+        transform: none;
+    }
+}

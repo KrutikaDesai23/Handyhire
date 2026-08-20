@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="HandyHire - Find and book trusted service professionals near you." />
+    <meta name="theme-color" content="#68865C" />
+    <title>Home | HandyHire</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="../css/home.css" />
+</head>
+<body>
+    <!-- ========== HEADER ========== -->
+    <header class="app-header" role="banner">
+        <a href="home.html" class="brand-mark" aria-label="HandyHire home">
+    <img src="../Images/Hamor.jpeg" alt="HandyHire Logo" class="brand-logo">
+</a>
+        <nav class="app-nav" aria-label="Primary navigation">
+            <a href="home.html" class="nav-tab is-active" aria-current="page">Home</a>
+            <a href="activity.html" class="nav-tab" id="activityTab">Activity</a>
+            <a href="profile.html" class="nav-tab" id="profileTab">Profile</a>
+        </nav>
+
+        <span class="icon-btn-spacer" aria-hidden="true"></span>
+    </header>
+
+    <main class="app-main" role="main">
+        <!-- ========== HERO BANNER ========== -->
+        <section class="hero-banner" aria-label="Promotional banner">
+            <div class="hero-image" role="img" aria-label="HandyHire promotional banner"></div>
+        </section>
+
+        <!-- ========== FILTER CHIPS ========== -->
+        <section class="filter-chips" aria-label="Service filters">
+            <button type="button" class="chip is-active" data-filter="all" aria-pressed="true">All</button>
+            <button type="button" class="chip" data-filter="pre-booking" data-target="home-prebooking.html">Pre-booking</button>
+            <button type="button" class="chip" data-filter="on-spot" data-target="home-onspot.html">On-spot</button>
+            <button type="button" class="chip" data-filter="near-me" data-target="home-nearme.html">Near me</button>
+            <button type="button" class="chip" data-filter="budget" data-target="home-budget.html">Budget</button>
+        </section>
+
+        <!-- ========== SERVICE GRID ========== -->
+        <section class="service-section" aria-labelledby="workersHeading">
+            <h2 id="workersHeading" class="visually-hidden">Available service professionals</h2>
+
+            <div class="service-grid" id="serviceGrid">
+                <!-- Cards are rendered by js/home.js -->
+            </div>
+        </section>
+
+        <!-- ========== PACKAGE TILES ========== -->
+        <section class="pkg-section" aria-label="Service packages">
+            <a href="multitasking-package.html" class="pkg-tile" aria-label="Open multitasking packages">
+                <span class="pkg-tile-text">
+                    <span class="pkg-tile-title">Multitasking packages</span>
+                    <span class="pkg-tile-subtitle">Browse multi-skill professionals</span>
+                </span>
+                <span class="pkg-tile-arrow" aria-hidden="true">&#8250;</span>
+            </a>
+            <a href="team-package.html" class="pkg-tile" aria-label="Open team packages">
+                <span class="pkg-tile-text">
+                    <span class="pkg-tile-title">Team packages</span>
+                    <span class="pkg-tile-subtitle">Hire a coordinated team for bigger jobs</span>
+                </span>
+                <span class="pkg-tile-arrow" aria-hidden="true">&#8250;</span>
+            </a>
+        </section>
+
+        
+    </main>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/worker-browse.js"></script>
+    <script src="../js/home.js"></script>
+</body>
+</html>
