@@ -39,6 +39,7 @@ def list_worker_bookings(
                 created_at=booking.created_at.isoformat() if booking.created_at else None,
                 worker_name=current_user.full_name,
                 service_name=service.name if service else None,
+                customer_name=customer.full_name if customer else None,
             )
         )
     return response
@@ -71,6 +72,7 @@ def get_worker_booking(
         created_at=booking.created_at.isoformat() if booking.created_at else None,
         worker_name=current_user.full_name,
         service_name=service.name if service else None,
+        customer_name=customer.full_name if customer else None,
     )
 
 
@@ -120,4 +122,5 @@ def update_worker_booking_status(
         created_at=booking.created_at.isoformat() if booking.created_at else None,
         worker_name=current_user.full_name,
         service_name=service.name if service else None,
+        customer_name=customer.full_name if customer else None,
     )

@@ -366,6 +366,53 @@ a {
     font-size: 14px;
 }
 
+/* ---------- Booking actions ---------- */
+.booking-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.booking-action-btn {
+    flex: 1;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: opacity var(--transition);
+    color: #ffffff;
+}
+
+.booking-action-btn:hover {
+    opacity: 0.92;
+}
+
+.booking-action-btn:active {
+    opacity: 0.85;
+}
+
+.booking-action-btn:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.7);
+    outline-offset: 2px;
+}
+
+.booking-action-btn--accept,
+.booking-action-btn--complete {
+    background-color: #ffffff;
+    color: var(--color-primary);
+}
+
+.booking-action-btn--reject,
+.booking-action-btn--cancel {
+    background-color: rgba(192, 57, 43, 0.9);
+    color: #ffffff;
+}
+
 /* =========================================================
    Responsive Breakpoints
    ========================================================= */
