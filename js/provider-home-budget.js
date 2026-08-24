@@ -1,18 +1,13 @@
 /* =========================================================
-   HandyHire - Budget Home JavaScript
-   Variant of the Customer Home that only renders
-   budget-friendly workers (under a set price ceiling).
-   Reuses css/home.css.
+   HandyHire - Budget Provider Home JavaScript
+   Variant of the Provider Home. Renders the authenticated
+   provider's REAL teams from GET /api/worker/teams (replacing
+   the previous hardcoded worker dataset). Filter chips, package
+   tiles and top navigation behaviour are preserved.
    ========================================================= */
 
 (function () {
     'use strict';
-
-    /**
-     * Budget ceiling in rupees. Only workers priced at or below
-     * this value are shown.
-     */
-    const BUDGET_CEILING = 300;
 
     /**
      * Routes for the filter chips. "Budget" is the active chip
@@ -26,69 +21,49 @@
     };
 
     /**
-     * Convert a price string like "₹299" into a numeric value.
-     * @param {string} priceStr
-     * @returns {number}
+     * Require an authenticated provider.
+     * @returns {boolean}
      */
-    function parsePrice(priceStr) {
-        const digits = String(priceStr).replace(/[^\d]/g, '');
-        return parseInt(digits, 10) || 0;
+    function requireAuth() {
+        if (!window.HandyHireAPI || !window.HandyHireAPI.isLoggedIn()) {
+            window.location.href = 'login.html';
+            return false;
+        }
+        return true;
     }
 
     /**
-     * Convert a worker name into a URL-safe slug used by
-     * provider-job-hire.html.
+     * Escape user-supplied text before injecting as HTML.
+     * @param {string} str
+     * @returns {string}
+     */
+    function escapeHtml(str) {
+        return String(str == null ? '' : str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    /**
+     * Generate a placeholder avatar data URL from a name.
      * @param {string} name
      * @returns {string}
      */
-    function makeSlug(name) {
-        return String(name || '')
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-+|-+$/g, '');
-    }
-
-    /**
-     * Full worker pool. The budget filter is applied at render time
-     * so adding / removing budget workers only requires editing this
-     * list - no other code change needed.
-     */
-    const ALL_WORKERS = [
-        { name: 'Ravi Kumar',   profession: 'Plumber',     price: '₹299', rating: 4.8, slug: makeSlug('Ravi Kumar') },
-        { name: 'Anita Sharma', profession: 'Electrician', price: '₹349', rating: 4.7, slug: makeSlug('Anita Sharma') },
-        { name: 'Suresh Patel', profession: 'Carpenter',   price: '₹399', rating: 4.6, slug: makeSlug('Suresh Patel') },
-        { name: 'Priya Singh',  profession: 'Cleaner',     price: '₹249', rating: 4.9, slug: makeSlug('Priya Singh') },
-        { name: 'Mohan Das',    profession: 'Painter',     price: '₹459', rating: 4.5, slug: makeSlug('Mohan Das') },
-        { name: 'Lata Verma',   profession: 'AC Repair',   price: '₹549', rating: 4.8, slug: makeSlug('Lata Verma') },
-        { name: 'Arjun Mehta',  profession: 'Handyman',    price: '₹199', rating: 4.6, slug: makeSlug('Arjun Mehta') },
-        { name: 'Neha Iyer',    profession: 'Pest Control', price: '₹279', rating: 4.4, slug: makeSlug('Neha Iyer') },
-    ];
-
-    /**
-     * Filter the workers list to only include budget-friendly options
-     * (price <= BUDGET_CEILING), then sort them cheapest first.
-     * @returns {Array}
-     */
-    function getBudgetWorkers() {
-        return ALL_WORKERS
-            .filter((w) => parsePrice(w.price) <= BUDGET_CEILING)
-            .sort((a, b) => parsePrice(a.price) - parsePrice(b.price));
-    }
-
-    /**
-     * Generate a placeholder avatar data URL so cards render
-     * without any external image dependency.
-     * @param {string} name
-     * @returns {string} CSS background value
-     */
-    function getAvatarStyle(name) {
-        const initials = name
+    function buildAvatar(name) {
+        const clean = String(name || '?').trim() || '?';
+        const initials = clean
             .split(' ')
+            .filter(Boolean)
             .map((part) => part.charAt(0).toUpperCase())
             .slice(0, 2)
-            .join('');
+            .join('') || '?';
 
-        const hue = Array.from(name).reduce((sum, ch) => sum + ch.charCodeAt(0), 0) % 360;
+        const hue = Array.from(clean).reduce(
+            (sum, ch) => sum + ch.charCodeAt(0),
+            0
+        ) % 360;
 
         const svg = `
             <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 72'>
@@ -110,48 +85,125 @@
     }
 
     /**
-     * Render the budget service grid into the DOM.
+     * Render a neutral message into the grid.
      * @param {HTMLElement} container
+     * @param {string} text
      */
-    function renderWorkers(container) {
+    function showMessage(container, text) {
+        if (!container) return;
+        container.innerHTML =
+            '<p class="empty-state" style="grid-column: 1 / -1; text-align: center; ' +
+            'color: var(--color-text-muted); padding: 32px 0;">' +
+            escapeHtml(text) + '</p>';
+    }
+
+    /**
+     * Render the provider's real teams into the grid.
+     * @param {HTMLElement} container
+     * @param {Array} teams
+     */
+    function renderTeams(container, teams) {
         if (!container) return;
 
-        const workers = getBudgetWorkers();
-
-        if (!workers.length) {
-            container.innerHTML = `
-                <p class="empty-state" style="grid-column: 1 / -1; text-align: center; color: var(--color-text-muted); padding: 32px 0;">
-                    No budget-friendly professionals available right now.
-                </p>
-            `;
+        if (!teams || !teams.length) {
+            showMessage(container, 'You haven\'t created or joined any teams yet.');
             return;
         }
 
-        const html = workers.map((worker) => `
-            <article class="worker-card" tabindex="0"
-                     data-worker-slug="${worker.slug}"
-                     data-worker-name="${worker.name}"
-                     aria-label="${worker.name}, ${worker.profession}, rated ${worker.rating} out of 5, ${worker.price}">
-                <div class="worker-avatar" style="background-image: ${getAvatarStyle(worker.name)}" aria-hidden="true"></div>
-                <h3 class="worker-name">${worker.name}</h3>
-                <p class="worker-profession">${worker.profession}</p>
-                <div class="worker-meta">
-                    <span class="worker-rating">
-                        <span class="star" aria-hidden="true">&#9733;</span>${worker.rating.toFixed(1)}
-                    </span>
-                    <span class="worker-price">${worker.price}</span>
-                </div>
-                <span class="budget-badge" aria-hidden="true">Under &#8377;${BUDGET_CEILING}</span>
-            </article>
-        `).join('');
+        container.innerHTML = teams.map(function (team) {
+            const count = Array.isArray(team.members) ? team.members.length : 0;
+            const roleLabel = team.role === 'creator' ? 'Team creator' : 'Team member';
+            const name = team.name || 'Team';
 
-        container.innerHTML = html;
+            return `
+                <article class="worker-card" tabindex="0"
+                         data-team-id="${escapeHtml(String(team.id))}"
+                         data-team-name="${escapeHtml(name)}"
+                         aria-label="${escapeHtml(name)}, ${escapeHtml(roleLabel)}, ${count} member${count === 1 ? '' : 's'}">
+                    <div class="worker-avatar" style="background-image: ${buildAvatar(name)}" aria-hidden="true"></div>
+                    <h3 class="worker-name">${escapeHtml(name)}</h3>
+                    <p class="worker-profession">${escapeHtml(roleLabel)}</p>
+                    <div class="worker-meta">
+                        <span class="worker-price">${count} member${count === 1 ? '' : 's'}</span>
+                    </div>
+                </article>
+            `;
+        }).join('');
+    }
+
+    /**
+     * Fetch the provider's teams and render them.
+     */
+    function loadTeams() {
+        const container = document.getElementById('serviceGrid');
+        if (!container) return;
+
+        showMessage(container, 'Loading your teams...');
+
+        window.HandyHireAPI.apiFetch('/api/worker/teams')
+            .then(function (response) {
+                if (response.status === 401) {
+                    window.HandyHireAPI.clearAuth();
+                    window.location.href = 'login.html';
+                    return;
+                }
+                if (response.status === 403) {
+                    showMessage(container, 'You do not have provider access to this page.');
+                    return;
+                }
+                if (!response.ok) {
+                    showMessage(container, 'Unable to load your teams. Please try again.');
+                    return;
+                }
+                return response.json();
+            })
+            .then(function (teams) {
+                if (!teams) return;
+                renderTeams(container, teams);
+            })
+            .catch(function () {
+                showMessage(container, 'Network error. Please check your connection and try again.');
+            });
+    }
+
+    /**
+     * Wire up team-card clicks/keys to open the team page.
+     */
+    function initTeamCards() {
+        const grid = document.getElementById('serviceGrid');
+        if (!grid) return;
+
+        function openTeam(card) {
+            const id = card.getAttribute('data-team-id');
+            const name = card.getAttribute('data-team-name');
+            if (!id) return;
+            try {
+                sessionStorage.setItem('handyhire.selectedTeamId', id);
+                sessionStorage.setItem('handyhire.selectedTeam', name || '');
+                sessionStorage.setItem('handyhire.provider.previousPage', 'provider-home-budget.html');
+            } catch (e) {}
+            window.location.href = 'provider-team-page.html';
+        }
+
+        grid.addEventListener('click', function (event) {
+            const card = event.target.closest('.worker-card');
+            if (!card || !grid.contains(card)) return;
+            openTeam(card);
+        });
+
+        grid.addEventListener('keydown', function (event) {
+            const card = event.target.closest('.worker-card');
+            if (!card || !grid.contains(card)) return;
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openTeam(card);
+            }
+        });
     }
 
     /**
      * Wire up the filter chips so they navigate to the right page
-     * based on the centralized CHIP_ROUTES map. The active chip
-     * (budget) has no target and just stays in place.
+     * based on the centralized CHIP_ROUTES map.
      */
     function initFilterChips() {
         const chips = document.querySelectorAll('.filter-chips .chip');
@@ -178,11 +230,10 @@
     }
 
     /**
-     * Wire up the top navigation tabs that don't yet have a page.
+     * Wire up the top navigation tabs.
      */
     function initTopNav() {
         const activityTab = document.getElementById('activityTab');
-
         if (activityTab) {
             activityTab.addEventListener('click', function (event) {
                 event.preventDefault();
@@ -192,52 +243,7 @@
     }
 
     /**
-     * Make worker cards clickable so tapping a professional
-     * opens the Provider Person Details page for that specific
-     * worker. The selected person is resolved via ?worker=<slug>
-     * (and ?source=individual so the details page knows
-     * which flow opened it). This is NOT the worker's own
-     * profile - that page is reached from the top-nav "Profile".
-     */
-    function initWorkerCards() {
-        const grid = document.getElementById('serviceGrid');
-        if (!grid) return;
-
-        function navigate(card) {
-            const slug = card.getAttribute('data-worker-slug')
-                || card.getAttribute('data-worker-name');
-            if (!slug) return;
-            try {
-                sessionStorage.setItem('handyhire.provider.previousPage', 'provider-home-budget.html');
-            } catch (e) {}
-            const url = 'provider-job-hire.html?worker='
-                + encodeURIComponent(slug)
-                + '&source=individual';
-            window.location.href = url;
-        }
-
-        grid.addEventListener('click', function (event) {
-            const card = event.target.closest('.worker-card');
-            if (!card || !grid.contains(card)) return;
-            navigate(card);
-        });
-
-        grid.addEventListener('keydown', function (event) {
-            const card = event.target.closest('.worker-card');
-            if (!card || !grid.contains(card)) return;
-            if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                navigate(card);
-            }
-        });
-    }
-
-    /**
-     * Make the package tiles near the bottom of the Home
-     * page keyboard-accessible. Browsers fire Enter on
-     * <a> natively, but not Space, so we add a Space
-     * delegation here. Click / Enter are already handled
-     * by the browser via the href.
+     * Make the package tiles keyboard-accessible (Space).
      */
     function initPackageTiles() {
         const section = document.querySelector('.pkg-section');
@@ -257,14 +263,14 @@
      * Initialize the budget home page.
      */
     function init() {
-        renderWorkers(document.getElementById('serviceGrid'));
+        if (!requireAuth()) return;
+        loadTeams();
         initFilterChips();
-        initWorkerCards();
+        initTeamCards();
         initPackageTiles();
         initTopNav();
     }
 
-    // Run after DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {

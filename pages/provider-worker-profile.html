@@ -133,13 +133,75 @@
 
         <!-- ========== MANAGE PROFILE ========== -->
         <section class="profile-section" aria-label="Professional profile management">
+            <h2 class="section-title">Manage Profile</h2>
             <div class="manage-card">
                 <span class="manage-icon" aria-hidden="true">&#128221;</span>
                 <div class="manage-text">
                     <p class="manage-title">Manage Professional Profile</p>
                     <p class="manage-desc">Keep your professional information up to date so customers can find the right services.</p>
                 </div>
+                <button type="button" class="edit-profile-btn" id="editProfileBtn">Edit</button>
             </div>
+
+            <form class="edit-form" id="editProfileForm" hidden>
+                <div class="edit-grid">
+                    <div class="field field-wide">
+                        <label for="editFullName">Full Name</label>
+                        <input type="text" id="editFullName" name="full_name" autocomplete="name" />
+                    </div>
+                    <div class="field">
+                        <label for="editProfession">Profession</label>
+                        <input type="text" id="editProfession" name="profession" />
+                    </div>
+                    <div class="field">
+                        <label for="editMobile">Mobile Number</label>
+                        <input type="text" id="editMobile" name="mobile_number" />
+                    </div>
+                    <div class="field">
+                        <label for="editEmail">Email</label>
+                        <input type="email" id="editEmail" name="email" />
+                    </div>
+                    <div class="field">
+                        <label for="editLocation">Service Location</label>
+                        <input type="text" id="editLocation" name="location" />
+                    </div>
+                    <div class="field">
+                        <label for="editAddress">Address</label>
+                        <input type="text" id="editAddress" name="address" />
+                    </div>
+                    <div class="field">
+                        <label for="editCity">City</label>
+                        <input type="text" id="editCity" name="city" />
+                    </div>
+                    <div class="field">
+                        <label for="editExperience">Experience</label>
+                        <input type="text" id="editExperience" name="experience" />
+                    </div>
+                    <div class="field">
+                        <label for="editQualification">Qualification</label>
+                        <input type="text" id="editQualification" name="qualification" />
+                    </div>
+                    <div class="field">
+                        <label for="editPrice">Hourly Rate (&#8377;)</label>
+                        <input type="number" id="editPrice" name="price" min="1" step="1" />
+                    </div>
+                    <div class="field field-wide">
+                        <label for="editAvailability">Availability</label>
+                        <input type="text" id="editAvailability" name="availability" placeholder="e.g. Available today" />
+                    </div>
+                    <div class="field field-wide">
+                        <label for="editBio">Bio</label>
+                        <textarea id="editBio" name="bio" rows="3"></textarea>
+                    </div>
+                </div>
+
+                <p class="edit-error" id="editError" hidden role="alert"></p>
+
+                <div class="edit-actions">
+                    <button type="button" class="btn-secondary" id="cancelEditBtn">Cancel</button>
+                    <button type="submit" class="btn-primary" id="saveProfileBtn">Save Changes</button>
+                </div>
+            </form>
         </section>
 
         <!-- ========== SIGN OUT ========== -->

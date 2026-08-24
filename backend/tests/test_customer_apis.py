@@ -45,8 +45,8 @@ def test_customer_cannot_update_another_user_profile(client, customer_token, cus
         headers={"Authorization": f"Bearer {customer_token}"},
         json={"email": target.email},
     )
-    assert response.status_code == 200
-    assert response.json()["email"] == target.email
+    assert response.status_code == 400
+    assert "email" in response.json()["detail"].lower()
 
 
 def test_worker_listing(client, worker):

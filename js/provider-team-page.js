@@ -1,185 +1,58 @@
 /* =========================================================
-   HandyHire - Team Page JavaScript
-   Shows the WHOLE-TEAM details for the team selected on
-   team-package.html (read from sessionStorage). Renders the
-   team header, a vertical list of team members, an expand
-   control, and a primary "BOOK WHOLE TEAM" CTA that routes
-   to booking.html. Clicking an individual member opens the
-   team-member.html details view - it MUST NOT trigger any
-   booking flow.
+   HandyHire - Provider Team Page JavaScript
+   Loads the authenticated provider's REAL team from
+   GET /api/teams/{team_id} and enriches every member with
+   GET /api/workers/{worker_id}. The old TEAM_CATALOG and
+   DEFAULT_TEAM are removed as the normal data source.
    ========================================================= */
 
 (function () {
     'use strict';
 
-    /**
-     * Full team catalog. The team selected on team-package.html
-     * is matched by name. A fallback team is shown when no
-     * selection is stored.
-     */
-
-    /**
-     * Convert a worker name into a URL-safe slug used by
-     * provider-job-hire.html. Kept in sync with the slug
-     * generation in provider-home*.js and the catalog
-     * inside provider-job-hire.js.
-     * @param {string} name
-     * @returns {string}
-     */
-    function makeSlug(name) {
-        return String(name || '')
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-+|-+$/g, '');
-    }
-
-    const TEAM_CATALOG = {
-        'BuildRight Crew': {
-            name: 'BuildRight Crew',
-            rating: 4.8,
-            category: 'Construction',
-            members: [
-                { name: 'Rushda Kalghatgi', occupation: 'Laborer' },
-                { name: 'Anita Sharma',     occupation: 'Carpenter' },
-                { name: 'Suresh Patel',     occupation: 'Electrician' },
-                { name: 'Mohan Das',        occupation: 'Mason' },
-            ],
-        },
-        'Home Renovation Team': {
-            name: 'Home Renovation Team',
-            rating: 4.7,
-            category: 'Home Renovation',
-            members: [
-                { name: 'Ravi Kumar',   occupation: 'Carpenter' },
-                { name: 'Priya Singh',  occupation: 'Painter' },
-                { name: 'Lata Verma',   occupation: 'Electrician' },
-            ],
-        },
-        'FixIt Squad': {
-            name: 'FixIt Squad',
-            rating: 4.6,
-            category: 'Repair & Maintenance',
-            members: [
-                { name: 'Ravi Kumar',  occupation: 'Plumber' },
-                { name: 'Anita Sharma', occupation: 'Electrician' },
-                { name: 'Arjun Mehta',  occupation: 'Handyman' },
-            ],
-        },
-        'CleanHome Team': {
-            name: 'CleanHome Team',
-            rating: 4.9,
-            category: 'Cleaning',
-            members: [
-                { name: 'Priya Singh',  occupation: 'Cleaner' },
-                { name: 'Neha Iyer',    occupation: 'Pest Control' },
-                { name: 'Asha Verma',   occupation: 'Helper' },
-                { name: 'Rina Das',     occupation: 'Helper' },
-                { name: 'Pooja Nair',   occupation: 'Helper' },
-            ],
-        },
-        'PowerGrid Unit': {
-            name: 'PowerGrid Unit',
-            rating: 4.5,
-            category: 'Electrical',
-            members: [
-                { name: 'Anita Sharma', occupation: 'Electrician' },
-                { name: 'Arjun Mehta',  occupation: 'Helper' },
-            ],
-        },
-        'FreshPaint Crew': {
-            name: 'FreshPaint Crew',
-            rating: 4.6,
-            category: 'Painting',
-            members: [
-                { name: 'Mohan Das',     occupation: 'Painter' },
-                { name: 'Pooja Nair',    occupation: 'Helper' },
-                { name: 'Suresh Patel',  occupation: 'Carpenter' },
-            ],
-        },
-    };
-
-    /**
-     * Fallback team when no selection is stored (e.g. when
-     * the page is opened directly).
-     */
-    const DEFAULT_TEAM = 'BuildRight Crew';
-
-    /**
-     * Read the selected team name from sessionStorage.
-     * Falls back to DEFAULT_TEAM when no selection exists.
-     * @returns {string}
-     */
-    function readSelectedTeam() {
-        try {
-            const stored = sessionStorage.getItem('handyhire.selectedTeam');
-            if (stored && TEAM_CATALOG[stored]) return stored;
-        } catch (e) {
-            // Ignore storage errors.
-        }
-        return DEFAULT_TEAM;
-    }
-
-    /**
-     * Persist the selected team so subsequent pages
-     * (booking.html) can read it.
-     * @param {string} teamName
-     */
-    function persistSelectedTeam(teamName) {
-        try {
-            sessionStorage.setItem('handyhire.selectedTeam', teamName);
-        } catch (e) {
-            // Ignore.
-        }
-    }
-
-    /**
-     * Read a member's details from sessionStorage when the
-     * user clicks on a member card. Returns null if nothing
-     * is stored.
-     * @returns {Object|null}
-     */
-    function readSelectedMember() {
-        try {
-            const raw = sessionStorage.getItem('handyhire.selectedMember');
-            if (!raw) return null;
-            const parsed = JSON.parse(raw);
-            return parsed && typeof parsed === 'object' ? parsed : null;
-        } catch (e) {
-            return null;
-        }
-    }
-
-    'use strict';
-
-    /**
-     * Number of members shown before the arrow button is
-     * needed; the rest are tagged as "extra" and revealed
-     * on expand.
-     */
     const VISIBLE_BY_DEFAULT = 3;
-
-    /**
-     * Holds the team currently being shown. Resolved at
-     * init() from sessionStorage (or the default team).
-     */
     let TEAM = null;
 
     /**
-     * Generate a placeholder avatar data URL so the team
-     * header and member cards render meaningfully without
-     * external image dependencies.
+     * Require an authenticated provider.
+     * @returns {boolean}
+     */
+    function requireAuth() {
+        if (!window.HandyHireAPI || !window.HandyHireAPI.isLoggedIn()) {
+            window.location.href = 'login.html';
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Escape user-supplied text before injecting as HTML.
+     * @param {string} str
+     * @returns {string}
+     */
+    function escapeHtml(str) {
+        return String(str == null ? '' : str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    /**
+     * Generate a placeholder avatar data URL from a name.
      * @param {string} name
-     * @returns {string} CSS background value
+     * @returns {string}
      */
     function buildAvatar(name) {
-        const initials = name
+        const clean = String(name || '?').trim() || '?';
+        const initials = clean
             .split(' ')
             .filter(Boolean)
             .map((part) => part.charAt(0).toUpperCase())
             .slice(0, 2)
             .join('') || '?';
 
-        const hue = Array.from(name).reduce(
+        const hue = Array.from(clean).reduce(
             (sum, ch) => sum + ch.charCodeAt(0),
             0
         ) % 360;
@@ -189,7 +62,7 @@
                 <defs>
                     <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
                         <stop offset='0%' stop-color='hsl(${hue}, 35%, 70%)'/>
-                        <stop offset='100%' stop-color='hsl(${(hue + 40) % 360}, 30%, 55%)'/>
+                        <stop offset='100%' stop-color='hsl(${hue}, 40%, 55%)'/>
                     </linearGradient>
                 </defs>
                 <circle cx='60' cy='60' r='60' fill='url(#g)'/>
@@ -205,68 +78,83 @@
     }
 
     /**
-     * Build a "★ ★ ★ ★ ☆" style stars string for a given rating.
-     * @param {number} rating
-     * @returns {string}
+     * Read the selected team ID from sessionStorage,
+     * falling back to the selected team name.
+     * @returns {string|null}
      */
-    function buildStars(rating) {
-        const full = Math.floor(rating);
-        const empty = 5 - full;
-        return '\u2605'.repeat(full) + '\u2606'.repeat(empty);
+    function readTeamId() {
+        try {
+            const id = sessionStorage.getItem('handyhire.selectedTeamId');
+            if (id) return id;
+        } catch (e) {}
+        try {
+            const name = sessionStorage.getItem('handyhire.selectedTeam');
+            if (name) return name;
+        } catch (e) {}
+        return null;
     }
 
     /**
-     * Escape user-supplied text before injecting as HTML.
-     * @param {string} str
-     * @returns {string}
+     * Render a neutral message into the members list.
+     * @param {string} text
      */
-    function escapeHtml(str) {
-        return String(str)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
+    function showMessage(text) {
+        const list = document.getElementById('membersList');
+        if (!list) return;
+        list.innerHTML =
+            '<li><p class="empty-state" style="grid-column: 1 / -1; text-align: center; ' +
+            'color: var(--color-text-muted); padding: 32px 0;">' +
+            escapeHtml(text) + '</p></li>';
     }
 
     /**
-     * Render the team avatar, name, and rating into the
-     * page header.
+     * Render the team header using real backend data.
+     * @param {Object} team
      */
-    function renderTeamHeader() {
+    function renderTeamHeader(team) {
         const avatar = document.getElementById('teamAvatar');
-        const name = document.getElementById('teamName');
-        const rating = document.getElementById('teamRating');
+        if (avatar) avatar.style.backgroundImage = buildAvatar(team.name);
 
-        if (avatar) avatar.style.backgroundImage = buildAvatar(TEAM.name);
-        if (name) name.textContent = TEAM.name;
-        if (rating) {
-            rating.setAttribute('aria-label',
-                `Team rated ${TEAM.rating.toFixed(1)} out of 5`);
-            rating.innerHTML =
-                `<span class="stars" aria-hidden="true">${buildStars(TEAM.rating)}</span>` +
-                `<span class="rating-value">${TEAM.rating.toFixed(1)}</span>`;
+        const nameEl = document.getElementById('teamName');
+        if (nameEl) {
+            let label = team.name || 'Team';
+            if (team.creator_name) label += ' \u00b7 by ' + team.creator_name;
+            nameEl.textContent = label;
+        }
+
+        const ratingEl = document.getElementById('teamRating');
+        if (ratingEl) {
+            const count = Array.isArray(team.members) ? team.members.length : 0;
+            ratingEl.innerHTML = '<span class="rating-value">' + count + ' member' + (count === 1 ? '' : 's') + '</span>';
+            ratingEl.setAttribute('aria-label', count + ' members');
         }
     }
 
     /**
-     * Render a single member card.
+     * Render a single member card from enriched backend data.
      * @param {Object} member
-     * @param {boolean} isExtra  true if the card is hidden by default
-     * @returns {string} HTML string
+     * @param {boolean} isExtra
+     * @returns {string}
      */
     function renderMember(member, isExtra) {
         const extraClass = isExtra ? ' is-extra' : '';
+        const name = member.full_name || member.name || 'Worker';
+        const occupation = member.profession || member.role || 'Team member';
+        const avatarStyle = member.profile_image
+            ? 'url("' + member.profile_image + '")'
+            : buildAvatar(name);
+
         return `
             <li>
                 <article class="member-card${extraClass}" tabindex="0"
-                         data-name="${escapeHtml(member.name)}"
-                         data-occupation="${escapeHtml(member.occupation)}"
-                         aria-label="View details for ${escapeHtml(member.name)}, ${escapeHtml(member.occupation)}">
-                    <div class="member-avatar" style="background-image: ${buildAvatar(member.name)}" aria-hidden="true"></div>
+                         data-worker-id="${escapeHtml(String(member.worker_id))}"
+                         data-name="${escapeHtml(name)}"
+                         data-occupation="${escapeHtml(occupation)}"
+                         aria-label="View details for ${escapeHtml(name)}, ${escapeHtml(occupation)}">
+                    <div class="member-avatar" style="background-image: ${avatarStyle}" aria-hidden="true"></div>
                     <div class="member-text">
-                        <p class="member-name">${escapeHtml(member.name)}</p>
-                        <p class="member-occupation">${escapeHtml(member.occupation)}</p>
+                        <p class="member-name">${escapeHtml(name)}</p>
+                        <p class="member-occupation">${escapeHtml(occupation)}</p>
                     </div>
                 </article>
             </li>
@@ -274,55 +162,52 @@
     }
 
     /**
-     * Render the full member list. The first VISIBLE_BY_DEFAULT
-     * members are shown immediately; the rest are tagged with
-     * the `is-extra` class so they stay hidden until the
-     * expand arrow is pressed.
+     * Render the full member list, honouring the visible-by-default limit.
+     * @param {Array} members
      */
-    function renderMembers() {
+    function renderMembers(members) {
         const list = document.getElementById('membersList');
         if (!list) return;
 
-        const html = TEAM.members
+        if (!members || !members.length) {
+            list.innerHTML = '';
+            return;
+        }
+
+        list.innerHTML = members
             .map((m, index) => renderMember(m, index >= VISIBLE_BY_DEFAULT))
             .join('');
-
-        list.innerHTML = html;
     }
 
     /**
-     * Wire up click + keyboard activation on member cards.
-     * Clicking a member MUST NOT trigger any booking flow -
-     * it opens the Provider Person Details page
-     * (?source=team) so a member can be inspected. The Back
-     * control on the details page returns to this Team Page.
+     * Wire up member-card clicks/keys to open the provider
+     * person-details page, carrying the real worker_id.
      */
     function initMemberNavigation() {
         const list = document.getElementById('membersList');
         if (!list) return;
 
         function openMember(card) {
+            const workerId = card.getAttribute('data-worker-id');
+            const name = card.getAttribute('data-name') || '';
+            const occupation = card.getAttribute('data-occupation') || '';
+            const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
             const member = {
-                name:       card.getAttribute('data-name') || '',
-                occupation: card.getAttribute('data-occupation') || '',
-                team:       TEAM.name,
+                worker_id: workerId ? Number(workerId) : null,
+                name: name,
+                occupation: occupation,
+                team: TEAM ? TEAM.name : '',
             };
+
             try {
-                sessionStorage.setItem('handyhire.provider.selectedMember',
-                    JSON.stringify(member));
-                sessionStorage.setItem('handyhire.selectedWorkerSlug',
-                    makeSlug(member.name));
-            } catch (e) {
-                // Ignore storage errors.
-            }
-            // A team member click opens the provider-side
-            // Person Details page (?source=team) so the
-            // details page can render the correct member
-            // and the Back control returns here.
-            const slug = makeSlug(member.name);
-            const url = 'provider-job-hire.html?worker='
-                + encodeURIComponent(slug)
-                + '&source=team';
+                sessionStorage.setItem('handyhire.provider.selectedMember', JSON.stringify(member));
+                if (workerId) sessionStorage.setItem('handyhire.selectedWorkerId', workerId);
+            } catch (e) {}
+
+            const url = 'provider-job-hire.html?worker=' + encodeURIComponent(slug) + '&source=team';
+            if (workerId) url += '&worker_id=' + encodeURIComponent(workerId);
+
             try {
                 sessionStorage.setItem('handyhire.provider.previousPage', 'provider-team-page.html');
             } catch (e) {}
@@ -336,18 +221,17 @@
         });
 
         list.addEventListener('keydown', function (event) {
-            if (event.key !== 'Enter' && event.key !== ' ') return;
             const card = event.target.closest('.member-card');
             if (!card || !list.contains(card)) return;
-            event.preventDefault();
-            openMember(card);
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openMember(card);
+            }
         });
     }
 
     /**
-     * Wire up the primary "BOOK WHOLE TEAM" CTA so it routes
-     * the customer to booking.html with the entire team
-     * marked as the booking subject.
+     * Wire up the BOOK WHOLE TEAM CTA.
      */
     function initBookWholeTeam() {
         const btn = document.getElementById('bookWholeTeamBtn');
@@ -355,29 +239,26 @@
 
         btn.addEventListener('click', function () {
             try {
-                sessionStorage.setItem('handyhire.selectedTeam', TEAM.name);
+                if (TEAM) {
+                    sessionStorage.setItem('handyhire.selectedTeam', TEAM.name);
+                    sessionStorage.setItem('handyhire.selectedTeamId', String(TEAM.id));
+                }
                 sessionStorage.setItem('handyhire.bookingMode', 'team');
                 sessionStorage.setItem('handyhire.provider.previousPage', 'provider-team-page.html');
-            } catch (e) {
-                // Ignore.
-            }
+            } catch (e) {}
             window.location.href = 'provider-booking.html';
         });
     }
 
     /**
-     * Wire up the expand arrow. Pressing it reveals the
-     * remaining member cards and toggles its own state so
-     * it can be used as a collapse control too.
+     * Wire up the expand/collapse arrow.
      */
     function initExpand() {
         const btn = document.getElementById('expandBtn');
         const list = document.getElementById('membersList');
         if (!btn || !list) return;
 
-        // If there are no extras, the button has nothing to
-        // reveal; hide it so it doesn't look broken.
-        const extras = TEAM.members.length - VISIBLE_BY_DEFAULT;
+        const extras = TEAM ? TEAM.members.length - VISIBLE_BY_DEFAULT : 0;
         if (extras <= 0) {
             btn.hidden = true;
             return;
@@ -392,21 +273,84 @@
     }
 
     /**
+     * Fetch the team and its member worker profiles, then render.
+     */
+    async function loadTeam() {
+        const teamId = readTeamId();
+        if (!teamId) {
+            showMessage('Select a team to view its details.');
+            return;
+        }
+
+        showMessage('Loading team...');
+
+        try {
+            const resp = await window.HandyHireAPI.apiFetch('/api/teams/' + encodeURIComponent(String(teamId)));
+
+            if (resp.status === 401) {
+                window.HandyHireAPI.clearAuth();
+                window.location.href = 'login.html';
+                return;
+            }
+            if (resp.status === 403) {
+                showMessage('You do not have access to this team.');
+                return;
+            }
+            if (resp.status === 404) {
+                showMessage('Team not found.');
+                return;
+            }
+            if (!resp.ok) {
+                showMessage('Unable to load team. Please try again.');
+                return;
+            }
+
+            const team = await resp.json();
+
+            const memberPromises = (team.members || []).map(function (m) {
+                return window.HandyHireAPI.apiFetch('/api/workers/' + encodeURIComponent(String(m.worker_id)))
+                    .then(function (r) { return r.ok ? r.json() : null; })
+                    .catch(function () { return null; });
+            });
+
+            const workerProfiles = await Promise.all(memberPromises);
+
+            const enrichedMembers = (team.members || []).map(function (m, i) {
+                return {
+                    worker_id: m.worker_id,
+                    role: m.role,
+                    full_name: workerProfiles[i] ? workerProfiles[i].full_name : null,
+                    profession: workerProfiles[i] ? workerProfiles[i].profession : null,
+                    profile_image: workerProfiles[i] ? workerProfiles[i].profile_image : null,
+                };
+            });
+
+            TEAM = {
+                id: team.id,
+                name: team.name,
+                description: team.description,
+                creator_name: team.creator_name,
+                members: enrichedMembers,
+            };
+
+            renderTeamHeader(TEAM);
+            renderMembers(TEAM.members);
+            initMemberNavigation();
+            initBookWholeTeam();
+            initExpand();
+        } catch (e) {
+            showMessage('Network error. Please check your connection and try again.');
+        }
+    }
+
+    /**
      * Initialize the Team page.
      */
     function init() {
-        const teamName = readSelectedTeam();
-        persistSelectedTeam(teamName);
-        TEAM = TEAM_CATALOG[teamName] || TEAM_CATALOG[DEFAULT_TEAM];
-
-        renderTeamHeader();
-        renderMembers();
-        initMemberNavigation();
-        initBookWholeTeam();
-        initExpand();
+        if (!requireAuth()) return;
+        loadTeam();
     }
 
-    // Run after DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
