@@ -57,6 +57,35 @@
                 No bookings match your search.
             </p>
         </section>
+
+        <!-- ========== REVIEW MODAL ========== -->
+        <div class="review-modal-overlay" id="reviewModalOverlay" hidden>
+            <div class="review-modal" role="dialog" aria-labelledby="reviewModalTitle" aria-modal="true">
+                <h2 class="review-modal-title" id="reviewModalTitle">Leave a Review</h2>
+
+                <div class="review-modal-body">
+                    <label class="review-rating-label">Rating <span class="required">*</span></label>
+                    <div class="star-rating" id="starRating" role="radiogroup" aria-label="Rating">
+                        <span class="star" data-value="1" role="radio" aria-checked="false" tabindex="0">★</span>
+                        <span class="star" data-value="2" role="radio" aria-checked="false" tabindex="0">★</span>
+                        <span class="star" data-value="3" role="radio" aria-checked="false" tabindex="0">★</span>
+                        <span class="star" data-value="4" role="radio" aria-checked="false" tabindex="0">★</span>
+                        <span class="star" data-value="5" role="radio" aria-checked="false" tabindex="0">★</span>
+                    </div>
+                    <p class="review-rating-error" id="reviewRatingError" hidden>Please select a rating.</p>
+
+                    <label for="reviewComment" class="review-comment-label">Comment</label>
+                    <textarea id="reviewComment" class="review-textarea" rows="3" placeholder="Share your experience (optional)"></textarea>
+                </div>
+
+                <p class="review-error" id="reviewError" hidden role="alert"></p>
+
+                <div class="review-modal-footer">
+                    <button type="button" class="btn-secondary" id="cancelReviewBtn">Cancel</button>
+                    <button type="button" class="btn-primary" id="submitReviewBtn">Submit Review</button>
+                </div>
+            </div>
+        </div>
     </main>
 
     <script src="../js/api.js"></script>

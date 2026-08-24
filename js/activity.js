@@ -3,25 +3,19 @@
    Fetches the authenticated customer's real bookings from
    the FastAPI backend (GET /api/bookings/customer/bookings)
    and renders them grouped by Today / Yesterday / Earlier.
-   The PostgreSQL database is the source of truth.
+   Completed bookings expose a Leave Review flow backed by
+   POST /api/reviews. PostgreSQL is the source of truth.
    ========================================================= */
 
 (function () {
     'use strict';
 
-    /**
-     * Title shown above each section's cards.
-     */
     const SECTION_TITLES = {
         today:     'Today',
         yesterday: 'Yesterday',
         older:     'Earlier',
     };
 
-    /**
-     * Map a backend status onto the existing status pill
-     * CSS classes so no new visual system is introduced.
-     */
     const STATUS_MAP = {
         pending:   { label: 'Pending',   css: 'booking-status--pending' },
         accepted:  { label: 'Accepted',  css: 'booking-status--confirmed' },
@@ -31,22 +25,17 @@
         completed: { label: 'Completed', css: 'booking-status--completed' },
     };
 
-    /**
-     * Build a "★ ★ ★ ★ ★" style stars string for a rating.
-     * @param {number} rating
-     * @returns {string}
-     */
+    let currentBookings = [];
+    let reviewedBookingIds = new Set();
+    let currentReviewBookingId = null;
+    let selectedRating = 0;
+
     function buildStars(rating) {
         const full = Math.max(0, Math.min(5, Math.floor(rating)));
         const empty = 5 - full;
         return '\u2605'.repeat(full) + '\u2606'.repeat(empty);
     }
 
-    /**
-     * Escape user-supplied text before injecting as HTML.
-     * @param {string} str
-     * @returns {string}
-     */
     function escapeHtml(str) {
         return String(str)
             .replace(/&/g, '&amp;')
@@ -56,10 +45,6 @@
             .replace(/'/g, '&#39;');
     }
 
-    /**
-     * Resolve the API helper (js/api.js) with a safe fallback.
-     * @returns {Object|null}
-     */
     function getApi() {
         if (window.HandyHireAPI && typeof window.HandyHireAPI.apiFetch === 'function') {
             return window.HandyHireAPI;
@@ -67,10 +52,6 @@
         return null;
     }
 
-    /**
-     * True when a customer auth token is present.
-     * @returns {boolean}
-     */
     function hasSession() {
         try {
             const token = localStorage.getItem('handyhire.auth.token');
@@ -80,25 +61,13 @@
         }
     }
 
-    /**
-     * Redirect an unauthenticated/session-expired customer to
-     * the login page, remembering where to return afterwards.
-     */
     function redirectToLogin() {
         try {
             sessionStorage.setItem('handyhire.customer.previousPage', 'activity.html');
-        } catch (e) {
-            // Ignore storage errors.
-        }
+        } catch (e) {}
         window.location.href = 'login.html';
     }
 
-    /**
-     * Normalize "2026-08-19" or a Date into a Date object for
-     * Today/Yesterday comparisons. Returns null on bad input.
-     * @param {string|Date} value
-     * @returns {Date|null}
-     */
     function parseDate(value) {
         if (value instanceof Date) return value;
         const text = String(value || '').trim();
@@ -111,24 +80,12 @@
         return isNaN(d.getTime()) ? null : d;
     }
 
-    /**
-     * True when two dates are on the same calendar day.
-     * @param {Date} a
-     * @param {Date} b
-     * @returns {boolean}
-     */
     function isSameDay(a, b) {
         return a.getFullYear() === b.getFullYear() &&
             a.getMonth() === b.getMonth() &&
             a.getDate() === b.getDate();
     }
 
-    /**
-     * Derive the feed group for a booking date:
-     * 'today' | 'yesterday' | 'older'.
-     * @param {Date|null} date
-     * @returns {string}
-     */
     function groupFor(date) {
         if (!date) return 'older';
         const now = new Date();
@@ -139,11 +96,6 @@
         return 'older';
     }
 
-    /**
-     * Format a date for card display.
-     * @param {Date|null} date
-     * @returns {string}
-     */
     function formatDate(date) {
         if (!date) return '--';
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -156,25 +108,12 @@
         return dayNum + ' ' + month + ' ' + date.getFullYear();
     }
 
-    /**
-     * Normalize a stored booking time ("10:00" / "14:30") for
-     * display.
-     * @param {string} time
-     * @returns {string}
-     */
     function formatTime(time) {
         const text = String(time || '').trim();
         if (!text) return '--';
         return text;
     }
 
-    /**
-     * Map a backend BookingResponse into the existing card
-     * shape. Only real backend fields are used; anything the
-     * booking API does not expose is left out (no fake data).
-     * @param {Object} b  backend BookingResponse
-     * @returns {Object}
-     */
     function mapBooking(b) {
         const statusKey = String(b.status || 'pending').toLowerCase();
         const status = STATUS_MAP[statusKey] || { label: escapeHtml(b.status || '--'), css: 'booking-status--pending' };
@@ -186,19 +125,16 @@
             occupation: b.service_name || '--',
             status: status.label,
             statusCss: status.css,
+            statusKey: statusKey,
             date: formatDate(date),
             time: formatTime(b.booking_time),
             group: groupFor(date),
             amount: typeof b.amount === 'number' ? b.amount : null,
             address: b.address || '--',
+            worker_id: b.worker_id || null,
         };
     }
 
-    /**
-     * Render a single booking card.
-     * @param {Object} b
-     * @returns {string} HTML string
-     */
     function renderCard(b) {
         const ratingRow = (b.rating != null)
             ? `<div class="booking-rating" aria-label="Rated ${Number(b.rating).toFixed(1)} out of 5">
@@ -213,6 +149,14 @@
                 <span><span class="meta-label">Time:</span><span class="meta-value">${escapeHtml(b.time)}</span></span>
             </div>`;
 
+        const isCompleted = b.statusKey === 'completed';
+        const alreadyReviewed = reviewedBookingIds.has(b.id);
+        const reviewButtonHtml = isCompleted && !alreadyReviewed
+            ? `<div class="booking-review-row"><button type="button" class="review-btn" data-booking-id="${escapeHtml(String(b.id))}">Leave Review</button></div>`
+            : isCompleted && alreadyReviewed
+                ? `<div class="booking-review-row"><span class="reviewed-badge" aria-label="Reviewed">&#10003; Reviewed</span></div>`
+                : '';
+
         return `
             <article class="booking-card" tabindex="0"
                      data-booking-id="${escapeHtml(b.id)}"
@@ -226,16 +170,11 @@
                 </div>
                 ${ratingRow}
                 ${metaRow}
+                ${reviewButtonHtml}
             </article>
         `.trim();
     }
 
-    /**
-     * Render a grouped section.
-     * @param {string} groupKey
-     * @param {Array} items
-     * @returns {string} HTML string
-     */
     function renderSection(groupKey, items) {
         if (!items.length) return '';
         const title = SECTION_TITLES[groupKey] || '';
@@ -249,13 +188,6 @@
         `.trim();
     }
 
-    /**
-     * Group bookings into today/yesterday/older, render each
-     * non-empty group, and write the HTML into the feed.
-     * @param {Array} bookings
-     * @param {HTMLElement} container
-     * @param {HTMLElement} emptyState
-     */
     function renderFeed(bookings, container, emptyState) {
         const groups = { today: [], yesterday: [], older: [] };
         bookings.forEach((b) => {
@@ -271,13 +203,6 @@
         if (emptyState) emptyState.hidden = Boolean(html);
     }
 
-    /**
-     * Live-filter the real bookings against the search query.
-     * Empty query returns the full list.
-     * @param {Array} bookings
-     * @param {string} query
-     * @returns {Array}
-     */
     function filterBookings(bookings, query) {
         const q = String(query || '').trim().toLowerCase();
         if (!q) return bookings.slice();
@@ -296,13 +221,6 @@
         });
     }
 
-    /**
-     * Wire up the search input so the feed updates as the
-     * user types against the real (already fetched) bookings.
-     * @param {HTMLElement} container
-     * @param {HTMLElement} emptyState
-     * @param {Array} bookings
-     */
     function initSearch(container, emptyState, bookings) {
         const input = document.getElementById('activitySearch');
         if (!input) return;
@@ -317,11 +235,6 @@
         });
     }
 
-    /**
-     * Show a lightweight loading state in the feed.
-     * @param {HTMLElement} container
-     * @param {HTMLElement} emptyState
-     */
     function showLoading(container, emptyState) {
         container.innerHTML = '';
         if (emptyState) {
@@ -330,12 +243,6 @@
         }
     }
 
-    /**
-     * Show a friendly error state in the feed.
-     * @param {HTMLElement} container
-     * @param {HTMLElement} emptyState
-     * @param {string} message
-     */
     function showError(container, emptyState, message) {
         container.innerHTML = '';
         if (emptyState) {
@@ -344,10 +251,6 @@
         }
     }
 
-    /**
-     * Show the empty state when the customer has no bookings.
-     * @param {HTMLElement} emptyState
-     */
     function showEmpty(emptyState) {
         if (emptyState) {
             emptyState.textContent = 'No bookings yet. When you book a professional, your history will appear here.';
@@ -355,12 +258,6 @@
         }
     }
 
-    /**
-     * Fetch the customer's bookings from the backend and
-     * render them.
-     * @param {HTMLElement} container
-     * @param {HTMLElement} emptyState
-     */
     function loadBookings(container, emptyState) {
         const api = getApi();
         if (!api) {
@@ -372,7 +269,6 @@
 
         api.apiFetch('/api/bookings/customer/bookings')
             .then(function (response) {
-                // api.js clears auth state on 401.
                 if (response.status === 401) {
                     redirectToLogin();
                     return null;
@@ -395,6 +291,7 @@
                 if (!data) return;
 
                 const bookings = (Array.isArray(data) ? data : []).map(mapBooking);
+                currentBookings = bookings;
                 if (!bookings.length) {
                     container.innerHTML = '';
                     showEmpty(emptyState);
@@ -409,24 +306,224 @@
             });
     }
 
-    /**
-     * Initialize the Activity page.
-     */
+    // ===================== REVIEW MODAL =====================
+
+    function openReviewModal(bookingId) {
+        currentReviewBookingId = bookingId;
+        selectedRating = 0;
+        updateStarDisplay();
+
+        const commentEl = document.getElementById('reviewComment');
+        if (commentEl) commentEl.value = '';
+
+        const errorEl = document.getElementById('reviewError');
+        if (errorEl) { errorEl.hidden = true; errorEl.textContent = ''; }
+
+        const ratingError = document.getElementById('reviewRatingError');
+        if (ratingError) ratingError.hidden = true;
+
+        const overlay = document.getElementById('reviewModalOverlay');
+        if (overlay) overlay.hidden = false;
+
+        const firstStar = document.querySelector('#starRating .star');
+        if (firstStar) firstStar.focus();
+    }
+
+    function closeReviewModal() {
+        currentReviewBookingId = null;
+        selectedRating = 0;
+        updateStarDisplay();
+
+        const overlay = document.getElementById('reviewModalOverlay');
+        if (overlay) overlay.hidden = true;
+    }
+
+    function updateStarDisplay() {
+        const stars = document.querySelectorAll('#starRating .star');
+        stars.forEach(function (star) {
+            const value = Number(star.dataset.value);
+            star.classList.toggle('selected', value <= selectedRating);
+            star.classList.toggle('hovered', false);
+            star.setAttribute('aria-checked', value === selectedRating ? 'true' : 'false');
+        });
+    }
+
+    function setRating(value) {
+        selectedRating = value;
+        updateStarDisplay();
+
+        const ratingError = document.getElementById('reviewRatingError');
+        if (ratingError) ratingError.hidden = true;
+    }
+
+    function initStarRating() {
+        const container = document.getElementById('starRating');
+        if (!container) return;
+
+        const stars = container.querySelectorAll('.star');
+
+        stars.forEach(function (star) {
+            star.addEventListener('click', function () {
+                setRating(Number(star.dataset.value));
+            });
+
+            star.addEventListener('mouseenter', function () {
+                const value = Number(star.dataset.value);
+                stars.forEach(function (s) {
+                    s.classList.toggle('hovered', Number(s.dataset.value) <= value);
+                });
+            });
+
+            star.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setRating(Number(star.dataset.value));
+                }
+            });
+        });
+
+        container.addEventListener('mouseleave', function () {
+            stars.forEach(function (s) { s.classList.remove('hovered'); });
+        });
+    }
+
+    function showReviewError(message) {
+        const el = document.getElementById('reviewError');
+        if (!el) return;
+        el.textContent = message;
+        el.hidden = false;
+    }
+
+    function hideReviewError() {
+        const el = document.getElementById('reviewError');
+        if (el) { el.hidden = true; el.textContent = ''; }
+    }
+
+    function submitReview() {
+        if (!currentReviewBookingId) return;
+
+        if (!selectedRating || selectedRating < 1 || selectedRating > 5) {
+            const ratingError = document.getElementById('reviewRatingError');
+            if (ratingError) ratingError.hidden = false;
+            return;
+        }
+
+        hideReviewError();
+
+        const api = getApi();
+        const submitBtn = document.getElementById('submitReviewBtn');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+        }
+
+        const commentEl = document.getElementById('reviewComment');
+        const comment = commentEl ? commentEl.value.trim() : '';
+
+        const payload = {
+            booking_id: Number(currentReviewBookingId),
+            rating: selectedRating,
+            comment: comment || null,
+        };
+
+        api.apiFetch('/api/reviews', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+        }).then(function (response) {
+            if (response.status === 401) {
+                api.clearAuth();
+                window.location.href = 'login.html';
+                return;
+            }
+            if (response.status === 403) {
+                throw new Error('You are not authorized to review this booking.');
+            }
+            if (!response.ok) {
+                return response.json().then(function (err) {
+                    const detail = (err && err.detail) ? err.detail : 'Unable to submit review.';
+                    if (response.status === 400 && detail.toLowerCase().includes('already')) {
+                        throw new Error('You have already reviewed this booking.');
+                    }
+                    if (response.status === 400 && detail.toLowerCase().includes('completed')) {
+                        throw new Error('Only completed bookings can be reviewed.');
+                    }
+                    throw new Error(detail);
+                }).catch(function () {
+                    throw new Error('Unable to submit review. Please try again.');
+                });
+            }
+            return response.json();
+        }).then(function (review) {
+            if (!review) return;
+            reviewedBookingIds.add(currentReviewBookingId);
+            closeReviewModal();
+            const feed = document.getElementById('activityFeed');
+            const emptyState = document.getElementById('emptyState');
+            if (feed) loadBookings(feed, emptyState);
+        }).catch(function (err) {
+            showReviewError(err && err.message ? err.message : 'Unable to submit review. Please try again.');
+        }).finally(function () {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Review';
+            }
+        });
+    }
+
+    function initReviewModal() {
+        const overlay = document.getElementById('reviewModalOverlay');
+        if (!overlay) return;
+
+        overlay.addEventListener('click', function (e) {
+            if (e.target === overlay) closeReviewModal();
+        });
+
+        const cancelBtn = document.getElementById('cancelReviewBtn');
+        if (cancelBtn) cancelBtn.addEventListener('click', closeReviewModal);
+
+        const submitBtn = document.getElementById('submitReviewBtn');
+        if (submitBtn) submitBtn.addEventListener('click', submitReview);
+
+        initStarRating();
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !overlay.hidden) {
+                closeReviewModal();
+            }
+        });
+    }
+
+    // ===================== REVIEW BUTTON DELEGATION =====================
+
+    function initReviewButtons() {
+        const feed = document.getElementById('activityFeed');
+        if (!feed) return;
+
+        feed.addEventListener('click', function (e) {
+            const btn = e.target.closest('.review-btn');
+            if (!btn) return;
+            const bookingId = btn.dataset.bookingId;
+            if (bookingId) openReviewModal(bookingId);
+        });
+    }
+
+    // ===================== INIT =====================
+
     function init() {
         const feed = document.getElementById('activityFeed');
         const emptyState = document.getElementById('emptyState');
         if (!feed) return;
 
-        // Booking history is a customer-only page.
         if (!hasSession()) {
             redirectToLogin();
             return;
         }
 
+        initReviewModal();
+        initReviewButtons();
         loadBookings(feed, emptyState);
     }
 
-    // Run after DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
