@@ -1,12 +1,13 @@
 from datetime import datetime, timedelta, timezone
+from os import getenv
 from typing import Optional
 
 from jose import jwt
 from passlib.context import CryptContext
 
-SECRET_KEY = "CHANGE_ME_TO_A_STRONG_RANDOM_SECRET"
+SECRET_KEY = getenv("SECRET_KEY", "CHANGE_ME_TO_A_STRONG_RANDOM_SECRET")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+ACCESS_TOKEN_EXPIRE_MINUTES = int(getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

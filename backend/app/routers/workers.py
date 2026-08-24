@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
+from typing import Optional
 
 from app import models
 from app.database.connection import get_db
@@ -11,12 +12,12 @@ router = APIRouter(prefix="/api/workers", tags=["workers"])
 
 @router.get("", response_model=list[WorkerResponse])
 def list_workers(
-    profession: str | None = Query(None),
-    location: str | None = Query(None),
-    availability: str | None = Query(None),
-    min_price: int | None = Query(None, gt=0),
-    max_price: int | None = Query(None, gt=0),
-    search: str | None = Query(None),
+    profession: Optional[str] = Query(None),
+    location: Optional[str] = Query(None),
+    availability: Optional[str] = Query(None),
+    min_price: Optional[int] = Query(None, gt=0),
+    max_price: Optional[int] = Query(None, gt=0),
+    search: Optional[str] = Query(None),
     db: Session = Depends(get_db),
 ):
     query = db.query(models.WorkerProfile, models.User).join(models.User, models.WorkerProfile.user_id == models.User.id)

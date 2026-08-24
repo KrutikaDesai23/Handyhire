@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
+from typing import Optional
 
 from app import models
 from app.auth.dependencies import get_current_worker
@@ -11,7 +12,7 @@ router = APIRouter(prefix="/api/worker", tags=["worker"])
 
 @router.get("/bookings", response_model=list[BookingResponse])
 def list_worker_bookings(
-    status: str | None = Query(None),
+    status: Optional[str] = Query(None),
     current_user: models.User = Depends(get_current_worker),
     db: Session = Depends(get_db),
 ):

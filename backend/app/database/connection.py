@@ -17,18 +17,30 @@ from sqlalchemy.orm import sessionmaker
 BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 load_dotenv(dotenv_path=os.path.join(BACKEND_DIR, ".env"))
 
-# Database URL from environment variables
+# Database URL from environment variables.
 # Expected format: postgresql://user:password@host:port/database
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/handyhire")
+# Falls back to a local SQLite file so the backend can run without a
+# PostgreSQL server installed (useful for local development).
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    DATABASE_URL = "sqlite:///./handyhire.db"
+
+IS_SQLITE = DATABASE_URL.startswith("sqlite")
 
 # Create SQLAlchemy engine
-engine = create_engine(
-    DATABASE_URL,
-    pool_pre_ping=True,
-    pool_recycle=300,
-    pool_size=5,
-    max_overflow=10,
-)
+if IS_SQLITE:
+    engine = create_engine(
+        DATABASE_URL,
+        connect_args={"check_same_thread": False},
+    )
+else:
+    engine = create_engine(
+        DATABASE_URL,
+        pool_pre_ping=True,
+        pool_recycle=300,
+        pool_size=5,
+        max_overflow=10,
+    )
 
 # Session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

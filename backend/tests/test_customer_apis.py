@@ -1,4 +1,5 @@
 import pytest
+from datetime import date
 from fastapi.testclient import TestClient
 
 from app import models
@@ -34,16 +35,21 @@ def test_customer_profile_update(client, customer_token):
 
 
 def test_customer_cannot_update_another_user_profile(client, customer_token, customer, db):
-    existing = db.query(User).filter(User.role == "customer", User.id != customer.id).first()
-    if existing:
-        target = existing
-    else:
-        target = db.query(User).filter(User.role == "customer").first()
+    other = User(
+        full_name="Other Customer",
+        email="other-customer@example.com",
+        mobile_number="5551112222",
+        password_hash=security.hash_password("password123"),
+        role="customer",
+    )
+    db.add(other)
+    db.commit()
+    db.refresh(other)
 
     response = client.put(
         "/api/customer/profile",
         headers={"Authorization": f"Bearer {customer_token}"},
-        json={"email": target.email},
+        json={"email": other.email},
     )
     assert response.status_code == 400
     assert "email" in response.json()["detail"].lower()
@@ -157,7 +163,7 @@ def test_customer_booking_detail(client, customer_token, customer, worker, db):
         booking = models.Booking(
             customer_id=customer.id,
             worker_id=worker.id,
-            booking_date="2026-08-20",
+            booking_date=date(2026, 8, 20),
             booking_time="10:00",
             address="123 Customer St",
             amount=500,
@@ -190,7 +196,7 @@ def test_customer_cannot_access_another_customer_booking(client, customer_token,
         other_booking = models.Booking(
             customer_id=other_customer.id,
             worker_id=worker.id,
-            booking_date="2026-08-20",
+            booking_date=date(2026, 8, 20),
             booking_time="10:00",
             address="456 Other St",
             amount=500,

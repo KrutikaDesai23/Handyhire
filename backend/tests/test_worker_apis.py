@@ -1,4 +1,5 @@
 import pytest
+from datetime import date
 from fastapi.testclient import TestClient
 
 from app import models
@@ -73,7 +74,7 @@ def test_worker_request_listing(client, worker, customer, db):
     booking = models.Booking(
         customer_id=customer.id,
         worker_id=worker.id,
-        booking_date="2026-08-20",
+        booking_date=date(2026, 8, 20),
         booking_time="10:00",
         address="123 Customer St",
         amount=500,
@@ -98,7 +99,7 @@ def test_worker_request_detail(client, worker, customer, db):
     booking = models.Booking(
         customer_id=customer.id,
         worker_id=worker.id,
-        booking_date="2026-08-20",
+        booking_date=date(2026, 8, 20),
         booking_time="10:00",
         address="123 Customer St",
         amount=500,
@@ -123,7 +124,7 @@ def test_worker_accepts_request(client, worker, customer, db):
     booking = models.Booking(
         customer_id=customer.id,
         worker_id=worker.id,
-        booking_date="2026-08-20",
+        booking_date=date(2026, 8, 20),
         booking_time="10:00",
         address="123 Customer St",
         amount=500,
@@ -148,7 +149,7 @@ def test_worker_rejects_request(client, worker, customer, db):
     booking = models.Booking(
         customer_id=customer.id,
         worker_id=worker.id,
-        booking_date="2026-08-20",
+        booking_date=date(2026, 8, 20),
         booking_time="10:00",
         address="123 Customer St",
         amount=500,
@@ -197,7 +198,7 @@ def test_worker_cannot_access_another_worker_request(client, worker, db):
     booking = models.Booking(
         customer_id=customer.id,
         worker_id=other_worker.id,
-        booking_date="2026-08-20",
+        booking_date=date(2026, 8, 20),
         booking_time="10:00",
         address="123 Customer St",
         amount=500,
@@ -220,7 +221,7 @@ def test_worker_bookings_listing(client, worker, customer, db):
     booking = models.Booking(
         customer_id=customer.id,
         worker_id=worker.id,
-        booking_date="2026-08-20",
+        booking_date=date(2026, 8, 20),
         booking_time="10:00",
         address="123 Customer St",
         amount=500,
@@ -241,7 +242,7 @@ def test_worker_booking_detail(client, worker, customer, db):
     booking = models.Booking(
         customer_id=customer.id,
         worker_id=worker.id,
-        booking_date="2026-08-20",
+        booking_date=date(2026, 8, 20),
         booking_time="10:00",
         address="123 Customer St",
         amount=500,
@@ -262,7 +263,7 @@ def test_worker_booking_status_update(client, worker, customer, db):
     booking = models.Booking(
         customer_id=customer.id,
         worker_id=worker.id,
-        booking_date="2026-08-20",
+        booking_date=date(2026, 8, 20),
         booking_time="10:00",
         address="123 Customer St",
         amount=500,
@@ -286,7 +287,7 @@ def test_worker_invalid_booking_status_transition(client, worker, customer, db):
     booking = models.Booking(
         customer_id=customer.id,
         worker_id=worker.id,
-        booking_date="2026-08-20",
+        booking_date=date(2026, 8, 20),
         booking_time="10:00",
         address="123 Customer St",
         amount=500,
@@ -388,7 +389,7 @@ def test_invalid_request_status_transition(client, worker, customer, db):
     booking = models.Booking(
         customer_id=customer.id,
         worker_id=worker.id,
-        booking_date="2026-08-20",
+        booking_date=date(2026, 8, 20),
         booking_time="10:00",
         address="123 Customer St",
         amount=500,

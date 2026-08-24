@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from typing import Optional
 
 from app import models
 from app.auth.dependencies import get_current_worker
@@ -34,7 +35,7 @@ def _build_request_response(request: models.BookingRequest, db: Session) -> Book
 
 @router.get("/requests", response_model=list[BookingRequestResponse])
 def list_worker_requests(
-    status: str | None = None,
+    status: Optional[str] = None,
     current_user: models.User = Depends(get_current_worker),
     db: Session = Depends(get_db),
 ):

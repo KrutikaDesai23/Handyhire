@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
+from typing import Optional
 
 from app.database.connection import get_db
 from app.models import Package, PackageService, Service
@@ -10,7 +11,7 @@ router = APIRouter(prefix="/api/packages", tags=["packages"])
 
 @router.get("", response_model=list[PackageResponse])
 def list_packages(
-    package_type: str | None = Query(None),
+    package_type: Optional[str] = Query(None),
     db: Session = Depends(get_db),
 ):
     query = db.query(Package)

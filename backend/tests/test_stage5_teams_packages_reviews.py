@@ -1,4 +1,5 @@
 import pytest
+from datetime import date
 from fastapi.testclient import TestClient
 
 from app import models
@@ -254,7 +255,7 @@ def test_customer_creates_valid_review(client, customer, worker, db):
     booking = models.Booking(
         customer_id=customer.id,
         worker_id=worker.id,
-        booking_date="2026-08-20",
+        booking_date=date(2026, 8, 20),
         booking_time="10:00",
         address="123 Customer St",
         amount=500,
@@ -290,7 +291,7 @@ def test_customer_cannot_review_incomplete_booking(client, customer, worker, db)
     booking = models.Booking(
         customer_id=customer.id,
         worker_id=worker.id,
-        booking_date="2026-08-20",
+        booking_date=date(2026, 8, 20),
         booking_time="10:00",
         address="123 Customer St",
         amount=500,
@@ -313,7 +314,7 @@ def test_duplicate_review_rejected(client, customer, worker, db):
     booking = models.Booking(
         customer_id=customer.id,
         worker_id=worker.id,
-        booking_date="2026-08-20",
+        booking_date=date(2026, 8, 20),
         booking_time="10:00",
         address="123 Customer St",
         amount=500,
@@ -350,7 +351,7 @@ def test_worker_reviews_listing(client, worker, customer, db):
     booking = models.Booking(
         customer_id=customer.id,
         worker_id=worker.id,
-        booking_date="2026-08-20",
+        booking_date=date(2026, 8, 20),
         booking_time="10:00",
         address="123 Customer St",
         amount=500,
