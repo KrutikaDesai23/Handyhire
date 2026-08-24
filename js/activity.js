@@ -221,14 +221,18 @@
         });
     }
 
-    function initSearch(container, emptyState, bookings) {
+    function initSearch() {
         const input = document.getElementById('activitySearch');
         if (!input) return;
 
         input.addEventListener('input', function () {
-            const filtered = filterBookings(bookings, input.value);
-            renderFeed(filtered, container, emptyState);
-            if (emptyState && !filtered.length && bookings.length) {
+            const feed = document.getElementById('activityFeed');
+            const emptyState = document.getElementById('emptyState');
+            if (!feed) return;
+
+            const filtered = filterBookings(currentBookings, input.value);
+            renderFeed(filtered, feed, emptyState);
+            if (emptyState && !filtered.length && currentBookings.length) {
                 emptyState.textContent = 'No bookings match your search.';
                 emptyState.hidden = false;
             }
@@ -299,7 +303,7 @@
                 }
 
                 renderFeed(bookings, container, emptyState);
-                initSearch(container, emptyState, bookings);
+                initSearch();
             })
             .catch(function () {
                 showError(container, emptyState, 'Unable to connect to HandyHire. Please try again.');
@@ -323,7 +327,10 @@
         if (ratingError) ratingError.hidden = true;
 
         const overlay = document.getElementById('reviewModalOverlay');
-        if (overlay) overlay.hidden = false;
+        if (overlay) {
+            overlay.hidden = false;
+            overlay.style.display = 'flex';
+        }
 
         const firstStar = document.querySelector('#starRating .star');
         if (firstStar) firstStar.focus();
@@ -335,7 +342,10 @@
         updateStarDisplay();
 
         const overlay = document.getElementById('reviewModalOverlay');
-        if (overlay) overlay.hidden = true;
+        if (overlay) {
+            overlay.hidden = true;
+            overlay.style.display = '';
+        }
     }
 
     function updateStarDisplay() {
@@ -519,8 +529,15 @@
             return;
         }
 
+        const currentUser = window.HandyHireAPI.getCurrentUser();
+        if (currentUser && currentUser.role === 'worker') {
+            window.location.href = 'provider-activity.html';
+            return;
+        }
+
         initReviewModal();
         initReviewButtons();
+        initSearch();
         loadBookings(feed, emptyState);
     }
 
