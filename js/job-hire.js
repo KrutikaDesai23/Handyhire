@@ -1008,7 +1008,19 @@
         }
         return {
             API_BASE_URL: 'http://127.0.0.1:8000',
-            apiFetch: function (path) { return fetch('http://127.0.0.1:8000' + path); },
+            apiFetch: function (path) {
+                return fetch('http://127.0.0.1:8000' + path).catch(function () {
+                    return {
+                        ok: false,
+                        status: 0,
+                        json: function () {
+                            return Promise.resolve({
+                                detail: 'Unable to connect to HandyHire server. Please make sure the backend is running.',
+                            });
+                        },
+                    };
+                });
+            },
         };
     }
 

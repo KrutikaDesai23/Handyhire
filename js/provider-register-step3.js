@@ -220,7 +220,12 @@
             profile_image: null,
         };
 
-        const response = await fetch(window.HandyHireAPI.API_BASE_URL + '/api/auth/register/worker', {
+        const api = window.HandyHireAPI;
+        if (!api || !api.apiFetch) {
+            throw new Error('Unable to connect to HandyHire server. Please make sure the backend is running.');
+        }
+
+        const response = await api.apiFetch('/api/auth/register/worker', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),

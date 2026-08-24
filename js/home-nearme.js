@@ -32,6 +32,11 @@
     }
 
     /**
+     * Generate a placeholder avatar data URL so cards render
+     * without any external image dependency.
+     * @param {string} name
+     * @returns {string} CSS background value
+     */
     function getAvatarStyle(name) {
         const initials = name
             .split(' ')
@@ -62,9 +67,9 @@
 
     /**
      * Render the near-by service grid into the DOM from backend
-     * data. Distance is only shown when the backend provides it
-     * (it currently does not), so cards render without it while
-     * the rest of the layout stays identical.
+     * data. The backend does not provide distance data, so cards
+     * render without a distance badge while the rest of the
+     * layout stays identical.
      * @param {HTMLElement} container
      * @param {Array} workers  backend WorkerResponse objects
      */
@@ -87,9 +92,6 @@
             const avatar = card.profileImage
                 ? 'url("' + card.profileImage + '")'
                 : getAvatarStyle(card.name);
-            const distanceBadge = (worker.distance != null)
-                ? '<span class="distance-badge" aria-hidden="true">' + Number(worker.distance).toFixed(1) + ' km away</span>'
-                : '';
 
             return `
                 <article class="worker-card" tabindex="0"
@@ -106,7 +108,6 @@
                         </span>
                         <span class="worker-price">${card.priceText}</span>
                     </div>
-                    ${distanceBadge}
                 </article>
             `;
         }).join('');

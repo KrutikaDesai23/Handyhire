@@ -35,9 +35,23 @@
         }).then(function (response) {
             if (response.status === 401) {
                 clearAuth();
-                return response;
             }
             return response;
+        }).catch(function () {
+            // Network-level failure (server down, DNS failure, CORS block, etc.).
+            // Return a synthetic Response-like object so callers never see
+            // an unhandled "Failed to fetch" rejection and can show a
+            // friendly message through their normal error path.
+            return {
+                ok: false,
+                status: 0,
+                statusText: 'Network Error',
+                json: function () {
+                    return Promise.resolve({
+                        detail: 'Unable to connect to HandyHire server. Please make sure the backend is running.',
+                    });
+                },
+            };
         });
     }
 

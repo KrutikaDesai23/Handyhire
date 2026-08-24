@@ -41,8 +41,14 @@
             return;
         }
 
+        const api = window.HandyHireAPI;
+        if (!api || !api.apiFetch) {
+            showError('Unable to connect to HandyHire server. Please make sure the backend is running.');
+            return;
+        }
+
         try {
-            var response = await fetch(window.HandyHireAPI.API_BASE_URL + '/api/auth/login', {
+            var response = await api.apiFetch('/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: email, password: password }),
@@ -56,9 +62,9 @@
             }
 
             var tokenData = await response.json();
-            window.HandyHireAPI.setAuth(tokenData.access_token, tokenData);
+            api.setAuth(tokenData.access_token, tokenData);
 
-            var user = await window.HandyHireAPI.fetchCurrentUser();
+            var user = await api.fetchCurrentUser();
             if (!user) {
                 showError('Failed to load user profile. Please try again.');
                 return;
@@ -70,7 +76,7 @@
                 window.location.href = 'home.html';
             }
         } catch (e) {
-            showError('Cannot connect to server. Please try again later.');
+            showError('Unable to connect to HandyHire server. Please make sure the backend is running.');
         }
     }
 
