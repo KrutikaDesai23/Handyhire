@@ -1,98 +1,46 @@
 /* =========================================================
    HandyHire - Customer Profile JavaScript
-   Reads the customer profile stored by customer-register.js
-   (localStorage keys: 'customerName', 'customerProfile')
-   and writes the values into the profile page.
-   Falls back to a safe placeholder when no profile exists.
+   Loads the authenticated customer's real profile from
+   GET /api/customer/profile. Edit/save uses PUT on the
+   same endpoint. No mock/fallback customer data is shown
+   for authenticated users.
    ========================================================= */
 
 (function () {
     'use strict';
 
-    /**
-     * Storage keys written by js/customer-register.js on
-     * successful registration. Keep these in sync if the
-     * registration script is renamed.
-     */
-    const STORAGE_KEYS = {
-        NAME:    'customerName',
-        PROFILE: 'customerProfile',
-    };
+    let currentProfile = null;
 
     /**
-     * Safe fallback values shown when nothing is in storage.
+     * Require an authenticated customer session.
+     * @returns {boolean}
      */
-    const FALLBACK = {
-        fullName:     'Rushda Sayed',
-        occupation:   'Engineer',
-        age:          '8 years',
-        mobile:       '+91 99876 54321',
-        email:        'rushda.sayed@handyhire.test',
-        address:      'Sector 12, Noida, Uttar Pradesh',
-        qualification: "Bachelor's in Engineering, certified for residential projects",
-        description:  'A reliable engineer with a strong record of on-time, high-quality work for residential customers.',
-        rating:       4.8,
-        reviews:      124,
-    };
-
-    /**
-     * Read the stored customer profile. Always returns a
-     * populated object so callers don't need to null-check.
-     * @returns {{
-     *   fullName: string, occupation: string, age: string,
-     *   mobile: string, email: string, address: string,
-     *   qualification: string, description: string,
-     *   rating: number, reviews: number
-     * }}
-     */
-    function readStoredProfile() {
-        const result = Object.assign({}, FALLBACK);
-
-        try {
-            const raw = localStorage.getItem(STORAGE_KEYS.PROFILE);
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (parsed && typeof parsed === 'object') {
-                    if (parsed.fullName) result.fullName = String(parsed.fullName).trim();
-                    if (parsed.mobile)   result.mobile   = String(parsed.mobile).trim();
-                    if (parsed.email)    result.email    = String(parsed.email).trim();
-                    if (parsed.address)  result.address  = String(parsed.address).trim();
-                }
-            }
-        } catch (e) {
-            // Fall through to legacy key handling.
+    function requireAuth() {
+        if (!window.HandyHireAPI || !window.HandyHireAPI.isLoggedIn()) {
+            window.location.href = 'login.html';
+            return false;
         }
-
-        // Legacy / simple fallback: read the standalone
-        // 'customerName' key written by the registration form.
-        try {
-            const legacyName = localStorage.getItem(STORAGE_KEYS.NAME);
-            if (legacyName && legacyName.trim()) {
-                result.fullName = legacyName.trim();
-            }
-        } catch (e) {
-            // Ignore.
-        }
-
-        return result;
+        return true;
     }
 
     /**
-     * Set the text content of an element only when both
-     * the element and the new value are present.
+     * Escape user-supplied text before injecting as HTML.
+     * @param {string} str
+     * @returns {string}
      */
-    function setText(id, value) {
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.textContent = value;
+    function escapeHtml(str) {
+        return String(str == null ? '' : str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
     }
 
     /**
-     * Generate a placeholder avatar data URL so the
-     * profile renders meaningfully without external
-     * image dependencies.
+     * Generate a placeholder avatar data URL.
      * @param {string} name
-     * @returns {string} CSS background value
+     * @returns {string}
      */
     function buildAvatar(name) {
         const initials = name
@@ -128,70 +76,199 @@
     }
 
     /**
-     * Populate the profile hero and personal information
-     * sections with the stored customer data.
+     * Set text content of an element when both are present.
+     * Uses "--" for empty/null values.
      */
-    function populateProfile() {
-        const profile = readStoredProfile();
+    function setText(id, value) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = value == null || value === '' ? '--' : value;
+    }
 
-        setText('profileHeroName', profile.fullName);
-        setText('infoFullName',    profile.fullName);
-        setText('infoMobile',      profile.mobile);
-        setText('infoEmail',       profile.email);
-        setText('infoAddress',     profile.address);
+    /**
+     * Populate the profile page from backend data.
+     * @param {Object} profile
+     */
+    function populateProfile(profile) {
+        setText('profileHeroName', profile.full_name);
+        setText('infoFullName', profile.full_name);
+        setText('infoMobile', profile.mobile_number);
+        setText('infoEmail', profile.email);
+        setText('infoAddress', profile.address);
+        setText('infoCity', profile.city);
 
         const avatar = document.getElementById('profileHeroAvatar');
-        if (avatar) {
-            avatar.style.backgroundImage = buildAvatar(profile.fullName);
+        if (avatar && profile.full_name) {
+            avatar.style.backgroundImage = buildAvatar(profile.full_name);
         }
     }
 
     /**
-     * Hydrate profile from the backend if a token exists.
+     * Show an error message in the hero area.
      */
-    async function hydrateFromBackend() {
-        if (!window.HandyHireAPI || !window.HandyHireAPI.isLoggedIn()) {
-            return;
+    function showError(message) {
+        const nameEl = document.getElementById('profileHeroName');
+        if (nameEl) nameEl.textContent = 'Unable to load profile';
+        const tagline = document.getElementById('profileHeroTagline');
+        if (tagline) tagline.textContent = message;
+    }
+
+    /**
+     * Load the customer profile from the backend.
+     */
+    function loadProfile() {
+        const api = window.HandyHireAPI;
+        const nameEl = document.getElementById('profileHeroName');
+        if (nameEl) nameEl.textContent = 'Loading...';
+
+        api.apiFetch('/api/customer/profile')
+            .then(function (response) {
+                if (response.status === 401) {
+                    api.clearAuth();
+                    window.location.href = 'login.html';
+                    return;
+                }
+                if (response.status === 403) {
+                    showError('You do not have access to this profile.');
+                    return;
+                }
+                if (!response.ok) {
+                    showError('Unable to load profile. Please try again.');
+                    return;
+                }
+                return response.json();
+            })
+            .then(function (profile) {
+                if (!profile) return;
+                currentProfile = profile;
+                populateProfile(profile);
+                fillEditForm(profile);
+            })
+            .catch(function () {
+                showError('Network error. Please check your connection and try again.');
+            });
+    }
+
+    /**
+     * Fill the edit form with current profile values.
+     */
+    function fillEditForm(profile) {
+        const set = function (id, value) {
+            const el = document.getElementById(id);
+            if (el) el.value = value == null ? '' : value;
+        };
+        set('editFullName', profile.full_name);
+        set('editEmail', profile.email);
+        set('editMobile', profile.mobile_number);
+        set('editAddress', profile.address);
+        set('editCity', profile.city);
+    }
+
+    /**
+     * Show an error in the edit form.
+     */
+    function showEditError(message) {
+        const el = document.getElementById('editError');
+        if (!el) return;
+        if (message) {
+            el.textContent = message;
+            el.hidden = false;
+        } else {
+            el.hidden = true;
         }
-        try {
-            const user = await window.HandyHireAPI.fetchCurrentUser();
-            if (!user) return;
+    }
 
-            setText('profileHeroName', user.full_name || '');
-            setText('infoFullName',    user.full_name || '');
-            setText('infoMobile',      user.mobile_number || '');
-            setText('infoEmail',       user.email || '');
-            setText('infoAddress',     user.address || '');
+    /**
+     * Open the edit form.
+     */
+    function openEdit() {
+        const form = document.getElementById('editProfileForm');
+        if (form) form.hidden = false;
+        const btn = document.getElementById('editProfileBtn');
+        if (btn) btn.hidden = true;
+    }
 
-            const avatar = document.getElementById('profileHeroAvatar');
-            if (avatar && user.full_name) {
-                avatar.style.backgroundImage = buildAvatar(user.full_name);
+    /**
+     * Close the edit form and clear any error.
+     */
+    function closeEdit() {
+        const form = document.getElementById('editProfileForm');
+        if (form) form.hidden = true;
+        const btn = document.getElementById('editProfileBtn');
+        if (btn) btn.hidden = false;
+        showEditError('');
+    }
+
+    /**
+     * Save profile edits via PUT /api/customer/profile.
+     */
+    function handleSave(event) {
+        event.preventDefault();
+        showEditError('');
+
+        const api = window.HandyHireAPI;
+        const btn = document.getElementById('saveProfileBtn');
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+        }
+
+        const val = function (id) {
+            const el = document.getElementById(id);
+            return el ? el.value.trim() : '';
+        };
+
+        const payload = {
+            full_name: val('editFullName'),
+            email: val('editEmail'),
+            mobile_number: val('editMobile'),
+            address: val('editAddress'),
+            city: val('editCity'),
+        };
+
+        api.apiFetch('/api/customer/profile', {
+            method: 'PUT',
+            body: JSON.stringify(payload),
+        }).then(function (response) {
+            if (response.status === 401) {
+                api.clearAuth();
+                window.location.href = 'login.html';
+                return;
             }
-        } catch (e) {
-            // Ignore backend errors - fall back to stored profile.
-        }
+            if (response.status === 403) {
+                showEditError('You do not have permission to update this profile.');
+                return;
+            }
+            if (!response.ok) {
+                return response.json().then(function (err) {
+                    throw new Error(err && err.detail ? err.detail : 'Failed to save profile');
+                }).catch(function () {
+                    throw new Error('Failed to save profile');
+                });
+            }
+            return response.json();
+        }).then(function (updated) {
+            if (!updated) return;
+            currentProfile = updated;
+            populateProfile(updated);
+            fillEditForm(updated);
+            closeEdit();
+        }).catch(function (err) {
+            showEditError(err && err.message ? err.message : 'Failed to save profile');
+        }).finally(function () {
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = 'Save Changes';
+            }
+        });
     }
 
     /**
-     * Populate the quick stats section using the profile
-     * data already available in localStorage.
-     */
-    function renderStats() {
-        const profile = readStoredProfile();
-
-        const ratingVal = Number(profile.rating);
-        setText('statRating',  Number.isFinite(ratingVal) ? ratingVal.toFixed(1) : '--');
-        setText('statReviews', profile.reviews != null ? String(profile.reviews) : '--');
-    }
-
-    /**
-     * Wire up the Signout button. Routes to the welcome
-     * page (index.html).
+     * Wire up the Sign Out button.
      */
     function initSignOut() {
         const btn = document.getElementById('signOutBtn');
         if (!btn) return;
-
         btn.addEventListener('click', function () {
             if (window.HandyHireAPI) {
                 window.HandyHireAPI.clearAuth();
@@ -204,13 +281,22 @@
      * Initialize the Customer Profile page.
      */
     function init() {
-        populateProfile();
-        renderStats();
+        if (!requireAuth()) return;
+
         initSignOut();
-        hydrateFromBackend();
+
+        const editBtn = document.getElementById('editProfileBtn');
+        if (editBtn) editBtn.addEventListener('click', openEdit);
+
+        const cancelBtn = document.getElementById('cancelEditBtn');
+        if (cancelBtn) cancelBtn.addEventListener('click', closeEdit);
+
+        const form = document.getElementById('editProfileForm');
+        if (form) form.addEventListener('submit', handleSave);
+
+        loadProfile();
     }
 
-    // Run after DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {

@@ -432,6 +432,153 @@ ul {
 }
 
 /* =========================================================
+   EDIT PROFILE FORM
+   ========================================================= */
+.edit-profile-btn {
+    display: block;
+    width: 100%;
+    height: 46px;
+    border: 2px solid var(--color-primary);
+    border-radius: var(--radius-pill);
+    background-color: transparent;
+    color: var(--color-primary);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition:
+        background-color var(--transition),
+        color var(--transition);
+}
+
+.edit-profile-btn:hover {
+    background-color: var(--color-primary);
+    color: #ffffff;
+}
+
+.edit-profile-btn:focus-visible {
+    outline: 3px rgba(104, 134, 92, 0.45);
+    outline-offset: 3px;
+}
+
+.edit-form {
+    margin-top: 12px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    padding: 18px 16px;
+    box-shadow: var(--shadow-card);
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.field:last-of-type {
+    margin-bottom: 0;
+}
+
+.field label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--color-text-muted);
+}
+
+.field input {
+    width: 100%;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-text);
+    background-color: var(--color-accent-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 11px 12px;
+    transition:
+        border-color var(--transition),
+        box-shadow var(--transition);
+}
+
+.field input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(104, 134, 92, 0.20);
+}
+
+.edit-error {
+    margin-top: 12px;
+    padding: 10px 12px;
+    background-color: rgba(192, 57, 43, 0.10);
+    border: 1px solid var(--color-danger);
+    border-radius: 12px;
+    color: var(--color-danger-dark);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.edit-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.btn-primary,
+.btn-secondary {
+    height: 46px;
+    padding: 0 22px;
+    border-radius: var(--radius-pill);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition:
+        background-color var(--transition),
+        color var(--transition),
+        transform var(--transition);
+}
+
+.btn-primary {
+    border: 2px solid var(--color-primary);
+    background-color: var(--color-primary);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background-color: var(--color-primary-dark);
+    border-color: var(--color-primary-dark);
+    transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+    opacity: 0.65;
+    cursor: default;
+    transform: none;
+}
+
+.btn-secondary {
+    border: 2px solid var(--color-border);
+    background-color: transparent;
+    color: var(--color-text-muted);
+}
+
+.btn-secondary:hover {
+    border-color: var(--color-text-muted);
+    color: var(--color-text);
+}
+
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible {
+    outline: 3px rgba(104, 134, 92, 0.45);
+    outline-offset: 3px;
+}
+
+/* =========================================================
    RESPONSIVE BREAKPOINTS
    ========================================================= */
 
