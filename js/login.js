@@ -47,6 +47,12 @@
             return;
         }
 
+        var submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Signing in\u2026';
+        }
+
         try {
             var response = await api.apiFetch('/api/auth/login', {
                 method: 'POST',
@@ -58,25 +64,35 @@
                 var data = {};
                 try { data = await response.json(); } catch (e) {}
                 showError(data.detail || 'Invalid email or password.');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Log In';
+                }
                 return;
             }
 
+            // The login response already contains the authenticated
+            // identity (user_id, role, full_name), so no follow-up
+            // /api/auth/me request is needed. The JWT remains the
+            // sole authentication credential.
             var tokenData = await response.json();
-            api.setAuth(tokenData.access_token, tokenData);
+            api.setAuth(tokenData.access_token, {
+                id: tokenData.user_id,
+                full_name: tokenData.full_name,
+                role: tokenData.role,
+            });
 
-            var user = await api.fetchCurrentUser();
-            if (!user) {
-                showError('Failed to load user profile. Please try again.');
-                return;
-            }
-
-            if (user.role === 'worker') {
+            if (tokenData.role === 'worker') {
                 window.location.href = 'provider-home.html';
             } else {
                 window.location.href = 'home.html';
             }
         } catch (e) {
             showError('Unable to connect to HandyHire server. Please make sure the backend is running.');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Log In';
+            }
         }
     }
 
@@ -85,10 +101,17 @@
 
         if (window.HandyHireAPI && window.HandyHireAPI.isLoggedIn()) {
             const user = window.HandyHireAPI.getCurrentUser();
-            if (user && user.role === 'worker') {
+            console.log('[HandyHire][login][debug] init isLoggedIn=true | user=' + JSON.stringify(user));
+            const role = (user && user.role) ? user.role : null;
+            if (role === 'worker') {
+                console.log('[HandyHire][login][debug] init redirect -> provider-home.html');
                 window.location.href = 'provider-home.html';
-            } else {
+            } else if (role === 'customer') {
+                console.log('[HandyHire][login][debug] init redirect -> home.html');
                 window.location.href = 'home.html';
+            } else {
+                console.log('[HandyHire][login][debug] init invalid/missing role -> clearAuth and stay on login.html');
+                window.HandyHireAPI.clearAuth();
             }
             return;
         }
