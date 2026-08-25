@@ -144,10 +144,9 @@ a {
     font-weight: 500;
     color: rgba(255, 255, 255, 0.78);
     text-decoration: none;
-    border-radius: var(--radius-pill);
-    transition:
-        background-color var(--transition),
-        color var(--transition);
+    border-radius: 999px;
+    transition: background-color var(--transition), color var(--transition);
+    position: relative;
 }
 
 .nav-tab:hover {
