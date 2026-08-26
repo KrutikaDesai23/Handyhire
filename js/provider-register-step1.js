@@ -1,45 +1,23 @@
-/* =========================================================
-   HandyHire - Provider Registration Step 1 JavaScript
-   Screen: SP R1 - Personal Details
-   Handles validation and navigation to step 2.
-   ========================================================= */
-
 (function () {
     'use strict';
 
-    /**
-     * Destination routes.
-     */
-    const ROUTES = {
-        NEXT: 'provider-register-step2.html',
-    };
+    const NEXT_PAGE = 'provider-register-step2.html';
+    const PROFILE_KEY = 'handyhire.provider.profile';
+    const SERVER_ERROR_KEY = 'handyhire.provider.registrationError';
+    const NAME_PATTERN = /^[A-Za-z][A-Za-z .'-]{1,49}$/;
 
-    /**
-     * Regex patterns used for input validation.
-     */
-    const PATTERNS = {
-        // Letters, spaces, dot, hyphen, apostrophe (name characters)
-        NAME: /^[A-Za-z][A-Za-z .'-]{1,49}$/,
-    };
-
-    /**
-     * Reference DOM elements.
-     */
     const form = document.getElementById('providerRegisterStep1Form');
     const fullNameInput = document.getElementById('fullName');
     const ageInput = document.getElementById('age');
     const qualificationInput = document.getElementById('qualification');
     const skillsInput = document.getElementById('skills');
 
-    /**
-     * Display a validation message under a field and mark it as invalid.
-     *
-     * @param {HTMLInputElement|HTMLSelectElement} input - Field element.
-     * @param {string} message - Message to display (empty to clear).
-     */
     function setFieldError(input, message) {
-        const errorId = input.getAttribute('aria-describedby');
-        const errorEl = errorId ? document.getElementById(errorId) : null;
+        const describedBy = input.getAttribute('aria-describedby') || '';
+        const errorEl = describedBy
+            .split(' ')
+            .map((id) => document.getElementById(id))
+            .find((element) => element && element.classList.contains('form-error'));
 
         if (message) {
             input.classList.add('input-error');
@@ -52,157 +30,192 @@
         }
     }
 
-    /**
-     * Validate the Full Name field.
-     * @returns {boolean}
-     */
     function validateFullName() {
         const value = fullNameInput.value.trim();
+
         if (!value) {
-            setFieldError(fullNameInput, 'Full name is required.');
+            setFieldError(fullNameInput, 'Please enter your full name.');
             return false;
         }
-        if (!PATTERNS.NAME.test(value)) {
-            setFieldError(fullNameInput, 'Please enter a valid name (letters only).');
+
+        if (!NAME_PATTERN.test(value)) {
+            setFieldError(
+                fullNameInput,
+                'Use 2-50 letters. Spaces, dot, hyphen and apostrophe are allowed.'
+            );
             return false;
         }
+
         setFieldError(fullNameInput, '');
         return true;
     }
 
-    /**
-     * Validate the Age field (18-99).
-     * @returns {boolean}
-     */
     function validateAge() {
-        const raw = ageInput.value.trim();
-        if (!raw) {
-            setFieldError(ageInput, 'Age is required.');
+        const value = ageInput.value.trim();
+        const age = Number(value);
+
+        if (!value) {
+            setFieldError(ageInput, 'Please enter your age.');
             return false;
         }
-        const age = Number(raw);
+
         if (!Number.isInteger(age)) {
-            setFieldError(ageInput, 'Please enter a valid whole number.');
+            setFieldError(ageInput, 'Age must be a whole number.');
             return false;
         }
-        if (age < 18 || age > 99) {
-            setFieldError(ageInput, 'Age must be between 18 and 99.');
+
+        if (age < 18) {
+            setFieldError(ageInput, 'You must be at least 18 years old.');
             return false;
         }
+
+        if (age > 99) {
+            setFieldError(ageInput, 'Age cannot be greater than 99.');
+            return false;
+        }
+
         setFieldError(ageInput, '');
         return true;
     }
 
-    /**
-     * Validate the Qualification dropdown.
-     * @returns {boolean}
-     */
     function validateQualification() {
-        const value = qualificationInput.value;
-        if (!value) {
-            setFieldError(qualificationInput, 'Please select a qualification.');
+        if (!qualificationInput.value) {
+            setFieldError(
+                qualificationInput,
+                'Please select your qualification.'
+            );
             return false;
         }
+
         setFieldError(qualificationInput, '');
         return true;
     }
 
-    /**
-     * Validate the Skills dropdown.
-     * @returns {boolean}
-     */
     function validateSkills() {
-        const value = skillsInput.value;
-        if (!value) {
-            setFieldError(skillsInput, 'Please select a skill.');
+        if (!skillsInput.value) {
+            setFieldError(skillsInput, 'Please select your primary skill.');
             return false;
         }
+
         setFieldError(skillsInput, '');
         return true;
     }
 
-    /**
-     * Persist the current step's form data into sessionStorage
-     * so later steps and the profile page can reconstruct the
-     * full provider profile.
-     */
-    function persistFormData() {
+    function saveFormData() {
         try {
-            const existing = sessionStorage.getItem('handyhire.provider.profile');
+            const existing = sessionStorage.getItem(PROFILE_KEY);
             const profile = existing ? JSON.parse(existing) : {};
+
             profile.fullName = fullNameInput.value.trim();
             profile.age = ageInput.value.trim();
             profile.qualification = qualificationInput.value;
             profile.skills = skillsInput.value;
-            sessionStorage.setItem('handyhire.provider.profile', JSON.stringify(profile));
-        } catch (e) {
-            // Ignore storage errors.
+
+            sessionStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+        } catch (error) {
+            console.error('Could not save Step 1 details.', error);
         }
     }
 
-    /**
-     * Navigate to step 2.
-     */
-    function navigateNext() {
-        persistFormData();
-        window.location.href = ROUTES.NEXT;
+    function restoreFormData() {
+        try {
+            const raw = sessionStorage.getItem(PROFILE_KEY);
+            if (!raw) return;
+
+            const profile = JSON.parse(raw);
+
+            fullNameInput.value = profile.fullName || '';
+            ageInput.value = profile.age || '';
+            qualificationInput.value = profile.qualification || '';
+            skillsInput.value = profile.skills || '';
+        } catch (error) {
+            console.error('Could not restore Step 1 details.', error);
+        }
     }
 
-    /**
-     * Initialize the registration form.
-     */
+    function showBackendError() {
+        const fieldMap = {
+            full_name: fullNameInput,
+            age: ageInput,
+            qualification: qualificationInput,
+            profession: skillsInput
+        };
+
+        try {
+            const raw = sessionStorage.getItem(SERVER_ERROR_KEY);
+            if (!raw) return;
+
+            const savedError = JSON.parse(raw);
+            const input = fieldMap[savedError.field];
+
+            if (!input) return;
+
+            sessionStorage.removeItem(SERVER_ERROR_KEY);
+
+            setFieldError(
+                input,
+                savedError.message || 'Please check this field.'
+            );
+
+            input.focus();
+        } catch (error) {
+            sessionStorage.removeItem(SERVER_ERROR_KEY);
+        }
+    }
+
     function init() {
         if (!form) return;
 
-        if (window.HandyHireAPI && window.HandyHireAPI.isLoggedIn()) {
-            const user = window.HandyHireAPI.getCurrentUser();
-            if (user && user.role === 'worker') {
-                window.location.href = 'provider-home.html';
-            } else {
-                window.location.href = 'home.html';
-            }
-            return;
-        }
+        restoreFormData();
+        showBackendError();
 
-        // Strip non-numeric characters and clamp to 2 digits for age
         ageInput.addEventListener('input', function () {
             const cleaned = ageInput.value.replace(/\D/g, '').slice(0, 2);
-            if (cleaned !== ageInput.value) ageInput.value = cleaned;
-            if (ageInput.classList.contains('input-error')) validateAge();
+            ageInput.value = cleaned;
+
+            if (ageInput.classList.contains('input-error')) {
+                validateAge();
+            }
         });
 
-        // Live validation - clear errors as the user types/changes
         fullNameInput.addEventListener('input', function () {
-            if (fullNameInput.classList.contains('input-error')) validateFullName();
-        });
-        qualificationInput.addEventListener('change', function () {
-            if (qualificationInput.classList.contains('input-error')) validateQualification();
-        });
-        skillsInput.addEventListener('change', function () {
-            if (skillsInput.classList.contains('input-error')) validateSkills();
+            if (fullNameInput.classList.contains('input-error')) {
+                validateFullName();
+            }
         });
 
-        // Form submission
+        qualificationInput.addEventListener('change', function () {
+            validateQualification();
+        });
+
+        skillsInput.addEventListener('change', function () {
+            validateSkills();
+        });
+
         form.addEventListener('submit', function (event) {
             event.preventDefault();
 
-            const isNameValid = validateFullName();
-            const isAgeValid = validateAge();
-            const isQualificationValid = validateQualification();
-            const isSkillsValid = validateSkills();
+            const validName = validateFullName();
+            const validAge = validateAge();
+            const validQualification = validateQualification();
+            const validSkill = validateSkills();
 
-            if (isNameValid && isAgeValid && isQualificationValid && isSkillsValid) {
-                // All fields valid - proceed to step 2
-                navigateNext();
-            } else {
-                // Focus the first invalid field for accessibility
-                const firstInvalid = form.querySelector('.input-error');
-                if (firstInvalid) firstInvalid.focus();
+            if (
+                validName &&
+                validAge &&
+                validQualification &&
+                validSkill
+            ) {
+                saveFormData();
+                window.location.href = NEXT_PAGE;
+                return;
             }
+
+            const firstInvalid = form.querySelector('.input-error');
+            if (firstInvalid) firstInvalid.focus();
         });
     }
 
-    // Run after DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {

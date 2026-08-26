@@ -1,179 +1,188 @@
-/* =========================================================
-   HandyHire - Provider Registration Step 3 JavaScript
-   Screen: SP R3 - Verification
-   Handles file validation, identity number validation, and
-   Back / Submit navigation.
-   ========================================================= */
-
 (function () {
     'use strict';
 
-    /**
-     * Destination routes.
-     */
-    const ROUTES = {
-        BACK: 'provider-register-step2.html',
-        SUBMIT: 'provider-home.html',
+    const BACK_PAGE = 'provider-register-step2.html';
+    const SUCCESS_PAGE = 'provider-home.html';
+    const PROFILE_KEY = 'handyhire.provider.profile';
+    const SERVER_ERROR_KEY = 'handyhire.provider.registrationError';
+
+    const FIELD_ROUTES = {
+        full_name: 'provider-register-step1.html',
+        age: 'provider-register-step1.html',
+        qualification: 'provider-register-step1.html',
+        profession: 'provider-register-step1.html',
+        mobile_number: 'provider-register-step2.html',
+        email: 'provider-register-step2.html',
+        password: 'provider-register-step2.html',
+        price: 'provider-register-step2.html',
+        location: 'provider-register-step2.html'
     };
 
-    /**
-     * File validation rules per field.
-     * - maxSize: in bytes
-     * - allowedTypes: array of MIME types or wildcard patterns
-     */
+    const FIELD_MESSAGES = {
+        full_name: 'Enter a valid full name using 2-50 letters.',
+        age: 'Age must be between 18 and 99.',
+        qualification: 'Please select your qualification.',
+        profession: 'Please select your primary skill.',
+        mobile_number:
+            'Enter a 10-digit mobile number starting with 6, 7, 8 or 9.',
+        email: 'Enter a valid email address.',
+        password: 'Password must contain at least 6 characters.',
+        price: 'Enter a valid price greater than ₹0.',
+        location: 'Please select your address.'
+    };
+
     const FILE_RULES = {
         uploadPhoto: {
-            maxSize: 2 * 1024 * 1024, // 2 MB
-            allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
-            allowedExtensions: ['jpg', 'jpeg', 'png', 'webp'],
             label: 'photo',
+            maxSize: 2 * 1024 * 1024,
+            types: ['image/jpeg', 'image/png', 'image/webp'],
+            extensions: ['jpg', 'jpeg', 'png', 'webp'],
+            optional: false
         },
         photoIdentity: {
-            maxSize: 5 * 1024 * 1024, // 5 MB
-            allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'],
-            allowedExtensions: ['jpg', 'jpeg', 'png', 'webp', 'pdf'],
             label: 'identity document',
+            maxSize: 5 * 1024 * 1024,
+            types: [
+                'image/jpeg',
+                'image/png',
+                'image/webp',
+                'application/pdf'
+            ],
+            extensions: ['jpg', 'jpeg', 'png', 'webp', 'pdf'],
+            optional: false
         },
         additionalDocuments: {
-            maxSize: 5 * 1024 * 1024, // 5 MB
-            allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'],
-            allowedExtensions: ['jpg', 'jpeg', 'png', 'webp', 'pdf'],
             label: 'additional document',
-            optional: true,
-        },
+            maxSize: 5 * 1024 * 1024,
+            types: [
+                'image/jpeg',
+                'image/png',
+                'image/webp',
+                'application/pdf'
+            ],
+            extensions: ['jpg', 'jpeg', 'png', 'webp', 'pdf'],
+            optional: true
+        }
     };
 
-    /**
-     * Regex pattern for the identity number (alphanumeric, 6–20 chars).
-     */
-    const ID_NUMBER_PATTERN = /^[A-Za-z0-9]{6,20}$/;
-
-    /**
-     * Reference DOM elements.
-     */
-    /**
-     * Skills-to-profession mapping for the registration API.
-     */
     const SKILL_LABELS = {
-        'plumber': 'Plumber',
-        'electrician': 'Electrician',
-        'carpenter': 'Carpenter',
-        'painter': 'Painter',
-        'cleaner': 'Cleaner',
+        plumber: 'Plumber',
+        electrician: 'Electrician',
+        carpenter: 'Carpenter',
+        painter: 'Painter',
+        cleaner: 'Cleaner',
         'ac-repair': 'AC / Appliance Repair',
         'pest-control': 'Pest Control',
-        'moving': 'Moving & Packing',
-        'gardener': 'Gardener',
-        'handyman': 'General Handyman',
+        moving: 'Moving & Packing',
+        gardener: 'Gardener',
+        handyman: 'General Handyman'
     };
+
+    const ID_NUMBER_PATTERN = /^[A-Za-z0-9]{6,20}$/;
 
     const form = document.getElementById('providerRegisterStep3Form');
     const backBtn = document.getElementById('backBtn');
+    const submitBtn = form ? form.querySelector('.submit-btn') : null;
 
     const uploadPhotoInput = document.getElementById('uploadPhoto');
     const photoIdentityInput = document.getElementById('photoIdentity');
     const identityNumberInput = document.getElementById('identityNumber');
-    const additionalDocsInput = document.getElementById('additionalDocuments');
+    const additionalDocsInput =
+        document.getElementById('additionalDocuments');
 
-    /**
-     * Get a human-readable file size string.
-     * @param {number} bytes
-     * @returns {string}
-     */
     function formatFileSize(bytes) {
-        if (bytes < 1024) return bytes + ' B';
-        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
         return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
     }
 
-    /**
-     * Get the file extension in lower case.
-     * @param {string} name
-     * @returns {string}
-     */
-    function getExtension(name) {
-        const idx = name.lastIndexOf('.');
-        return idx >= 0 ? name.slice(idx + 1).toLowerCase() : '';
+    function getExtension(filename) {
+        const position = filename.lastIndexOf('.');
+        return position === -1
+            ? ''
+            : filename.slice(position + 1).toLowerCase();
     }
 
-    /**
-     * Validate a single file input against its rules.
-     * @param {HTMLInputElement} input
-     * @param {object} rules
-     * @returns {boolean}
-     */
-    function validateFile(input, rules) {
-        const wrapper = input.closest('.file-wrapper');
-        const errorId = input.getAttribute('aria-describedby');
-        const errorEl = errorId
-            ? errorId.split(' ').map((id) => document.getElementById(id)).find((el) => el && el.classList.contains('form-error'))
-            : null;
+    function getFileErrorElement(input) {
+        const describedBy = input.getAttribute('aria-describedby') || '';
 
-        // Optional field with no file selected is valid
-        if (rules.optional && (!input.files || input.files.length === 0)) {
+        return describedBy
+            .split(' ')
+            .map((id) => document.getElementById(id))
+            .find((element) => element && element.classList.contains('form-error'));
+    }
+
+    function setFileError(input, message) {
+        const wrapper = input.closest('.file-wrapper');
+        const errorEl = getFileErrorElement(input);
+
+        if (message) {
+            if (wrapper) wrapper.classList.add('has-error');
+            input.setAttribute('aria-invalid', 'true');
+            if (errorEl) errorEl.textContent = message;
+        } else {
             if (wrapper) wrapper.classList.remove('has-error');
             input.removeAttribute('aria-invalid');
             if (errorEl) errorEl.textContent = '';
-            return true;
         }
+    }
 
+    function validateFile(input, rules) {
         if (!input.files || input.files.length === 0) {
-            if (wrapper) wrapper.classList.add('has-error');
-            input.setAttribute('aria-invalid', 'true');
-            if (errorEl) errorEl.textContent = `Please upload your ${rules.label}.`;
+            if (rules.optional) {
+                setFileError(input, '');
+                return true;
+            }
+
+            setFileError(
+                input,
+                `Please upload your ${rules.label}.`
+            );
             return false;
         }
 
         const file = input.files[0];
-        const ext = getExtension(file.name);
+        const extension = getExtension(file.name);
 
-        // Type check
-        if (rules.allowedTypes.indexOf(file.type) === -1 && rules.allowedExtensions.indexOf(ext) === -1) {
-            if (wrapper) wrapper.classList.add('has-error');
-            input.setAttribute('aria-invalid', 'true');
-            if (errorEl) errorEl.textContent = `Unsupported file type. Allowed: ${rules.allowedExtensions.join(', ').toUpperCase()}.`;
+        const validExtension = rules.extensions.includes(extension);
+        const validType = !file.type || rules.types.includes(file.type);
+
+        if (!validExtension || !validType) {
+            setFileError(
+                input,
+                `Invalid ${rules.label} format. Allowed formats: ${rules.extensions
+                    .join(', ')
+                    .toUpperCase()}.`
+            );
             return false;
         }
 
-        // Size check
         if (file.size > rules.maxSize) {
-            if (wrapper) wrapper.classList.add('has-error');
-            input.setAttribute('aria-invalid', 'true');
-            if (errorEl) errorEl.textContent = `File is too large (${formatFileSize(file.size)}). Max allowed: ${formatFileSize(rules.maxSize)}.`;
+            setFileError(
+                input,
+                `${file.name} is ${formatFileSize(file.size)}. Maximum allowed size is ${formatFileSize(rules.maxSize)}.`
+            );
             return false;
         }
 
-        if (wrapper) wrapper.classList.remove('has-error');
-        input.removeAttribute('aria-invalid');
-        if (errorEl) errorEl.textContent = '';
+        setFileError(input, '');
         return true;
     }
 
-    /**
-     * Update the visual label of a file input to reflect the chosen file.
-     * @param {HTMLInputElement} input
-     */
     function updateFileLabel(input) {
-        const labelId = input.id + 'Label';
-        const label = document.getElementById(labelId);
+        const label = document.getElementById(input.id + 'Label');
         if (!label) return;
 
-        const textEl = label.querySelector('.file-text');
-        if (!textEl) return;
+        const text = label.querySelector('.file-text');
+        if (!text) return;
 
         if (input.files && input.files.length > 0) {
             label.classList.add('file-selected');
-            textEl.textContent = input.files[0].name;
+            text.textContent = input.files[0].name;
         } else {
             label.classList.remove('file-selected');
-            textEl.textContent = 'Choose file';
+            text.textContent = 'Choose file';
         }
     }
 
-    /**
-     * Validate the Identity Number input.
-     * @returns {boolean}
-     */
     function validateIdentityNumber() {
         const value = identityNumberInput.value.trim();
         const errorEl = document.getElementById('identityNumberError');
@@ -181,175 +190,346 @@
         if (!value) {
             identityNumberInput.classList.add('input-error');
             identityNumberInput.setAttribute('aria-invalid', 'true');
-            if (errorEl) errorEl.textContent = 'Identity number is required.';
+            errorEl.textContent = 'Please enter your identity number.';
             return false;
         }
+
         if (!ID_NUMBER_PATTERN.test(value)) {
             identityNumberInput.classList.add('input-error');
             identityNumberInput.setAttribute('aria-invalid', 'true');
-            if (errorEl) errorEl.textContent = 'Enter 6-20 letters or numbers.';
+            errorEl.textContent =
+                'Identity number must contain 6-20 letters or numbers without spaces.';
             return false;
         }
+
         identityNumberInput.classList.remove('input-error');
         identityNumberInput.removeAttribute('aria-invalid');
-        if (errorEl) errorEl.textContent = '';
+        errorEl.textContent = '';
         return true;
     }
 
-    /**
-     * Submit the verification and register with the backend.
-     */
-    async function submitRegistration() {
-        const raw = sessionStorage.getItem('handyhire.provider.profile');
+    function createFieldError(field, message) {
+        const error = new Error(
+            message ||
+            FIELD_MESSAGES[field] ||
+            'Please check the information you entered.'
+        );
+
+        error.field = field;
+        return error;
+    }
+
+    function validateSavedDetails(profile) {
+        if (
+            !profile.fullName ||
+            !/^[A-Za-z][A-Za-z .'-]{1,49}$/.test(profile.fullName.trim())
+        ) {
+            return createFieldError('full_name');
+        }
+
+        const age = Number(profile.age);
+
+        if (!Number.isInteger(age) || age < 18 || age > 99) {
+            return createFieldError('age');
+        }
+
+        if (!profile.qualification) {
+            return createFieldError('qualification');
+        }
+
+        if (!profile.skills) {
+            return createFieldError('profession');
+        }
+
+        if (!/^[6-9]\d{9}$/.test((profile.mobileNumber || '').trim())) {
+            return createFieldError('mobile_number');
+        }
+
+        if (
+            !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(
+                (profile.email || '').trim()
+            )
+        ) {
+            return createFieldError('email');
+        }
+
+        if (!profile.password || profile.password.length < 6) {
+            return createFieldError('password');
+        }
+
+        const price = Number(profile.price);
+
+        if (!Number.isInteger(price) || price <= 0) {
+            return createFieldError('price');
+        }
+
+        if (!profile.address) {
+            return createFieldError('location');
+        }
+
+        return null;
+    }
+
+    function buildBackendError(data, statusCode) {
+        const detail = data && data.detail;
+
+        if (Array.isArray(detail) && detail.length > 0) {
+            const issue = detail[0];
+            const location = Array.isArray(issue.loc) ? issue.loc : [];
+            const field = location.length
+                ? location[location.length - 1]
+                : null;
+
+            return createFieldError(
+                field,
+                FIELD_MESSAGES[field] || issue.msg
+            );
+        }
+
+        if (detail && typeof detail === 'object') {
+            return createFieldError(
+                detail.field,
+                detail.message || detail.msg
+            );
+        }
+
+        if (typeof detail === 'string') {
+            const message = detail.toLowerCase();
+
+            if (
+                message.includes('email') &&
+                message.includes('registered')
+            ) {
+                return createFieldError(
+                    'email',
+                    'This email is already registered. Sign in or use another email.'
+                );
+            }
+
+            if (
+                message.includes('mobile') &&
+                message.includes('registered')
+            ) {
+                return createFieldError(
+                    'mobile_number',
+                    'This mobile number is already registered. Sign in or use another number.'
+                );
+            }
+
+            return new Error(detail);
+        }
+
+        if (statusCode === 422) {
+            return new Error(
+                'Some registration details are invalid. Please check all fields.'
+            );
+        }
+
+        return new Error('Registration failed. Please try again.');
+    }
+
+    function redirectToIncorrectField(error) {
+        const page = error && FIELD_ROUTES[error.field];
+        if (!page) return false;
+
+        sessionStorage.setItem(
+            SERVER_ERROR_KEY,
+            JSON.stringify({
+                field: error.field,
+                message: error.message
+            })
+        );
+
+        window.location.href = page;
+        return true;
+    }
+
+    async function registerWorker() {
+        const raw = sessionStorage.getItem(PROFILE_KEY);
         const profile = raw ? JSON.parse(raw) : {};
-        const skillKey = (profile.skills || '').toLowerCase();
-        const profession = SKILL_LABELS[skillKey] || skillKey || 'Professional';
+
+        const savedDetailsError = validateSavedDetails(profile);
+        if (savedDetailsError) throw savedDetailsError;
+
+        const skill = (profile.skills || '').toLowerCase();
+        const profession =
+            SKILL_LABELS[skill] || skill || 'Professional';
 
         const payload = {
-            full_name: (profile.fullName || '').trim(),
-            email: (profile.email || '').trim(),
-            mobile_number: (profile.mobileNumber || '').trim(),
-            password: profile.password || '',
+            full_name: profile.fullName.trim(),
+            email: profile.email.trim().toLowerCase(),
+            mobile_number: profile.mobileNumber.trim(),
+            password: profile.password,
             profession: profession,
             bio: '',
-            experience: profile.age ? profile.age + ' years' : '',
-            qualification: profile.qualification || '',
-            location: (profile.address || '').trim() || 'Not specified',
-            price: parseInt(profile.price || '0', 10) || 0,
+            experience: null,
+            qualification: profile.qualification,
+            location: profile.address,
+            price: Number(profile.price),
             availability: '',
-            profile_image: null,
+            profile_image: null
         };
 
         const api = window.HandyHireAPI;
-        if (!api || !api.apiFetch) {
-            throw new Error('Unable to connect to HandyHire server. Please make sure the backend is running.');
+
+        if (!api || typeof api.apiFetch !== 'function') {
+            throw new Error(
+                'Unable to connect to HandyHire. Make sure the backend is running on port 8000.'
+            );
         }
 
-        const response = await api.apiFetch('/api/auth/register/worker', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-        });
+        const response = await api.apiFetch(
+            '/api/auth/register/worker',
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            }
+        );
 
         if (!response.ok) {
-            let detail = 'Registration failed. Please try again.';
+            let data = null;
+
             try {
-                const data = await response.json();
-                if (data.detail) detail = data.detail;
-            } catch (e) {}
-            throw new Error(detail);
+                data = await response.json();
+            } catch (error) {
+                data = null;
+            }
+
+            throw buildBackendError(data, response.status);
         }
 
         const tokenData = await response.json();
-        window.HandyHireAPI.setAuth(tokenData.access_token, tokenData);
 
-        const user = await window.HandyHireAPI.fetchCurrentUser();
-        if (!user) {
-            throw new Error('Registration succeeded but failed to load profile.');
+        api.setAuth(tokenData.access_token, tokenData);
+
+        const currentUser = await api.fetchCurrentUser();
+
+        if (!currentUser) {
+            throw new Error(
+                'Registration succeeded, but the worker profile could not be loaded.'
+            );
         }
-
-        return tokenData;
     }
 
-    /**
-     * Navigate back to step 2.
-     */
-    function navigateBack() {
-        window.location.href = ROUTES.BACK;
-    }
+    async function submitRegistration() {
+        const formError =
+            document.getElementById('providerRegisterFormError');
 
-    /**
-     * Persist the complete provider profile into sessionStorage
-     * so the provider profile page can display the correct
-     * logged-in provider information.
-     */
-    function persistFinalProfile() {
         try {
-            const existing = sessionStorage.getItem('handyhire.provider.profile');
-            const profile = existing ? JSON.parse(existing) : {};
-            profile.identityNumber = identityNumberInput.value.trim();
-            profile.registeredAt = new Date().toISOString();
-            sessionStorage.setItem('handyhire.provider.profile', JSON.stringify(profile));
-        } catch (e) {
-            // Ignore storage errors.
+            formError.textContent = '';
+
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Submitting...';
+            }
+
+            await registerWorker();
+
+            window.location.href = SUCCESS_PAGE;
+        } catch (error) {
+            if (redirectToIncorrectField(error)) return;
+
+            formError.textContent =
+                error.message ||
+                'Registration failed. Please try again.';
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit';
+            }
         }
     }
 
-    /**
-     * Submit the verification and proceed to the dashboard.
-     */
-    async function navigateSubmit() {
-        const errorEl = document.getElementById('providerRegisterFormError');
-        try {
-            if (errorEl) errorEl.textContent = '';
-            await submitRegistration();
-            persistFinalProfile();
-            window.location.href = ROUTES.SUBMIT;
-        } catch (err) {
-            if (errorEl) errorEl.textContent = err.message || 'Registration failed. Please try again.';
-        }
-    }
-
-    /**
-     * Initialize the verification form.
-     */
     function init() {
         if (!form) return;
 
-        // File selection handlers - update label and re-validate if previously errored
         uploadPhotoInput.addEventListener('change', function () {
             updateFileLabel(uploadPhotoInput);
-            const wrapper = uploadPhotoInput.closest('.file-wrapper');
-            if (wrapper && wrapper.classList.contains('has-error')) validateFile(uploadPhotoInput, FILE_RULES.uploadPhoto);
+            validateFile(
+                uploadPhotoInput,
+                FILE_RULES.uploadPhoto
+            );
         });
 
         photoIdentityInput.addEventListener('change', function () {
             updateFileLabel(photoIdentityInput);
-            const wrapper = photoIdentityInput.closest('.file-wrapper');
-            if (wrapper && wrapper.classList.contains('has-error')) validateFile(photoIdentityInput, FILE_RULES.photoIdentity);
+            validateFile(
+                photoIdentityInput,
+                FILE_RULES.photoIdentity
+            );
         });
 
         additionalDocsInput.addEventListener('change', function () {
             updateFileLabel(additionalDocsInput);
-            const wrapper = additionalDocsInput.closest('.file-wrapper');
-            if (wrapper && wrapper.classList.contains('has-error')) validateFile(additionalDocsInput, FILE_RULES.additionalDocuments);
+            validateFile(
+                additionalDocsInput,
+                FILE_RULES.additionalDocuments
+            );
         });
 
-        // Live validation - clear identity number error as the user types
         identityNumberInput.addEventListener('input', function () {
-            if (identityNumberInput.classList.contains('input-error')) validateIdentityNumber();
+            if (
+                identityNumberInput.classList.contains('input-error')
+            ) {
+                validateIdentityNumber();
+            }
         });
 
-        // Back button - always navigates (no validation needed)
         if (backBtn) {
-            backBtn.addEventListener('click', navigateBack);
+            backBtn.addEventListener('click', function () {
+                window.location.href = BACK_PAGE;
+            });
         }
 
-        // Form submission (Submit button)
         form.addEventListener('submit', async function (event) {
             event.preventDefault();
 
-            const isPhotoValid = validateFile(uploadPhotoInput, FILE_RULES.uploadPhoto);
-            const isIdentityValid = validateFile(photoIdentityInput, FILE_RULES.photoIdentity);
-            const isNumberValid = validateIdentityNumber();
-            const isAdditionalValid = validateFile(additionalDocsInput, FILE_RULES.additionalDocuments);
+            const validPhoto = validateFile(
+                uploadPhotoInput,
+                FILE_RULES.uploadPhoto
+            );
 
-            if (isPhotoValid && isIdentityValid && isNumberValid && isAdditionalValid) {
-                await navigateSubmit();
-            } else {
-                // Focus the first invalid control for accessibility
-                const firstInvalidFile = form.querySelector('.file-wrapper.has-error .file-input');
-                if (firstInvalidFile) {
-                    firstInvalidFile.focus();
-                } else {
-                    const firstInvalidInput = form.querySelector('.input-error');
-                    if (firstInvalidInput) firstInvalidInput.focus();
-                }
+            const validIdentityDocument = validateFile(
+                photoIdentityInput,
+                FILE_RULES.photoIdentity
+            );
+
+            const validIdentityNumber = validateIdentityNumber();
+
+            const validAdditionalDocument = validateFile(
+                additionalDocsInput,
+                FILE_RULES.additionalDocuments
+            );
+
+            if (
+                validPhoto &&
+                validIdentityDocument &&
+                validIdentityNumber &&
+                validAdditionalDocument
+            ) {
+                await submitRegistration();
+                return;
             }
+
+            const firstInvalidFile = form.querySelector(
+                '.file-wrapper.has-error .file-input'
+            );
+
+            if (firstInvalidFile) {
+                firstInvalidFile.focus();
+                return;
+            }
+
+            const firstInvalidInput =
+                form.querySelector('.input-error');
+
+            if (firstInvalidInput) firstInvalidInput.focus();
         });
     }
 
-    // Run after DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
