@@ -130,6 +130,7 @@ a {
     flex-shrink: 0;
 }
 
+/* Top navigation tabs */
 .app-nav {
     display: flex;
     align-items: center;
@@ -165,6 +166,7 @@ a {
     outline: 2px solid rgba(255, 255, 255, 0.7);
     outline-offset: 2px;
 }
+
 
 /* =========================================================
    NARROW MOBILE-APP LAYOUT

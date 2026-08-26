@@ -1,44 +1,169 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="description" content="HandyHire - View your booking history and activity." />
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+
+    <meta
+        name="description"
+        content="HandyHire - View your booking history and activity."
+    />
+
     <meta name="theme-color" content="#68865C" />
+
     <title>Activity | HandyHire</title>
 
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
-    <link rel="stylesheet" href="../css/provider-activity.css" />
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    />
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    />
+
+    <!-- Activity CSS -->
+    <link
+        rel="stylesheet"
+        href="../css/provider-activity.css"
+    />
 </head>
+
 <body>
-    <!-- ========== TOP NAVIGATION ========== -->
+
+    <!-- ========================================
+         TOP NAVIGATION
+         ======================================== -->
+
     <header class="app-header" role="banner">
-        <a href="home.html" class="brand-mark" aria-label="HandyHire home">
-    <img src="../Images/Hamor.jpeg" alt="HandyHire Logo" class="brand-logo">
-</a>
-                <path d="M14.7 6.3a4 4 0 0 1-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 1 5.4-5.4l-1.4 1.4-2.6-2.6 1.4-1.4Z" />
-            </svg>
+
+        <!-- HandyHire Logo -->
+        <a
+            href="provider-home.html"
+            class="brand-mark"
+            aria-label="HandyHire home"
+        >
+            <img
+                src="../Images/Hamor.jpeg"
+                alt="HandyHire Logo"
+                class="brand-logo"
+            />
         </a>
 
-         <nav class="app-nav" aria-label="Primary navigation">
-            <a href="provider-home.html" class="nav-tab is-active" aria-current="page">Home</a>
-            <a href="provider-request.html" class="nav-tab" id="requestTab">Request<span class="nav-count" data-request-count hidden>0</span></a>
-            <a href="provider-activity.html" class="nav-tab" id="activityTab">Activity</a>
-            <a href="provider-worker-profile.html" class="nav-tab" id="profileTab">Profile</a>
+
+        <!-- Navigation Tabs -->
+        <nav
+            class="app-nav"
+            aria-label="Primary navigation"
+        >
+
+            <!-- Home -->
+            <a
+                href="provider-home.html"
+                class="nav-tab"
+            >
+                Home
+            </a>
+
+
+            <!-- Request -->
+            <a
+                href="provider-request.html"
+                class="nav-tab"
+                id="requestTab"
+            >
+                Request
+
+                <span
+                    class="nav-count"
+                    data-request-count
+                    hidden
+                >
+                    0
+                </span>
+            </a>
+
+
+            <!-- Activity -->
+            <a
+                href="provider-activity.html"
+                class="nav-tab is-active"
+                id="activityTab"
+                aria-current="page"
+            >
+                Activity
+            </a>
+
+
+            <!-- Profile -->
+            <a
+                href="provider-worker-profile.html"
+                class="nav-tab"
+                id="profileTab"
+            >
+                Profile
+            </a>
+
         </nav>
 
-        <span class="icon-btn-spacer" aria-hidden="true"></span>
+
+        <!-- Keeps navbar centered -->
+        <span
+            class="icon-btn-spacer"
+            aria-hidden="true"
+        ></span>
+
     </header>
 
-    <main class="app-main" role="main">
-        <!-- ========== SEARCH BAR ========== -->
-        <section class="search-section" aria-label="Search bookings">
-            <label class="visually-hidden" for="activitySearch">Search bookings</label>
+
+
+    <!-- ========================================
+         MAIN CONTENT
+         ======================================== -->
+
+    <main
+        class="app-main"
+        role="main"
+    >
+
+
+        <!-- ========================================
+             SEARCH BAR
+             ======================================== -->
+
+        <section
+            class="search-section"
+            aria-label="Search bookings"
+        >
+
+            <label
+                class="visually-hidden"
+                for="activitySearch"
+            >
+                Search bookings
+            </label>
+
+
             <div class="search-wrap">
-                <span class="search-icon" aria-hidden="true">&#128269;</span>
+
+                <span
+                    class="search-icon"
+                    aria-hidden="true"
+                >
+                    &#128269;
+                </span>
+
+
                 <input
                     type="search"
                     id="activitySearch"
@@ -46,21 +171,63 @@
                     placeholder="Search for ur preference"
                     autocomplete="off"
                 />
+
             </div>
+
         </section>
 
-        <!-- ========== BOOKING HISTORY ========== -->
-        <section class="activity-feed" aria-label="Booking history">
+
+
+        <!-- ========================================
+             BOOKING HISTORY
+             ======================================== -->
+
+        <section
+            class="activity-feed"
+            aria-label="Booking history"
+        >
+
             <div id="activityFeed">
-                <!-- Sections rendered by js/activity.js -->
+
+                <!--
+                    Booking sections are rendered
+                    dynamically by provider-activity.js
+                -->
+
             </div>
 
-            <p class="empty-state" id="emptyState" hidden>
+
+            <!-- Empty / Loading / Error State -->
+            <p
+                class="empty-state"
+                id="emptyState"
+                hidden
+            >
                 No bookings match your search.
             </p>
+
         </section>
+
     </main>
 
+
+
+    <!-- ========================================
+         JAVASCRIPT
+         ======================================== -->
+
+    <!--
+        IMPORTANT:
+        api.js MUST load before provider-activity.js
+        because provider-activity.js uses
+        window.HandyHireAPI.apiFetch()
+    -->
+
+    <script src="../js/api.js"></script>
+
     <script src="../js/provider-activity.js"></script>
+
+
 </body>
+
 </html>
