@@ -93,7 +93,50 @@
                     />
                     <span class="form-error" id="priceError" role="alert" aria-live="polite"></span>
                 </div>
+<!-- Booking Preference -->
+<div class="form-group">
+    <label for="bookingPreference" class="form-label">
+        Booking Preference
+    </label>
 
+    <div class="select-wrapper">
+        <select
+            id="bookingPreference"
+            name="bookingPreference"
+            class="form-input form-select"
+            required
+            aria-required="true"
+            aria-describedby="bookingPreferenceError"
+        >
+            <option value="" disabled selected>
+                Select booking preference
+            </option>
+
+            <option value="pre-booking">
+                Pre-booking
+            </option>
+
+            <option value="on-spot">
+                On-spot
+            </option>
+
+            <option value="both">
+                Both
+            </option>
+        </select>
+
+        <span class="select-arrow" aria-hidden="true">
+            &#9662;
+        </span>
+    </div>
+
+    <span
+        class="form-error"
+        id="bookingPreferenceError"
+        role="alert"
+        aria-live="polite"
+    ></span>
+</div>
                 <!-- Address -->
                 <div class="form-group">
                     <label for="address" class="form-label">Address</label>

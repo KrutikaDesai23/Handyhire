@@ -80,13 +80,19 @@
     /* ---------------------------------------------------------
        Backend -> UI mapping
        --------------------------------------------------------- */
-    function toUiStatus(backendStatus) {
-        const s = String(backendStatus || 'pending').toLowerCase();
-        // The existing tab/CSS vocabulary uses "declined",
-        // the backend stores "rejected".
-        if (s === 'rejected') return 'declined';
-        return (s === 'accepted') ? 'accepted' : 'pending';
+function toUiStatus(backendStatus) {
+    const s = String(backendStatus || 'pending').toLowerCase();
+
+    if (s === 'rejected' || s === 'declined') {
+        return 'declined';
     }
+
+    if (s === 'accepted') {
+        return 'accepted';
+    }
+
+    return 'pending';
+}
 
     function formatDate(isoDate) {
         if (!isoDate) return '--';

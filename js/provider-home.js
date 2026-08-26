@@ -1,24 +1,19 @@
 /* =========================================================
    HandyHire - Provider Home
-   Shows all registered worker/provider accounts
+   Registered workers + working filters
    ========================================================= */
 
 (function () {
     'use strict';
 
-    const FILTER_KEY = 'handyhire.provider.homeFilter';
+    let allWorkers = [];
+    let currentFilter = 'all';
 
-    const VALID_FILTERS = new Set([
-        'all',
-        'pre-booking',
-        'on-spot',
-        'near-me',
-        'budget'
-    ]);
+    const FILTER_KEY = 'handyhire.provider.homeFilter';
 
 
     /* =========================================================
-       AUTH CHECK
+       AUTH
        ========================================================= */
 
     function requireAuth() {
@@ -84,30 +79,10 @@
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 72 72"
             >
-                <defs>
-                    <linearGradient
-                        id="g"
-                        x1="0"
-                        y1="0"
-                        x2="1"
-                        y2="1"
-                    >
-                        <stop
-                            offset="0%"
-                            stop-color="hsl(${hue}, 35%, 70%)"
-                        />
-
-                        <stop
-                            offset="100%"
-                            stop-color="hsl(${(hue + 40) % 360}, 30%, 55%)"
-                        />
-                    </linearGradient>
-                </defs>
-
                 <rect
                     width="72"
                     height="72"
-                    fill="url(#g)"
+                    fill="hsl(${hue}, 30%, 65%)"
                 />
 
                 <text
@@ -130,7 +105,7 @@
 
 
     /* =========================================================
-       EMPTY / ERROR MESSAGE
+       MESSAGE
        ========================================================= */
 
     function showMessage(container, message) {
@@ -142,8 +117,8 @@
                 style="
                     grid-column: 1 / -1;
                     text-align: center;
-                    color: var(--color-text-muted);
                     padding: 32px 0;
+                    color: var(--color-text-muted);
                 "
             >
                 ${escapeHtml(message)}
@@ -153,16 +128,12 @@
 
 
     /* =========================================================
-       WORKER AVATAR
+       WORKER IMAGE
        ========================================================= */
 
     function getWorkerAvatar(worker) {
         if (worker.profile_image) {
-            const image = String(worker.profile_image)
-                .replace(/\\/g, '\\\\')
-                .replace(/"/g, '\\"');
-
-            return `url("${image}")`;
+            return `url("${worker.profile_image}")`;
         }
 
         return buildAvatar(worker.full_name);
@@ -170,111 +141,424 @@
 
 
     /* =========================================================
-       RENDER ALL REGISTERED WORKERS
+       RENDER WORKERS
        ========================================================= */
 
-    function renderWorkers(container, workers) {
+    function renderWorkers(workers) {
+        const container =
+            document.getElementById('serviceGrid');
+
         if (!container) return;
 
+
         if (!Array.isArray(workers) || workers.length === 0) {
-            showMessage(
-                container,
-                'No registered workers found.'
-            );
+
+            let message = 'No workers found.';
+
+            if (currentFilter === 'pre-booking') {
+                message = 'No pre-booking workers available.';
+            }
+
+            if (currentFilter === 'on-spot') {
+                message = 'No on-spot workers available.';
+            }
+
+            if (currentFilter === 'near-me') {
+                message = 'No workers found near your location.';
+            }
+
+            if (currentFilter === 'budget') {
+                message = 'No workers available.';
+            }
+
+            showMessage(container, message);
 
             return;
         }
 
-        container.innerHTML = workers.map(function (worker) {
 
-            const name =
-                worker.full_name || 'Worker';
+        container.innerHTML =
+            workers.map(function (worker) {
 
-            const profession =
-                worker.profession || 'Professional';
+                const name =
+                    worker.full_name || 'Worker';
 
-            const location =
-                worker.location || 'Location not specified';
+                const profession =
+                    worker.profession || 'Professional';
 
-            const price =
-                Number(worker.price || 0);
+                const location =
+                    worker.location || 'Location not specified';
 
-            const rating =
-                worker.average_rating != null
-                    ? Number(worker.average_rating)
-                    : null;
+                const price =
+                    Number(worker.price || 0);
 
-            return `
-                <article
-                    class="worker-card"
-                    data-worker-id="${escapeHtml(worker.id)}"
-                >
+                const rating =
+                    worker.average_rating != null
+                        ? Number(worker.average_rating)
+                        : null;
 
-                    <div
-                        class="worker-avatar"
-                        style="
-                            background-image:
-                            ${getWorkerAvatar(worker)};
-                        "
-                        aria-label="${escapeHtml(name)}"
-                    ></div>
+                let availabilityText = '';
 
+                const availability =
+                    String(worker.availability || '')
+                        .toLowerCase()
+                        .trim();
 
-                    <h3 class="worker-name">
-                        ${escapeHtml(name)}
-                    </h3>
+                if (availability === 'pre-booking') {
+                    availabilityText = 'Pre-booking';
+                }
 
+                if (availability === 'on-spot') {
+                    availabilityText = 'On-spot';
+                }
 
-                    <p class="worker-profession">
-                        ${escapeHtml(profession)}
-                    </p>
+                if (availability === 'both') {
+                    availabilityText = 'Pre-booking + On-spot';
+                }
 
 
-                    <p
-                        class="worker-profession"
-                        style="margin-top: -4px;"
+                return `
+                    <article
+                        class="worker-card"
+                        data-worker-id="${escapeHtml(worker.id)}"
                     >
-                        📍 ${escapeHtml(location)}
-                    </p>
+
+                        <div
+                            class="worker-avatar"
+                            style="
+                                background-image:
+                                ${getWorkerAvatar(worker)};
+                            "
+                        ></div>
 
 
-                    <div class="worker-meta">
+                        <h3 class="worker-name">
+                            ${escapeHtml(name)}
+                        </h3>
 
-                        <span class="worker-rating">
 
-                            <span class="star">
-                                ★
+                        <p class="worker-profession">
+                            ${escapeHtml(profession)}
+                        </p>
+
+
+                        <p
+                            class="worker-profession"
+                            style="margin-bottom: 4px;"
+                        >
+                            📍 ${escapeHtml(location)}
+                        </p>
+
+
+                        ${
+                            availabilityText
+                                ? `
+                                    <p
+                                        class="worker-profession"
+                                        style="
+                                            margin-bottom: 6px;
+                                            font-weight: 600;
+                                        "
+                                    >
+                                        ${escapeHtml(availabilityText)}
+                                    </p>
+                                `
+                                : ''
+                        }
+
+
+                        <div class="worker-meta">
+
+                            <span class="worker-rating">
+
+                                <span class="star">
+                                    ★
+                                </span>
+
+                                ${
+                                    rating !== null
+                                        ? escapeHtml(rating.toFixed(1))
+                                        : 'New'
+                                }
+
                             </span>
 
-                            ${
-                                rating !== null
-                                    ? escapeHtml(rating.toFixed(1))
-                                    : 'New'
-                            }
 
-                        </span>
+                            <span class="worker-price">
+                                ₹${escapeHtml(price)}
+                            </span>
 
+                        </div>
 
-                        <span class="worker-price">
-                            ₹${escapeHtml(price)}
-                        </span>
+                    </article>
+                `;
 
-                    </div>
-
-                </article>
-            `;
-        }).join('');
+            }).join('');
     }
 
 
     /* =========================================================
-       LOAD WORKERS FROM BACKEND
+       GET CURRENT WORKER LOCATION
+       ========================================================= */
+
+    function getCurrentLocation() {
+
+        try {
+
+            const raw =
+                sessionStorage.getItem(
+                    'handyhire.provider.profile'
+                );
+
+            if (!raw) {
+                return '';
+            }
+
+            const profile =
+                JSON.parse(raw);
+
+            return String(
+                profile.address || ''
+            )
+                .toLowerCase()
+                .trim();
+
+        } catch (error) {
+
+            return '';
+        }
+    }
+
+
+    /* =========================================================
+       FILTER WORKERS
+       ========================================================= */
+
+    function applyFilter(filter) {
+
+        currentFilter = filter;
+
+        let filteredWorkers =
+            [...allWorkers];
+
+
+        /* =====================
+           ALL
+           ===================== */
+
+        if (filter === 'all') {
+
+            filteredWorkers =
+                [...allWorkers];
+        }
+
+
+        /* =====================
+           PRE-BOOKING
+           ===================== */
+
+        else if (filter === 'pre-booking') {
+
+            filteredWorkers =
+                allWorkers.filter(
+                    function (worker) {
+
+                        const availability =
+                            String(
+                                worker.availability || ''
+                            )
+                                .toLowerCase()
+                                .trim();
+
+
+                        return (
+                            availability === 'pre-booking' ||
+                            availability === 'both'
+                        );
+                    }
+                );
+        }
+
+
+        /* =====================
+           ON-SPOT
+           ===================== */
+
+        else if (filter === 'on-spot') {
+
+            filteredWorkers =
+                allWorkers.filter(
+                    function (worker) {
+
+                        const availability =
+                            String(
+                                worker.availability || ''
+                            )
+                                .toLowerCase()
+                                .trim();
+
+
+                        return (
+                            availability === 'on-spot' ||
+                            availability === 'both'
+                        );
+                    }
+                );
+        }
+
+
+        /* =====================
+           NEAR ME
+           ===================== */
+
+        else if (filter === 'near-me') {
+
+            const currentLocation =
+                getCurrentLocation();
+
+
+            if (!currentLocation) {
+
+                renderWorkers([]);
+
+                return;
+            }
+
+
+            filteredWorkers =
+                allWorkers.filter(
+                    function (worker) {
+
+                        const workerLocation =
+                            String(
+                                worker.location || ''
+                            )
+                                .toLowerCase()
+                                .trim();
+
+
+                        return (
+                            workerLocation ===
+                            currentLocation
+                        );
+                    }
+                );
+        }
+
+
+        /* =====================
+           BUDGET
+           ===================== */
+
+        else if (filter === 'budget') {
+
+            filteredWorkers =
+                [...allWorkers].sort(
+                    function (a, b) {
+
+                        return (
+                            Number(a.price || 0) -
+                            Number(b.price || 0)
+                        );
+                    }
+                );
+        }
+
+
+        renderWorkers(filteredWorkers);
+    }
+
+
+    /* =========================================================
+       ACTIVE CHIP
+       ========================================================= */
+
+    function setActiveFilter(filter) {
+
+        const chips =
+            document.querySelectorAll(
+                '.filter-chips .chip'
+            );
+
+
+        chips.forEach(function (chip) {
+
+            const active =
+                chip.dataset.filter === filter;
+
+
+            chip.classList.toggle(
+                'is-active',
+                active
+            );
+
+
+            chip.setAttribute(
+                'aria-pressed',
+                active ? 'true' : 'false'
+            );
+        });
+
+
+        try {
+
+            sessionStorage.setItem(
+                FILTER_KEY,
+                filter
+            );
+
+        } catch (error) {}
+    }
+
+
+    /* =========================================================
+       FILTER CHIP CLICKS
+       ========================================================= */
+
+    function initFilterChips() {
+
+        const chips =
+            document.querySelectorAll(
+                '.filter-chips .chip'
+            );
+
+
+        if (!chips.length) return;
+
+
+        setActiveFilter('all');
+
+
+        chips.forEach(function (chip) {
+
+            chip.addEventListener(
+                'click',
+                function () {
+
+                    const filter =
+                        chip.dataset.filter || 'all';
+
+
+                    setActiveFilter(filter);
+
+                    applyFilter(filter);
+                }
+            );
+        });
+    }
+
+
+    /* =========================================================
+       LOAD ALL REGISTERED WORKERS
        ========================================================= */
 
     async function loadWorkers() {
 
         const container =
-            document.getElementById('serviceGrid');
+            document.getElementById(
+                'serviceGrid'
+            );
+
 
         if (!container) return;
 
@@ -293,8 +577,6 @@
                 );
 
 
-            /* ---------- Not logged in ---------- */
-
             if (response.status === 401) {
 
                 window.HandyHireAPI.clearAuth();
@@ -306,61 +588,28 @@
             }
 
 
-            /* ---------- Wrong account role ---------- */
-
-            if (response.status === 403) {
-
-                showMessage(
-                    container,
-                    'You do not have provider access to this page.'
-                );
-
-                return;
-            }
-
-
-            /* ---------- Other backend error ---------- */
-
             if (!response.ok) {
 
-                let errorMessage =
-                    'Unable to load workers. Please try again.';
-
-                try {
-
-                    const errorData =
-                        await response.json();
-
-                    if (
-                        errorData &&
-                        typeof errorData.detail === 'string'
-                    ) {
-                        errorMessage =
-                            errorData.detail;
-                    }
-
-                } catch (error) {}
-
-
                 showMessage(
                     container,
-                    errorMessage
+                    'Unable to load workers.'
                 );
 
                 return;
             }
 
 
-            /* ---------- Success ---------- */
-
-            const workers =
+            const data =
                 await response.json();
 
 
-            renderWorkers(
-                container,
-                workers
-            );
+            allWorkers =
+                Array.isArray(data)
+                    ? data
+                    : [];
+
+
+            applyFilter('all');
 
 
         } catch (error) {
@@ -373,137 +622,7 @@
 
             showMessage(
                 container,
-                'Network error. Please check your connection and try again.'
-            );
-        }
-    }
-
-
-    /* =========================================================
-       FILTER CHIPS
-       ========================================================= */
-
-    function setActiveFilter(filter) {
-
-        const chips =
-            document.querySelectorAll(
-                '.filter-chips .chip'
-            );
-
-
-        const selected =
-            VALID_FILTERS.has(filter)
-                ? filter
-                : 'all';
-
-
-        chips.forEach(function (chip) {
-
-            const isActive =
-                chip.dataset.filter === selected;
-
-
-            chip.classList.toggle(
-                'is-active',
-                isActive
-            );
-
-
-            chip.setAttribute(
-                'aria-pressed',
-                isActive
-                    ? 'true'
-                    : 'false'
-            );
-        });
-
-
-        try {
-
-            sessionStorage.setItem(
-                FILTER_KEY,
-                selected
-            );
-
-        } catch (error) {}
-    }
-
-
-    function initFilterChips() {
-
-        const chips =
-            document.querySelectorAll(
-                '.filter-chips .chip'
-            );
-
-
-        if (!chips.length) return;
-
-
-        /*
-         * Always start Home on All.
-         *
-         * Later we will add actual Pre-booking,
-         * On-spot, Near me and Budget filtering.
-         */
-
-        setActiveFilter('all');
-
-
-        chips.forEach(function (chip) {
-
-            chip.addEventListener(
-                'click',
-                function () {
-
-                    const filter =
-                        chip.dataset.filter || 'all';
-
-
-                    /*
-                     * Change green active chip
-                     * without reloading the page.
-                     */
-
-                    setActiveFilter(filter);
-
-
-                    /*
-                     * IMPORTANT:
-                     * Worker filtering will be connected later.
-                     *
-                     * Right now all registered workers remain
-                     * visible while we test the directory.
-                     */
-                }
-            );
-        });
-    }
-
-
-    /* =========================================================
-       TOP NAVIGATION
-       ========================================================= */
-
-    function initTopNav() {
-
-        const activityTab =
-            document.getElementById(
-                'activityTab'
-            );
-
-
-        if (activityTab) {
-
-            activityTab.addEventListener(
-                'click',
-                function (event) {
-
-                    event.preventDefault();
-
-                    window.location.href =
-                        'provider-activity.html';
-                }
+                'Network error. Please check your backend.'
             );
         }
     }
@@ -539,27 +658,18 @@
                     );
 
 
-                if (
-                    !tile ||
-                    !section.contains(tile)
-                ) {
-                    return;
-                }
+                if (!tile) return;
 
 
                 event.preventDefault();
 
 
                 const href =
-                    tile.getAttribute(
-                        'href'
-                    );
+                    tile.getAttribute('href');
 
 
                 if (href) {
-
-                    window.location.href =
-                        href;
+                    window.location.href = href;
                 }
             }
         );
@@ -567,7 +677,7 @@
 
 
     /* =========================================================
-       INITIALIZE HOME PAGE
+       INIT
        ========================================================= */
 
     function init() {
@@ -577,26 +687,13 @@
         }
 
 
-        /*
-         * Main change:
-         * Load ALL registered workers,
-         * not teams.
-         */
-
-        loadWorkers();
-
-
         initFilterChips();
 
         initPackageTiles();
 
-        initTopNav();
+        loadWorkers();
     }
 
-
-    /* =========================================================
-       START
-       ========================================================= */
 
     if (
         document.readyState === 'loading'
