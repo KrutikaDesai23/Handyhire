@@ -346,8 +346,8 @@
                 return;
             }
 
-            if (!hasSession()) {
-                redirectToLogin();
+            // Central role guard: customers only.
+            if (!(window.HandyHireAPI && window.HandyHireAPI.requireRole('customer'))) {
                 return;
             }
 

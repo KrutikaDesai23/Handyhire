@@ -53,7 +53,7 @@
     function setText(id, value) {
         const el = document.getElementById(id);
         if (!el) return;
-        el.textContent = (value == null || value === '') ? '—' : value;
+        el.textContent = (value == null || value === '') ? 'â€”' : value;
     }
 
     /**
@@ -131,11 +131,11 @@
      * @returns {boolean} true when authenticated
      */
     function requireAuth() {
-        if (!window.HandyHireAPI || !window.HandyHireAPI.isLoggedIn()) {
+        if (!(window.HandyHireAPI && typeof window.HandyHireAPI.requireRole === 'function')) {
             window.location.href = 'login.html';
             return false;
         }
-        return true;
+        return window.HandyHireAPI.requireRole('worker');
     }
 
     /**
@@ -198,9 +198,9 @@
             ? dashboard.review_count
             : null;
 
-        setText('statJobs', completed != null ? String(completed) : '—');
-        setText('statRating', rating != null ? rating : '—');
-        setText('statReviews', reviews != null ? String(reviews) : '—');
+        setText('statJobs', completed != null ? String(completed) : 'â€”');
+        setText('statRating', rating != null ? rating : 'â€”');
+        setText('statReviews', reviews != null ? String(reviews) : 'â€”');
         setText('statExperience', profile.experience);
     }
 

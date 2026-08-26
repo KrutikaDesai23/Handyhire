@@ -22,6 +22,7 @@
        ========================================================= */
 
     function requireAuth() {
+<<<<<<< Updated upstream
         if (
             !window.HandyHireAPI ||
             !window.HandyHireAPI.isLoggedIn()
@@ -31,6 +32,13 @@
         }
 
         return true;
+=======
+        if (!(window.HandyHireAPI && typeof window.HandyHireAPI.requireRole === 'function')) {
+            window.location.href = 'login.html';
+            return false;
+        }
+        return window.HandyHireAPI.requireRole('worker');
+>>>>>>> Stashed changes
     }
 
 

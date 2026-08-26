@@ -419,10 +419,7 @@
         const emptyState = document.getElementById('emptyState');
         if (!feed) return;
 
-        if (!hasSession()) {
-            redirectToLogin();
-            return;
-        }
+        if (!(window.HandyHireAPI && window.HandyHireAPI.requireRole('worker'))) return;
 
         initActions();
         loadBookings(feed, emptyState);

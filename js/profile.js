@@ -16,11 +16,11 @@
      * @returns {boolean}
      */
     function requireAuth() {
-        if (!window.HandyHireAPI || !window.HandyHireAPI.isLoggedIn()) {
+        if (!(window.HandyHireAPI && typeof window.HandyHireAPI.requireRole === 'function')) {
             window.location.href = 'login.html';
             return false;
         }
-        return true;
+        return window.HandyHireAPI.requireRole('customer');
     }
 
     /**

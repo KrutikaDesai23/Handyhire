@@ -545,10 +545,7 @@
        Boot
        --------------------------------------------------------- */
     function init() {
-        if (!hasSession()) {
-            redirectToLogin();
-            return;
-        }
+        if (!(window.HandyHireAPI && window.HandyHireAPI.requireRole('worker'))) return;
         if (document.getElementById('rqPanel')) {
             initTabs();
             initActions();

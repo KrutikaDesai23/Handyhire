@@ -280,6 +280,7 @@
      * Initialize the near-me home page.
      */
     function init() {
+        if (!(window.HandyHireAPI && window.HandyHireAPI.requireRole('customer'))) return;
         loadWorkers(document.getElementById('serviceGrid'));
         initFilterChips();
         initWorkerCards();

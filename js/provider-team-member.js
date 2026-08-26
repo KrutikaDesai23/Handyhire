@@ -126,6 +126,7 @@
      * Initialize the Team Member page.
      */
     async function init() {
+        if (!(window.HandyHireAPI && window.HandyHireAPI.requireRole('worker'))) return;
         await populatePage();
     }
 

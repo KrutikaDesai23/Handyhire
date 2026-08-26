@@ -9,6 +9,18 @@ from app.schemas import TeamCreate, TeamResponse
 router = APIRouter(prefix="/api/worker/teams", tags=["worker-teams"])
 
 
+def _build_member_response(m: models.TeamMember) -> dict:
+    worker = m.worker
+    worker_profile = worker.worker_profile if worker else None
+    return {
+        "worker_id": m.worker_id,
+        "full_name": worker.full_name if worker else None,
+        "profession": worker_profile.profession if worker_profile else None,
+        "role": m.role,
+        "joined_at": m.joined_at.isoformat() if m.joined_at else None,
+    }
+
+
 @router.post("", response_model=TeamResponse, status_code=status.HTTP_201_CREATED)
 def create_team(
     payload: TeamCreate = Body(...),
@@ -18,6 +30,7 @@ def create_team(
     team = models.Team(
         name=payload.name,
         description=payload.description,
+        category=payload.category,
         created_by=current_user.id,
     )
     db.add(team)
@@ -36,16 +49,11 @@ def create_team(
         id=team.id,
         name=team.name,
         description=team.description,
+        category=team.category,
         created_by=team.created_by,
         creator_name=current_user.full_name,
         role="creator",
-        members=[
-            {
-                "worker_id": membership.worker_id,
-                "role": membership.role,
-                "joined_at": membership.joined_at.isoformat() if membership.joined_at else None,
-            }
-        ],
+        members=[_build_member_response(membership)],
     )
 
 
@@ -82,17 +90,11 @@ def add_team_member(
         id=team.id,
         name=team.name,
         description=team.description,
+        category=team.category,
         created_by=team.created_by,
         creator_name=creator.full_name if creator else None,
         role="creator",
-        members=[
-            {
-                "worker_id": m.worker_id,
-                "role": m.role,
-                "joined_at": m.joined_at.isoformat() if m.joined_at else None,
-            }
-            for m in members
-        ],
+        members=[_build_member_response(m) for m in members],
     )
 
 

@@ -278,6 +278,7 @@
      * Initialize the on-spot home page.
      */
     function init() {
+        if (!(window.HandyHireAPI && window.HandyHireAPI.requireRole('customer'))) return;
         loadWorkers(document.getElementById('serviceGrid'));
         initFilterChips();
         initWorkerCards();

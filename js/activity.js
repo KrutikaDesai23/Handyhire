@@ -524,16 +524,9 @@
         const emptyState = document.getElementById('emptyState');
         if (!feed) return;
 
-        if (!hasSession()) {
-            redirectToLogin();
-            return;
-        }
-
-        const currentUser = window.HandyHireAPI.getCurrentUser();
-        if (currentUser && currentUser.role === 'worker') {
-            window.location.href = 'provider-activity.html';
-            return;
-        }
+        // Central role guard: customers only. A worker token is
+        // redirected to provider-home.html by requireRole() itself.
+        if (!(window.HandyHireAPI && window.HandyHireAPI.requireRole('customer'))) return;
 
         initReviewModal();
         initReviewButtons();

@@ -401,7 +401,12 @@
             throw buildBackendError(data, response.status);
         }
 
+        // The register response already contains the authenticated
+        // identity (user_id, role, full_name), so no follow-up
+        // /api/auth/me request is needed. The JWT remains the
+        // sole authentication credential.
         const tokenData = await response.json();
+<<<<<<< Updated upstream
 
         api.setAuth(tokenData.access_token, tokenData);
 
@@ -412,6 +417,15 @@
                 'Registration succeeded, but the worker profile could not be loaded.'
             );
         }
+=======
+        window.HandyHireAPI.setAuth(tokenData.access_token, {
+            id: tokenData.user_id,
+            full_name: tokenData.full_name,
+            role: tokenData.role,
+        });
+
+        return tokenData;
+>>>>>>> Stashed changes
     }
 
     async function submitRegistration() {
@@ -443,6 +457,36 @@
         }
     }
 
+<<<<<<< Updated upstream
+=======
+    /**
+     * Submit the verification and proceed to the dashboard.
+     */
+    async function navigateSubmit() {
+        const errorEl = document.getElementById('providerRegisterFormError');
+        const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating provider account\u2026';
+        }
+        try {
+            if (errorEl) errorEl.textContent = '';
+            await submitRegistration();
+            persistFinalProfile();
+            window.location.href = ROUTES.SUBMIT;
+        } catch (err) {
+            if (errorEl) errorEl.textContent = err.message || 'Registration failed. Please try again.';
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit';
+            }
+        }
+    }
+
+    /**
+     * Initialize the verification form.
+     */
+>>>>>>> Stashed changes
     function init() {
         if (!form) return;
 

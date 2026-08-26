@@ -292,7 +292,7 @@
         'buildright-crew--anita-sharma': {
             name: 'Anita Sharma',
             profession: 'Carpenter',
-            shortDescription: 'Carpenter on the BuildRight Crew — furniture fitout, door frames and on-site carpentry.',
+            shortDescription: 'Carpenter on the BuildRight Crew â€” furniture fitout, door frames and on-site carpentry.',
             price: '\u20B9399',
             rating: 4.6,
             reviewCount: 38,
@@ -309,7 +309,7 @@
         'buildright-crew--suresh-patel': {
             name: 'Suresh Patel',
             profession: 'Electrician',
-            shortDescription: 'Electrician on the BuildRight Crew — wiring, distribution boards and site power.',
+            shortDescription: 'Electrician on the BuildRight Crew â€” wiring, distribution boards and site power.',
             price: '\u20B9399',
             rating: 4.6,
             reviewCount: 36,
@@ -326,7 +326,7 @@
         'buildright-crew--mohan-das': {
             name: 'Mohan Das',
             profession: 'Mason',
-            shortDescription: 'Mason on the BuildRight Crew — brickwork, plastering and surface finishing.',
+            shortDescription: 'Mason on the BuildRight Crew â€” brickwork, plastering and surface finishing.',
             price: '\u20B9459',
             rating: 4.6,
             reviewCount: 33,
@@ -343,7 +343,7 @@
         'home-renovation-team--ravi-kumar': {
             name: 'Ravi Kumar',
             profession: 'Carpenter',
-            shortDescription: 'Carpenter on the Home Renovation Team — built-ins, wardrobes and finish carpentry.',
+            shortDescription: 'Carpenter on the Home Renovation Team â€” built-ins, wardrobes and finish carpentry.',
             price: '\u20B9299',
             rating: 4.8,
             reviewCount: 51,
@@ -360,7 +360,7 @@
         'home-renovation-team--priya-singh': {
             name: 'Priya Singh',
             profession: 'Painter',
-            shortDescription: 'Painter on the Home Renovation Team — interior repaints and accent walls.',
+            shortDescription: 'Painter on the Home Renovation Team â€” interior repaints and accent walls.',
             price: '\u20B9249',
             rating: 4.9,
             reviewCount: 47,
@@ -377,7 +377,7 @@
         'home-renovation-team--lata-verma': {
             name: 'Lata Verma',
             profession: 'Electrician',
-            shortDescription: 'Electrician on the Home Renovation Team — switchboard rewiring and lighting installs.',
+            shortDescription: 'Electrician on the Home Renovation Team â€” switchboard rewiring and lighting installs.',
             price: '\u20B9549',
             rating: 4.8,
             reviewCount: 42,
@@ -394,7 +394,7 @@
         'fixit-squad--ravi-kumar': {
             name: 'Ravi Kumar',
             profession: 'Plumber',
-            shortDescription: 'Plumber on the FixIt Squad — leaks, fittings and emergency repairs.',
+            shortDescription: 'Plumber on the FixIt Squad â€” leaks, fittings and emergency repairs.',
             price: '\u20B9299',
             rating: 4.8,
             reviewCount: 142,
@@ -411,7 +411,7 @@
         'fixit-squad--anita-sharma': {
             name: 'Anita Sharma',
             profession: 'Electrician',
-            shortDescription: 'Electrician on the FixIt Squad — quick diagnostics and household repairs.',
+            shortDescription: 'Electrician on the FixIt Squad â€” quick diagnostics and household repairs.',
             price: '\u20B9349',
             rating: 4.7,
             reviewCount: 98,
@@ -428,7 +428,7 @@
         'powergrid-unit--arjun-mehta': {
             name: 'Arjun Mehta',
             profession: 'Helper',
-            shortDescription: 'Helper on the PowerGrid Unit — assists the lead electrician with cable runs, mounting and cleanup.',
+            shortDescription: 'Helper on the PowerGrid Unit â€” assists the lead electrician with cable runs, mounting and cleanup.',
             price: '\u20B9199',
             rating: 4.5,
             reviewCount: 21,
@@ -445,7 +445,7 @@
         'powergrid-unit--anita-sharma': {
             name: 'Anita Sharma',
             profession: 'Electrician',
-            shortDescription: 'Electrician on the PowerGrid Unit — mainline wiring, distribution boards and safety audits.',
+            shortDescription: 'Electrician on the PowerGrid Unit â€” mainline wiring, distribution boards and safety audits.',
             price: '\u20B9349',
             rating: 4.7,
             reviewCount: 64,
@@ -462,7 +462,7 @@
         'freshpaint-crew--mohan-das': {
             name: 'Mohan Das',
             profession: 'Painter',
-            shortDescription: 'Painter on the FreshPaint Crew — interior and exterior finishes.',
+            shortDescription: 'Painter on the FreshPaint Crew â€” interior and exterior finishes.',
             price: '\u20B9459',
             rating: 4.5,
             reviewCount: 64,
@@ -479,7 +479,7 @@
         'freshpaint-crew--suresh-patel': {
             name: 'Suresh Patel',
             profession: 'Carpenter',
-            shortDescription: 'Carpenter on the FreshPaint Crew — pre-paint repairs, doors and trim.',
+            shortDescription: 'Carpenter on the FreshPaint Crew â€” pre-paint repairs, doors and trim.',
             price: '\u20B9399',
             rating: 4.6,
             reviewCount: 31,
@@ -1121,6 +1121,7 @@
      * available (e.g. team-member deep links) or the fetch fails.
      */
     function init() {
+        if (!(window.HandyHireAPI && window.HandyHireAPI.requireRole('customer'))) return;
         const workerId = readWorkerId();
 
         if (workerId) {

@@ -25,7 +25,7 @@
 
     --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --transition: 300ms ease;
-    --anim-duration: 2800ms;
+    --anim-duration: 1200ms;
 }
 
 /* ---------- Global ---------- */
@@ -102,14 +102,14 @@ a {
     font-weight: 800;
     letter-spacing: 0.5px;
     margin-bottom: 6px;
-    animation: anim-fade 900ms ease-out 200ms both;
+    animation: anim-fade 700ms ease-out 100ms both;
 }
 
 .anim-tagline {
     font-size: 14px;
     color: var(--color-text-muted);
     margin-bottom: 28px;
-    animation: anim-fade 900ms ease-out 400ms both;
+    animation: anim-fade 700ms ease-out 200ms both;
 }
 
 @keyframes anim-fade {
@@ -156,7 +156,7 @@ a {
     transition:
         background-color var(--transition),
         color var(--transition);
-    animation: anim-fade 900ms ease-out 600ms both;
+    animation: anim-fade 700ms ease-out 300ms both;
 }
 
 .anim-skip:hover {

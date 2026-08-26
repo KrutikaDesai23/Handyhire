@@ -20,7 +20,7 @@
      * Short enough to feel snappy, long enough for the
      * CSS keyframes to finish their sequence.
      */
-    const REDIRECT_DELAY_MS = 2800;
+    const REDIRECT_DELAY_MS = 1200;
 
     function initAutoRedirect() {
         const reduced = window.matchMedia &&
@@ -51,9 +51,23 @@
         });
     }
 
+    function initStageSkip() {
+        const stage = document.querySelector('.anim-stage');
+        if (!stage) return;
+        stage.addEventListener('click', function (event) {
+            // The Skip link handles its own navigation.
+            if (event.target.closest('.anim-skip')) return;
+            if (typeof window.__handyhireProviderCancelRedirect === 'function') {
+                window.__handyhireProviderCancelRedirect();
+            }
+            window.location.href = NEXT_PAGE;
+        });
+    }
+
     function init() {
         initAutoRedirect();
         initSkipLink();
+        initStageSkip();
     }
 
     if (document.readyState === 'loading') {

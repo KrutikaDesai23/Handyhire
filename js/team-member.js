@@ -183,6 +183,7 @@
      * Initialize the Team Member page.
      */
     function init() {
+        if (!(window.HandyHireAPI && window.HandyHireAPI.requireRole('customer'))) return;
         populatePage();
     }
 

@@ -48,7 +48,7 @@
     ];
 
     /**
-     * Build a "★ ★ ★ ★ ★" style stars string for a rating.
+     * Build a "â˜… â˜… â˜… â˜… â˜…" style stars string for a rating.
      * @param {number} rating
      * @returns {string}
      */
@@ -243,6 +243,7 @@
      * Initialize the Multitasking Packages page.
      */
     function init() {
+        if (!(window.HandyHireAPI && window.HandyHireAPI.requireRole('customer'))) return;
         const list = document.getElementById('packageList');
         const emptyState = document.getElementById('emptyState');
         if (!list) return;

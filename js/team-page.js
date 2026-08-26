@@ -205,7 +205,7 @@
     }
 
     /**
-     * Build a "★ ★ ★ ★ ☆" style stars string for a given rating.
+     * Build a "â˜… â˜… â˜… â˜… â˜†" style stars string for a given rating.
      * @param {number} rating
      * @returns {string}
      */
@@ -401,6 +401,7 @@
      * Initialize the Team page.
      */
     function init() {
+        if (!(window.HandyHireAPI && window.HandyHireAPI.requireRole('customer'))) return;
         const teamName = readSelectedTeam();
         persistSelectedTeam(teamName);
         TEAM = TEAM_CATALOG[teamName] || TEAM_CATALOG[DEFAULT_TEAM];

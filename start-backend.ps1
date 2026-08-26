@@ -51,13 +51,13 @@ if ($inUse) {
     $pids = Get-PidsFromNetstat -Lines $inUse
     $handyhirePid = $null
 
-    foreach ($pid in $pids) {
-        $proc = Get-Process -Id $pid -ErrorAction SilentlyContinue
+    foreach ($processId in $pids) {
+        $proc = Get-Process -Id $processId -ErrorAction SilentlyContinue
         if (-not $proc) { continue }
         $procName = $proc.ProcessName
-        Write-Host "Port $port is in use by PID $pid ($procName)" -ForegroundColor Yellow
+        Write-Host "Port $port is in use by PID $processId ($procName)" -ForegroundColor Yellow
         if ($procName -match 'uvicorn|python') {
-            $handyhirePid = $pid
+            $handyhirePid = $processId
         }
     }
 

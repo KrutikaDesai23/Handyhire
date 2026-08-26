@@ -247,13 +247,16 @@
             throw new Error(detail);
         }
 
+        // The register response already contains the authenticated
+        // identity (user_id, role, full_name), so no follow-up
+        // /api/auth/me request is needed. The JWT remains the
+        // sole authentication credential.
         const tokenData = await response.json();
-        window.HandyHireAPI.setAuth(tokenData.access_token, tokenData);
-
-        const user = await window.HandyHireAPI.fetchCurrentUser();
-        if (!user) {
-            throw new Error('Registration succeeded but failed to load profile.');
-        }
+        window.HandyHireAPI.setAuth(tokenData.access_token, {
+            id: tokenData.user_id,
+            full_name: tokenData.full_name,
+            role: tokenData.role,
+        });
 
         return tokenData;
     }
@@ -308,12 +311,21 @@
             const isPasswordValid = validatePassword();
 
             if (isNameValid && isMobileValid && isEmailValid && isAddressValid && isPasswordValid) {
+                var submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Creating account\u2026';
+                }
                 try {
                     await submitRegistration();
                     persistCustomerProfile();
                     navigateNext();
                 } catch (err) {
                     setFormError(err.message || 'Registration failed. Please try again.');
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Next \u2192';
+                    }
                 }
             } else {
                 const firstInvalid = form.querySelector('.input-error');

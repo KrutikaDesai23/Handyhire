@@ -285,6 +285,12 @@
      * Initialize the home page.
      */
     function init() {
+        console.log('[HandyHire][home][debug] init start');
+        if (!(window.HandyHireAPI && window.HandyHireAPI.requireRole('customer'))) {
+            console.log('[HandyHire][home][debug] init requireRole=false -> redirect');
+            return;
+        }
+        console.log('[HandyHire][home][debug] init requireRole=true -> render');
         loadWorkers(document.getElementById('serviceGrid'));
         initFilterChips();
         initWorkerCards();

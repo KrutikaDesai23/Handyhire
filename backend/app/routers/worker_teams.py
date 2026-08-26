@@ -9,6 +9,18 @@ from app.schemas import TeamResponse
 router = APIRouter(prefix="/api/worker", tags=["worker"])
 
 
+def _build_member_response(m: models.TeamMember) -> dict:
+    worker = m.worker
+    worker_profile = worker.worker_profile if worker else None
+    return {
+        "worker_id": m.worker_id,
+        "full_name": worker.full_name if worker else None,
+        "profession": worker_profile.profession if worker_profile else None,
+        "role": m.role,
+        "joined_at": m.joined_at.isoformat() if m.joined_at else None,
+    }
+
+
 @router.get("/teams", response_model=list[TeamResponse])
 def list_worker_teams(
     current_user: models.User = Depends(get_current_worker),
@@ -30,16 +42,10 @@ def list_worker_teams(
                 id=team.id,
                 name=team.name,
                 description=team.description,
+                category=team.category,
                 created_by=team.created_by,
                 role=membership.role if membership else ("creator" if team.created_by == current_user.id else None),
-                members=[
-                    {
-                        "worker_id": m.worker_id,
-                        "role": m.role,
-                        "joined_at": m.joined_at.isoformat() if m.joined_at else None,
-                    }
-                    for m in members
-                ],
+                members=[_build_member_response(m) for m in members],
             )
         )
     return response

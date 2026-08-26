@@ -504,3 +504,15 @@ a {
         transform: none;
     }
 }
+
+/* Team booking availability note (Stage 6G-9B) */
+.team-book-note {
+    margin-top: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #a94442;
+    background-color: rgba(192, 57, 43, 0.08);
+    border: 1px solid rgba(217, 83, 79, 0.45);
+    border-radius: 10px;
+    padding: 8px 12px;
+}

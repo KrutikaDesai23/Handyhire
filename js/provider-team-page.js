@@ -17,11 +17,11 @@
      * @returns {boolean}
      */
     function requireAuth() {
-        if (!window.HandyHireAPI || !window.HandyHireAPI.isLoggedIn()) {
+        if (!(window.HandyHireAPI && typeof window.HandyHireAPI.requireRole === 'function')) {
             window.location.href = 'login.html';
             return false;
         }
-        return true;
+        return window.HandyHireAPI.requireRole('worker');
     }
 
     /**
@@ -237,16 +237,19 @@
         const btn = document.getElementById('bookWholeTeamBtn');
         if (!btn) return;
 
+        // Team booking is not implemented in the backend. Never send
+        // providers to the demo provider-booking.html page; surface an
+        // honest inline message instead using the existing design.
         btn.addEventListener('click', function () {
-            try {
-                if (TEAM) {
-                    sessionStorage.setItem('handyhire.selectedTeam', TEAM.name);
-                    sessionStorage.setItem('handyhire.selectedTeamId', String(TEAM.id));
-                }
-                sessionStorage.setItem('handyhire.bookingMode', 'team');
-                sessionStorage.setItem('handyhire.provider.previousPage', 'provider-team-page.html');
-            } catch (e) {}
-            window.location.href = 'provider-booking.html';
+            let note = document.getElementById('teamBookingNote');
+            if (!note) {
+                note = document.createElement('p');
+                note.id = 'teamBookingNote';
+                note.className = 'team-book-note';
+                note.setAttribute('role', 'status');
+                btn.insertAdjacentElement('afterend', note);
+            }
+            note.textContent = 'Team booking is not available yet.';
         });
     }
 

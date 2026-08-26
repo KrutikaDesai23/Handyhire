@@ -8,6 +8,11 @@
 (function () {
     'use strict';
 
+    // Role guard: this page belongs to the customer booking flow.
+    // A worker token is redirected to provider-home.html by requireRole.
+    if (!(window.HandyHireAPI && window.HandyHireAPI.requireRole('customer'))) return;
+
+
     /**
      * Try to read the booking summary persisted by booking.js.
      * The shape now includes the real backend response:

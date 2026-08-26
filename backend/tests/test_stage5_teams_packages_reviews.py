@@ -9,9 +9,15 @@ from app.models.worker_profile import WorkerProfile
 
 
 def test_public_team_listing(client, db):
-    worker = db.query(User).filter(User.role == "worker").first()
-    if not worker:
-        pytest.skip("No worker available")
+    worker = User(
+        full_name="Team Worker",
+        email="teamworker1@example.com",
+        mobile_number="5550000001",
+        password_hash=security.hash_password("password123"),
+        role="worker",
+    )
+    db.add(worker)
+    db.flush()
 
     team = models.Team(name="Public Team", description="Test", created_by=worker.id)
     db.add(team)
@@ -24,10 +30,58 @@ def test_public_team_listing(client, db):
     assert len(data) >= 1
 
 
+def test_team_search(client, db):
+    worker = User(
+        full_name="Search Worker",
+        email="searchworker@example.com",
+        mobile_number="5550000002",
+        password_hash=security.hash_password("password123"),
+        role="worker",
+    )
+    db.add(worker)
+    db.flush()
+
+    team = models.Team(name="Searchable Team Alpha", description="Search test", created_by=worker.id)
+    db.add(team)
+    db.commit()
+
+    response = client.get("/api/teams?search=Alpha")
+    assert response.status_code == 200
+    data = response.json()
+    assert any(t["name"] == "Searchable Team Alpha" for t in data)
+
+
+def test_team_category_filter(client, db):
+    worker = User(
+        full_name="Category Worker",
+        email="categoryworker@example.com",
+        mobile_number="5550000003",
+        password_hash=security.hash_password("password123"),
+        role="worker",
+    )
+    db.add(worker)
+    db.flush()
+
+    team = models.Team(name="Category Team", description="Test", category="Construction", created_by=worker.id)
+    db.add(team)
+    db.commit()
+
+    response = client.get("/api/teams?category=Construction")
+    assert response.status_code == 200
+    data = response.json()
+    assert any(t["name"] == "Category Team" for t in data)
+
+
 def test_team_detail(client, db):
-    worker = db.query(User).filter(User.role == "worker").first()
-    if not worker:
-        pytest.skip("No worker available")
+    worker = User(
+        full_name="Detail Worker",
+        email="detailworker@example.com",
+        mobile_number="5550000004",
+        password_hash=security.hash_password("password123"),
+        role="worker",
+    )
+    db.add(worker)
+    db.flush()
 
     team = models.Team(name="Detail Team", description="Detail", created_by=worker.id)
     db.add(team)
@@ -39,6 +93,55 @@ def test_team_detail(client, db):
     data = response.json()
     assert data["id"] == team.id
     assert data["name"] == "Detail Team"
+
+
+def test_team_member_includes_name_and_profession(client, db):
+    worker = User(
+        full_name="Member Worker",
+        email="memberworker@example.com",
+        mobile_number="5550000005",
+        password_hash=security.hash_password("password123"),
+        role="worker",
+    )
+    db.add(worker)
+    db.flush()
+
+    team = models.Team(name="Member Team", description="Test", created_by=worker.id)
+    db.add(team)
+    db.flush()
+
+    profile_worker = User(
+        full_name="Profile Worker",
+        email="profileworker@example.com",
+        mobile_number="7777777777",
+        password_hash=security.hash_password("password123"),
+        role="worker",
+    )
+    db.add(profile_worker)
+    db.flush()
+
+    worker_profile = WorkerProfile(
+        user_id=profile_worker.id,
+        profession="Electrician",
+        location="Downtown",
+        price=600,
+    )
+    db.add(worker_profile)
+    db.commit()
+
+    member = models.TeamMember(team_id=team.id, worker_id=profile_worker.id, role="member")
+    db.add(member)
+    db.commit()
+
+    response = client.get(f"/api/teams/{team.id}")
+    assert response.status_code == 200
+    data = response.json()
+    members = data["members"]
+    assert len(members) >= 1
+    member_data = next(m for m in members if m["worker_id"] == profile_worker.id)
+    assert member_data["full_name"] == "Profile Worker"
+    assert member_data["profession"] == "Electrician"
+    assert member_data["role"] == "member"
 
 
 def test_worker_team_listing(client, worker):
@@ -210,6 +313,56 @@ def test_package_detail(client, db):
     data = response.json()
     assert data["id"] == package.id
     assert "services" in data
+
+
+def test_package_search(client, db):
+    from app.models import Package, Service, PackageService
+
+    service = db.query(Service).first()
+    package = db.query(Package).first()
+    if not package:
+        service = Service(name="Searchable Service", category="General", base_price=100)
+        db.add(service)
+        db.flush()
+
+        package = Package(name="Searchable Package", description="Find me", package_type="multitasking", price=500)
+        db.add(package)
+        db.flush()
+
+        ps = PackageService(package_id=package.id, service_id=service.id)
+        db.add(ps)
+        db.commit()
+        db.refresh(package)
+
+    response = client.get(f"/api/packages?search=Searchable")
+    assert response.status_code == 200
+    data = response.json()
+    assert any(p["id"] == package.id for p in data)
+
+
+def test_package_category_filter(client, db):
+    from app.models import Package, Service, PackageService
+
+    service = db.query(Service).first()
+    package = db.query(Package).first()
+    if not package:
+        service = Service(name="Cat Service", category="Plumbing", base_price=100)
+        db.add(service)
+        db.flush()
+
+        package = Package(name="Cat Package", package_type="multitasking", price=500)
+        db.add(package)
+        db.flush()
+
+        ps = PackageService(package_id=package.id, service_id=service.id)
+        db.add(ps)
+        db.commit()
+        db.refresh(package)
+
+    response = client.get(f"/api/packages?category=Plumbing")
+    assert response.status_code == 200
+    data = response.json()
+    assert any(p["id"] == package.id for p in data)
 
 
 def test_multitasking_package_filter(client):

@@ -15,11 +15,11 @@
      * @returns {boolean}
      */
     function requireAuth() {
-        if (!window.HandyHireAPI || !window.HandyHireAPI.isLoggedIn()) {
+        if (!(window.HandyHireAPI && typeof window.HandyHireAPI.requireRole === 'function')) {
             window.location.href = 'login.html';
             return false;
         }
-        return true;
+        return window.HandyHireAPI.requireRole('worker');
     }
 
     /**
@@ -379,7 +379,7 @@
 
         const brand = document.querySelector('.hire-topbar .brand-mark');
         if (brand) {
-            brand.setAttribute('href', isTeam ? 'team-page.html' : 'home.html');
+            brand.setAttribute('href', isTeam ? 'provider-team-page.html' : 'provider-home.html');
         }
 
         if (isTeam && backToTeamBtn) {
@@ -389,42 +389,22 @@
             backToTeamBtn.setAttribute('aria-label', label);
             backToTeamBtn.addEventListener('click', function (event) {
                 event.preventDefault();
-                window.location.href = 'team-page.html';
+                window.location.href = 'provider-team-page.html';
             });
         }
     }
 
     /**
-     * Wire up the Book Now CTA.
+     * Providers never create bookings. If a book-style control
+     * ever exists on this page it is permanently disabled, so
+     * navigation to the customer booking flow is impossible.
      */
-    function initBookNow(context) {
+    function initBookNow() {
         const btn = document.getElementById('bookNowBtn');
         if (!btn) return;
-
-        if (context && context.source === 'team') {
-            btn.hidden = true;
-            btn.setAttribute('aria-hidden', 'true');
-            btn.tabIndex = -1;
-            return;
-        }
-
-        btn.addEventListener('click', function () {
-            try {
-                const workerId = sessionStorage.getItem('handyhire.selectedWorkerId');
-                const slug = sessionStorage.getItem('handyhire.selectedWorkerSlug');
-                if (workerId) {
-                    window.location.href = 'booking.html?worker_id=' + encodeURIComponent(workerId);
-                    return;
-                }
-                if (slug) {
-                    window.location.href = 'booking.html?worker=' + encodeURIComponent(slug);
-                    return;
-                }
-            } catch (e) {
-                // Ignore storage errors and fall back below.
-            }
-            window.location.href = 'booking.html';
-        });
+        btn.hidden = true;
+        btn.setAttribute('aria-hidden', 'true');
+        btn.tabIndex = -1;
     }
 
     /**
