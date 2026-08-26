@@ -14,11 +14,15 @@ from app.models.user import User
 from app.models.worker_profile import WorkerProfile
 from fastapi.testclient import TestClient
 
-TEST_DATABASE_URL = DATABASE_URL
+from sqlalchemy.pool import StaticPool
 
-engine = create_engine(TEST_DATABASE_URL)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+TEST_DATABASE_URL = "sqlite://"
 
+engine = create_engine(
+    TEST_DATABASE_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
 
 @pytest.fixture(scope="session")
 def db_engine():
