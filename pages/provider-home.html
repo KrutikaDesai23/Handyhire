@@ -35,15 +35,55 @@
             <div class="hero-image" role="img" aria-label="HandyHire promotional banner"></div>
         </section>
 
-        <!-- ========== FILTER CHIPS ========== -->
-        <section class="filter-chips" aria-label="Service filters">
-            <button type="button" class="chip is-active" data-filter="all" aria-pressed="true">All</button>
-            <button type="button" class="chip" data-filter="pre-booking" data-target="provider-home-prebooking.html">Pre-booking</button>
-            <button type="button" class="chip" data-filter="on-spot" data-target="provider-home-onspot.html">On-spot</button>
-            <button type="button" class="chip" data-filter="near-me" data-target="provider-home-nearme.html">Near me</button>
-            <button type="button" class="chip" data-filter="budget" data-target="provider-home-budget.html">Budget</button>
-        </section>
+ <!-- ========== FILTER CHIPS ========== -->
+<section class="filter-chips" aria-label="Service filters">
 
+    <button
+        type="button"
+        class="chip is-active"
+        data-filter="all"
+        aria-pressed="true"
+    >
+        All
+    </button>
+
+    <button
+        type="button"
+        class="chip"
+        data-filter="pre-booking"
+        aria-pressed="false"
+    >
+        Pre-booking
+    </button>
+
+    <button
+        type="button"
+        class="chip"
+        data-filter="on-spot"
+        aria-pressed="false"
+    >
+        On-spot
+    </button>
+
+    <button
+        type="button"
+        class="chip"
+        data-filter="near-me"
+        aria-pressed="false"
+    >
+        Near me
+    </button>
+
+    <button
+        type="button"
+        class="chip"
+        data-filter="budget"
+        aria-pressed="false"
+    >
+        Budget
+    </button>
+
+</section>
         <!-- ========== SERVICE GRID ========== -->
         <section class="service-section" aria-labelledby="workersHeading">
             <h2 id="workersHeading" class="visually-hidden">Available service professionals</h2>
@@ -75,36 +115,5 @@
     </main>
     <script src="../js/api.js"></script>
     <script src="../js/provider-home.js"></script>
-    <script>
-        (function () {
-            var REQ_KEY = 'handyhire.workerRequests';
-            var REQ_EVENT = 'handyhire:workerRequests-updated';
-            function refresh() {
-                var state = {};
-                try {
-                    var raw = localStorage.getItem(REQ_KEY);
-                    if (raw) {
-                        var parsed = JSON.parse(raw);
-                        if (parsed && typeof parsed === 'object') state = parsed;
-                    }
-                } catch (e) {}
-                var count = 3;
-                Object.keys(state).forEach(function (id) {
-                    if (state[id] !== 'pending') count--;
-                });
-                if (count < 0) count = 0;
-                document.querySelectorAll('[data-request-count]').forEach(function (el) {
-                    el.textContent = String(count);
-                    if (count === 0) el.setAttribute('hidden', '');
-                    else el.removeAttribute('hidden');
-                });
-            }
-            refresh();
-            window.addEventListener(REQ_EVENT, refresh);
-            window.addEventListener('storage', function (e) {
-                if (e.key === REQ_KEY) refresh();
-            });
-        })();
-    </script>
 </body>
 </html>

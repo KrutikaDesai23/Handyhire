@@ -1,35 +1,45 @@
 /* =========================================================
-   HandyHire - Provider Home JavaScript
-   Renders the authenticated provider's REAL teams from
-   GET /api/worker/teams into the service grid. Replaces
-   the previous hardcoded worker dataset. Filter chips,
-   package tiles and top navigation behaviour are
-   preserved. Requires an authenticated provider.
+   HandyHire - Provider Home
+   Shows all registered worker/provider accounts
    ========================================================= */
 
 (function () {
     'use strict';
 
-    /**
-     * Require an authenticated provider. Redirects to
-     * login.html when there is no valid token.
-     * @returns {boolean}
-     */
+    const FILTER_KEY = 'handyhire.provider.homeFilter';
+
+    const VALID_FILTERS = new Set([
+        'all',
+        'pre-booking',
+        'on-spot',
+        'near-me',
+        'budget'
+    ]);
+
+
+    /* =========================================================
+       AUTH CHECK
+       ========================================================= */
+
     function requireAuth() {
-        if (!window.HandyHireAPI || !window.HandyHireAPI.isLoggedIn()) {
+        if (
+            !window.HandyHireAPI ||
+            !window.HandyHireAPI.isLoggedIn()
+        ) {
             window.location.href = 'login.html';
             return false;
         }
+
         return true;
     }
 
-    /**
-     * Escape user-supplied text before injecting as HTML.
-     * @param {string} str
-     * @returns {string}
-     */
-    function escapeHtml(str) {
-        return String(str == null ? '' : str)
+
+    /* =========================================================
+       ESCAPE HTML
+       ========================================================= */
+
+    function escapeHtml(value) {
+        return String(value == null ? '' : value)
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
@@ -37,36 +47,71 @@
             .replace(/'/g, '&#39;');
     }
 
-    /**
-     * Generate a placeholder avatar data URL from a name.
-     * @param {string} name
-     * @returns {string} CSS background value
-     */
+
+    /* =========================================================
+       PLACEHOLDER AVATAR
+       ========================================================= */
+
     function buildAvatar(name) {
         const clean = String(name || '?').trim() || '?';
+
         const initials = clean
             .split(' ')
             .filter(Boolean)
-            .map((part) => part.charAt(0).toUpperCase())
+            .map(function (part) {
+                return part.charAt(0).toUpperCase();
+            })
             .slice(0, 2)
             .join('') || '?';
 
         const hue = Array.from(clean).reduce(
-            (sum, ch) => sum + ch.charCodeAt(0),
+            function (sum, character) {
+                return sum + character.charCodeAt(0);
+            },
             0
         ) % 360;
 
         const svg = `
-            <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 72'>
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 72 72"
+            >
                 <defs>
-                    <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
-                        <stop offset='0%' stop-color='hsl(${hue}, 35%, 70%)'/>
-                        <stop offset='100%' stop-color='hsl(${(hue + 40) % 360}, 30%, 55%)'/>
+                    <linearGradient
+                        id="g"
+                        x1="0"
+                        y1="0"
+                        x2="1"
+                        y2="1"
+                    >
+                        <stop
+                            offset="0%"
+                            stop-color="hsl(${hue}, 35%, 70%)"
+                        />
+
+                        <stop
+                            offset="100%"
+                            stop-color="hsl(${(hue + 40) % 360}, 30%, 55%)"
+                        />
                     </linearGradient>
                 </defs>
-                <rect width='72' height='72' fill='url(#g)'/>
-                <text x='50%' y='54%' text-anchor='middle' font-family='Inter, sans-serif'
-                      font-size='28' font-weight='700' fill='#ffffff' dominant-baseline='middle'>
+
+                <rect
+                    width="72"
+                    height="72"
+                    fill="url(#g)"
+                />
+
+                <text
+                    x="50%"
+                    y="54%"
+                    text-anchor="middle"
+                    font-family="Inter, sans-serif"
+                    font-size="28"
+                    font-weight="700"
+                    fill="#ffffff"
+                    dominant-baseline="middle"
+                >
                     ${initials}
                 </text>
             </svg>
@@ -75,192 +120,488 @@
         return `url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}")`;
     }
 
-    /**
-     * Render a neutral message into the grid (loading,
-     * empty, error, access-denied).
-     * @param {HTMLElement} container
-     * @param {string} text
-     */
-    function showMessage(container, text) {
+
+    /* =========================================================
+       EMPTY / ERROR MESSAGE
+       ========================================================= */
+
+    function showMessage(container, message) {
         if (!container) return;
-        container.innerHTML =
-            '<p class="empty-state" style="grid-column: 1 / -1; text-align: center; ' +
-            'color: var(--color-text-muted); padding: 32px 0;">' +
-            escapeHtml(text) + '</p>';
+
+        container.innerHTML = `
+            <p
+                class="empty-state"
+                style="
+                    grid-column: 1 / -1;
+                    text-align: center;
+                    color: var(--color-text-muted);
+                    padding: 32px 0;
+                "
+            >
+                ${escapeHtml(message)}
+            </p>
+        `;
     }
 
-    /**
-     * Render the provider's real teams into the grid.
-     * @param {HTMLElement} container
-     * @param {Array} teams  GET /api/worker/teams response
-     */
-    function renderTeams(container, teams) {
+
+    /* =========================================================
+       WORKER AVATAR
+       ========================================================= */
+
+    function getWorkerAvatar(worker) {
+        if (worker.profile_image) {
+            const image = String(worker.profile_image)
+                .replace(/\\/g, '\\\\')
+                .replace(/"/g, '\\"');
+
+            return `url("${image}")`;
+        }
+
+        return buildAvatar(worker.full_name);
+    }
+
+
+    /* =========================================================
+       RENDER ALL REGISTERED WORKERS
+       ========================================================= */
+
+    function renderWorkers(container, workers) {
         if (!container) return;
 
-        if (!teams || !teams.length) {
-            showMessage(container, 'You haven\'t created or joined any teams yet.');
+        if (!Array.isArray(workers) || workers.length === 0) {
+            showMessage(
+                container,
+                'No registered workers found.'
+            );
+
             return;
         }
 
-        container.innerHTML = teams.map(function (team) {
-            const count = Array.isArray(team.members) ? team.members.length : 0;
-            const roleLabel = team.role === 'creator' ? 'Team creator' : 'Team member';
-            const name = team.name || 'Team';
+        container.innerHTML = workers.map(function (worker) {
+
+            const name =
+                worker.full_name || 'Worker';
+
+            const profession =
+                worker.profession || 'Professional';
+
+            const location =
+                worker.location || 'Location not specified';
+
+            const price =
+                Number(worker.price || 0);
+
+            const rating =
+                worker.average_rating != null
+                    ? Number(worker.average_rating)
+                    : null;
 
             return `
-                <article class="worker-card" tabindex="0"
-                         data-team-id="${escapeHtml(String(team.id))}"
-                         data-team-name="${escapeHtml(name)}"
-                         aria-label="${escapeHtml(name)}, ${escapeHtml(roleLabel)}, ${count} member${count === 1 ? '' : 's'}">
-                    <div class="worker-avatar" style="background-image: ${buildAvatar(name)}" aria-hidden="true"></div>
-                    <h3 class="worker-name">${escapeHtml(name)}</h3>
-                    <p class="worker-profession">${escapeHtml(roleLabel)}</p>
+                <article
+                    class="worker-card"
+                    data-worker-id="${escapeHtml(worker.id)}"
+                >
+
+                    <div
+                        class="worker-avatar"
+                        style="
+                            background-image:
+                            ${getWorkerAvatar(worker)};
+                        "
+                        aria-label="${escapeHtml(name)}"
+                    ></div>
+
+
+                    <h3 class="worker-name">
+                        ${escapeHtml(name)}
+                    </h3>
+
+
+                    <p class="worker-profession">
+                        ${escapeHtml(profession)}
+                    </p>
+
+
+                    <p
+                        class="worker-profession"
+                        style="margin-top: -4px;"
+                    >
+                        📍 ${escapeHtml(location)}
+                    </p>
+
+
                     <div class="worker-meta">
-                        <span class="worker-price">${count} member${count === 1 ? '' : 's'}</span>
+
+                        <span class="worker-rating">
+
+                            <span class="star">
+                                ★
+                            </span>
+
+                            ${
+                                rating !== null
+                                    ? escapeHtml(rating.toFixed(1))
+                                    : 'New'
+                            }
+
+                        </span>
+
+
+                        <span class="worker-price">
+                            ₹${escapeHtml(price)}
+                        </span>
+
                     </div>
+
                 </article>
             `;
         }).join('');
     }
 
-    /**
-     * Fetch the provider's teams and render them.
-     */
-    function loadTeams() {
-        const container = document.getElementById('serviceGrid');
+
+    /* =========================================================
+       LOAD WORKERS FROM BACKEND
+       ========================================================= */
+
+    async function loadWorkers() {
+
+        const container =
+            document.getElementById('serviceGrid');
+
         if (!container) return;
 
-        showMessage(container, 'Loading your teams...');
 
-        window.HandyHireAPI.apiFetch('/api/worker/teams')
-            .then(function (response) {
-                if (response.status === 401) {
-                    window.HandyHireAPI.clearAuth();
-                    window.location.href = 'login.html';
-                    return;
-                }
-                if (response.status === 403) {
-                    showMessage(container, 'You do not have provider access to this page.');
-                    return;
-                }
-                if (!response.ok) {
-                    showMessage(container, 'Unable to load your teams. Please try again.');
-                    return;
-                }
-                return response.json();
-            })
-            .then(function (teams) {
-                if (!teams) return;
-                renderTeams(container, teams);
-            })
-            .catch(function () {
-                showMessage(container, 'Network error. Please check your connection and try again.');
-            });
-    }
+        showMessage(
+            container,
+            'Loading workers...'
+        );
 
-    /**
-     * Wire up team-card clicks/keys to open the team page.
-     */
-    function initTeamCards() {
-        const grid = document.getElementById('serviceGrid');
-        if (!grid) return;
 
-        function openTeam(card) {
-            const id = card.getAttribute('data-team-id');
-            const name = card.getAttribute('data-team-name');
-            if (!id) return;
-            try {
-                sessionStorage.setItem('handyhire.selectedTeamId', id);
-                sessionStorage.setItem('handyhire.selectedTeam', name || '');
-                sessionStorage.setItem('handyhire.provider.previousPage', 'provider-home.html');
-            } catch (e) {}
-            window.location.href = 'provider-team-page.html';
-        }
+        try {
 
-        grid.addEventListener('click', function (event) {
-            const card = event.target.closest('.worker-card');
-            if (!card || !grid.contains(card)) return;
-            openTeam(card);
-        });
+            const response =
+                await window.HandyHireAPI.apiFetch(
+                    '/api/worker/directory'
+                );
 
-        grid.addEventListener('keydown', function (event) {
-            const card = event.target.closest('.worker-card');
-            if (!card || !grid.contains(card)) return;
-            if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                openTeam(card);
+
+            /* ---------- Not logged in ---------- */
+
+            if (response.status === 401) {
+
+                window.HandyHireAPI.clearAuth();
+
+                window.location.href =
+                    'login.html';
+
+                return;
             }
-        });
+
+
+            /* ---------- Wrong account role ---------- */
+
+            if (response.status === 403) {
+
+                showMessage(
+                    container,
+                    'You do not have provider access to this page.'
+                );
+
+                return;
+            }
+
+
+            /* ---------- Other backend error ---------- */
+
+            if (!response.ok) {
+
+                let errorMessage =
+                    'Unable to load workers. Please try again.';
+
+                try {
+
+                    const errorData =
+                        await response.json();
+
+                    if (
+                        errorData &&
+                        typeof errorData.detail === 'string'
+                    ) {
+                        errorMessage =
+                            errorData.detail;
+                    }
+
+                } catch (error) {}
+
+
+                showMessage(
+                    container,
+                    errorMessage
+                );
+
+                return;
+            }
+
+
+            /* ---------- Success ---------- */
+
+            const workers =
+                await response.json();
+
+
+            renderWorkers(
+                container,
+                workers
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                'Failed to load workers:',
+                error
+            );
+
+
+            showMessage(
+                container,
+                'Network error. Please check your connection and try again.'
+            );
+        }
     }
 
-    /**
-     * Wire up the filter chips so the active one toggles locally
-     * and chips with a target page navigate to that page.
-     */
+
+    /* =========================================================
+       FILTER CHIPS
+       ========================================================= */
+
+    function setActiveFilter(filter) {
+
+        const chips =
+            document.querySelectorAll(
+                '.filter-chips .chip'
+            );
+
+
+        const selected =
+            VALID_FILTERS.has(filter)
+                ? filter
+                : 'all';
+
+
+        chips.forEach(function (chip) {
+
+            const isActive =
+                chip.dataset.filter === selected;
+
+
+            chip.classList.toggle(
+                'is-active',
+                isActive
+            );
+
+
+            chip.setAttribute(
+                'aria-pressed',
+                isActive
+                    ? 'true'
+                    : 'false'
+            );
+        });
+
+
+        try {
+
+            sessionStorage.setItem(
+                FILTER_KEY,
+                selected
+            );
+
+        } catch (error) {}
+    }
+
+
     function initFilterChips() {
-        const chips = document.querySelectorAll('.filter-chips .chip');
+
+        const chips =
+            document.querySelectorAll(
+                '.filter-chips .chip'
+            );
+
+
         if (!chips.length) return;
 
-        chips.forEach((chip) => {
-            chip.addEventListener('click', function () {
-                const filter = chip.dataset.filter;
-                const target = chip.dataset.target;
 
-                if (target) {
-                    window.location.href = target;
-                    return;
-                } else if (filter === 'all') {
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+        /*
+         * Always start Home on All.
+         *
+         * Later we will add actual Pre-booking,
+         * On-spot, Near me and Budget filtering.
+         */
+
+        setActiveFilter('all');
+
+
+        chips.forEach(function (chip) {
+
+            chip.addEventListener(
+                'click',
+                function () {
+
+                    const filter =
+                        chip.dataset.filter || 'all';
+
+
+                    /*
+                     * Change green active chip
+                     * without reloading the page.
+                     */
+
+                    setActiveFilter(filter);
+
+
+                    /*
+                     * IMPORTANT:
+                     * Worker filtering will be connected later.
+                     *
+                     * Right now all registered workers remain
+                     * visible while we test the directory.
+                     */
                 }
-            });
+            );
         });
     }
 
-    /**
-     * Wire up the top navigation tabs.
-     */
+
+    /* =========================================================
+       TOP NAVIGATION
+       ========================================================= */
+
     function initTopNav() {
-        const activityTab = document.getElementById('activityTab');
+
+        const activityTab =
+            document.getElementById(
+                'activityTab'
+            );
+
+
         if (activityTab) {
-            activityTab.addEventListener('click', function (event) {
-                event.preventDefault();
-                window.location.href = 'provider-activity.html';
-            });
+
+            activityTab.addEventListener(
+                'click',
+                function (event) {
+
+                    event.preventDefault();
+
+                    window.location.href =
+                        'provider-activity.html';
+                }
+            );
         }
     }
 
-    /**
-     * Make the package tiles keyboard-accessible (Space).
-     */
+
+    /* =========================================================
+       PACKAGE TILES
+       ========================================================= */
+
     function initPackageTiles() {
-        const section = document.querySelector('.pkg-section');
+
+        const section =
+            document.querySelector(
+                '.pkg-section'
+            );
+
+
         if (!section) return;
 
-        section.addEventListener('keydown', function (event) {
-            if (event.key !== ' ') return;
-            const tile = event.target.closest('.pkg-tile');
-            if (!tile || !section.contains(tile)) return;
-            event.preventDefault();
-            const href = tile.getAttribute('href');
-            if (href) window.location.href = href;
-        });
+
+        section.addEventListener(
+            'keydown',
+            function (event) {
+
+                if (event.key !== ' ') {
+                    return;
+                }
+
+
+                const tile =
+                    event.target.closest(
+                        '.pkg-tile'
+                    );
+
+
+                if (
+                    !tile ||
+                    !section.contains(tile)
+                ) {
+                    return;
+                }
+
+
+                event.preventDefault();
+
+
+                const href =
+                    tile.getAttribute(
+                        'href'
+                    );
+
+
+                if (href) {
+
+                    window.location.href =
+                        href;
+                }
+            }
+        );
     }
 
-    /**
-     * Initialize the Provider Home page.
-     */
+
+    /* =========================================================
+       INITIALIZE HOME PAGE
+       ========================================================= */
+
     function init() {
-        if (!requireAuth()) return;
-        loadTeams();
+
+        if (!requireAuth()) {
+            return;
+        }
+
+
+        /*
+         * Main change:
+         * Load ALL registered workers,
+         * not teams.
+         */
+
+        loadWorkers();
+
+
         initFilterChips();
-        initTeamCards();
+
         initPackageTiles();
+
         initTopNav();
     }
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
+
+    /* =========================================================
+       START
+       ========================================================= */
+
+    if (
+        document.readyState === 'loading'
+    ) {
+
+        document.addEventListener(
+            'DOMContentLoaded',
+            init
+        );
+
     } else {
+
         init();
     }
+
 })();

@@ -134,6 +134,7 @@ body {
     text-decoration: none;
     border-radius: 999px;
     transition: background-color var(--transition), color var(--transition);
+    position: relative;
 }
 
 .nav-tab:hover {
@@ -144,7 +145,7 @@ body {
 .nav-tab.is-active {
     color: var(--color-primary);
     background-color: #ffffff;
-    font-weight: 600;
+    font-weight: 500;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
@@ -153,28 +154,31 @@ body {
     outline-offset: 2px;
 }
 
-/* Subtle count bubble used by both the worker-nav "Request" tab
-   and any home-page nav badge. */
+/* Request notification badge - absolutely positioned so it never changes nav width */
 .nav-count {
+    position: absolute;
+    top: -4px;
+    right: -5px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 18px;
-    height: 18px;
-    padding: 0 6px;
-    margin-left: 6px;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
     border-radius: 999px;
-    background-color: rgba(255, 255, 255, 0.25);
+    background-color: #c84545;
     color: #ffffff;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     line-height: 1;
-    letter-spacing: 0.2px;
+    box-shadow: 0 0 0 2px var(--color-primary);
+    pointer-events: none;
 }
 
 .nav-tab.is-active .nav-count {
-    background-color: var(--color-primary);
+    background-color: #c84545;
     color: #ffffff;
+    box-shadow: 0 0 0 2px #ffffff;
 }
 
 .nav-count[hidden] {
@@ -600,12 +604,14 @@ body {
         padding: 6px 10px;
         font-size: 13px;
     }
+
     .nav-count {
-        min-width: 16px;
-        height: 16px;
-        font-size: 10px;
-        padding: 0 5px;
-        margin-left: 4px;
+        top: -3px;
+        right: -4px;
+        min-width: 15px;
+        height: 15px;
+        padding: 0 3px;
+        font-size: 9px;
     }
     .rq-card {
         padding: 14px;
