@@ -25,7 +25,7 @@
     </header>
 
     <main class="pkg-page" role="main">
-        <!-- ========== BACK + SEARCH ROW ========== -->
+        <!-- ========== BACK ROW ========== -->
         <section class="back-search-row" aria-label="Back and search">
             <a href="provider-home.html" class="back-btn" aria-label="Back to home">
                 <span class="back-icon" aria-hidden="true">&#8592;</span>
@@ -38,16 +38,31 @@
                     type="search"
                     id="packageSearch"
                     class="search-input"
-                    placeholder="Search for packages"
+                    placeholder="Search packages"
                     autocomplete="off"
                 />
             </div>
         </section>
 
+        <!-- ========== TABS ========== -->
+        <nav class="tab-nav" aria-label="Package views">
+            <button type="button" class="tab-btn is-active" data-tab="explore" id="tabExplore">Explore Packages</button>
+            <button type="button" class="tab-btn" data-tab="mine" id="tabMine">My Packages</button>
+        </nav>
+
+        <!-- ========== CREATE BUTTON ========== -->
+        <div class="create-row" id="createRow">
+            <a href="provider-create-package.html?type=multitasking" class="btn-create-package" id="createPackageBtn">
+                + Create Package
+            </a>
+        </div>
+
         <!-- ========== PACKAGE LIST ========== -->
         <section class="packages-section" aria-label="Available packages">
+            <div class="loading-state" id="loadingState" hidden>Loading packages...</div>
+            <div class="error-state" id="errorState" hidden>Unable to load packages. Please try again.</div>
             <ul class="package-list" id="packageList">
-                <!-- Cards rendered by js/multitasking-package.js -->
+                <!-- Cards rendered by js/provider-multitasking-package.js -->
             </ul>
 
             <p class="empty-state" id="emptyState" hidden>
@@ -56,6 +71,7 @@
         </section>
     </main>
 
+    <script src="../js/api.js"></script>
     <script src="../js/provider-multitasking-package.js"></script>
 </body>
 </html>

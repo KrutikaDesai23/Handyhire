@@ -1,70 +1,41 @@
 /* =========================================================
-   HandyHire - Multitasking Packages JavaScript
-   Renders a vertical list of package cards with avatar,
-   name, skills and star rating. The first card is
-   "Krutika Desai" per the design reference. Live
-   filtering is supported via the search input.
-   Navigation is intentionally not connected yet.
+   HandyHire - Provider Multitasking Packages JavaScript
+   Supports Explore and My Packages tabs. Fetches real data
+   from the backend and renders cards with manage controls
+   for owned packages.
    ========================================================= */
 
 (function () {
     'use strict';
 
-    /**
-     * Sample multitasking package data. The first entry
-     * is the reference card from the design image.
-     */
-    const PACKAGES = [
-        {
-            name: 'Krutika Desai',
-            skills: ['Plumber', 'Electrician', 'Carpenter'],
-            rating: 4.8,
-        },
-        {
-            name: 'Anita Sharma',
-            skills: ['Electrician', 'AC Repair', 'Handyman'],
-            rating: 4.7,
-        },
-        {
-            name: 'Suresh Patel',
-            skills: ['Carpenter', 'Painter', 'Cleaner'],
-            rating: 4.6,
-        },
-        {
-            name: 'Priya Singh',
-            skills: ['Cleaner', 'Pest Control', 'Cook'],
-            rating: 4.9,
-        },
-        {
-            name: 'Mohan Das',
-            skills: ['Painter', 'Carpenter', 'Plumber'],
-            rating: 4.5,
-        },
-        {
-            name: 'Lata Verma',
-            skills: ['AC Repair', 'Electrician', 'Handyman'],
-            rating: 4.8,
-        },
-    ];
+    const api = window.HandyHireAPI;
+    if (!api) return;
+
+    let currentTab = 'explore';
+    let allPackages = [];
+    let myPackages = [];
 
     /**
-     * Build a "â˜… â˜… â˜… â˜… â˜…" style stars string for a rating.
-     * @param {number} rating
-     * @returns {string}
+     * Parse query string parameters.
      */
-    function buildStars(rating) {
-        const full = Math.floor(rating);
-        const empty = 5 - full;
-        return '\u2605'.repeat(full) + '\u2606'.repeat(empty);
+    function getQueryParams() {
+        var params = {};
+        var qs = window.location.search.substring(1);
+        if (!qs) return params;
+        qs.split('&').forEach(function (part) {
+            var pair = part.split('=');
+            if (pair.length === 2) {
+                params[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+            }
+        });
+        return params;
     }
 
     /**
-     * Escape user-supplied text before injecting as HTML.
-     * @param {string} str
-     * @returns {string}
+     * Escape text for safe HTML injection.
      */
     function escapeHtml(str) {
-        return String(str)
+        return String(str == null ? '' : str)
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
@@ -73,161 +44,528 @@
     }
 
     /**
-     * Generate a placeholder avatar data URL so cards
-     * render meaningfully without external images.
-     * @param {string} name
-     * @returns {string} CSS background value
+     * Build a placeholder avatar data URL.
      */
     function buildAvatar(name) {
-        const initials = name
+        var clean = String(name || '?').trim() || '?';
+        var initials = clean
             .split(' ')
             .filter(Boolean)
-            .map((part) => part.charAt(0).toUpperCase())
+            .map(function (part) { return part.charAt(0).toUpperCase(); })
             .slice(0, 2)
             .join('') || '?';
 
-        const hue = Array.from(name).reduce(
-            (sum, ch) => sum + ch.charCodeAt(0),
+        var hue = Array.from(clean).reduce(
+            function (sum, ch) { return sum + ch.charCodeAt(0); },
             0
         ) % 360;
 
-        const svg = `
-            <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'>
-                <defs>
-                    <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
-                        <stop offset='0%' stop-color='hsl(${hue}, 35%, 70%)'/>
-                        <stop offset='100%' stop-color='hsl(${(hue + 40) % 360}, 30%, 55%)'/>
-                    </linearGradient>
-                </defs>
-                <circle cx='40' cy='40' r='40' fill='url(#g)'/>
-                <text x='50%' y='54%' text-anchor='middle'
-                      font-family='Inter, sans-serif' font-size='30'
-                      font-weight='700' fill='#ffffff' dominant-baseline='middle'>
-                    ${initials}
-                </text>
-            </svg>
-        `.trim();
+        var svg = '<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 80 80\'>' +
+            '<defs><linearGradient id=\'g\' x1=\'0\' y1=\'0\' x2=\'1\' y2=\'1\'>' +
+            '<stop offset=\'0%\' stop-color=\'hsl(' + hue + ', 35%, 70%)\'/>' +
+            '<stop offset=\'100%\' stop-color=\'hsl(' + ((hue + 40) % 360) + ', 30%, 55%)\'/>' +
+            '</linearGradient></defs>' +
+            '<circle cx=\'40\' cy=\'40\' r=\'40\' fill=\'url(#g)\'/>' +
+            '<text x=\'50%\' y=\'54%\' text-anchor=\'middle\' font-family=\'Inter, sans-serif\' font-size=\'30\' font-weight=\'700\' fill=\'#ffffff\' dominant-baseline=\'middle\'>' + initials + '</text>' +
+            '</svg>';
 
-        return `url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}")`;
+        return 'url("data:image/svg+xml;utf8,' + encodeURIComponent(svg) + '")';
+    }
+
+    /**
+     * Format a price for display.
+     */
+    function formatPrice(price) {
+        return '\u20B9' + Number(price || 0).toLocaleString();
+    }
+
+    function findPackageById(packageId) {
+    var source =
+        currentTab === 'mine'
+            ? myPackages
+            : allPackages;
+
+    return source.find(function (pkg) {
+        return Number(pkg.id) === Number(packageId);
+    }) || null;
+}
+
+
+function openPackageBooking(pkg) {
+
+    // Only packages in Explore can be booked.
+    if (!pkg || currentTab !== 'explore') {
+        return;
+    }
+
+    try {
+        sessionStorage.setItem(
+            'handyhire.bookingPackage',
+            JSON.stringify(pkg)
+        );
+
+        sessionStorage.setItem(
+            'handyhire.provider.previousPage',
+            'provider-multitasking-package.html'
+        );
+    } catch (error) {
+        console.error(
+            'Unable to store package:',
+            error
+        );
+    }
+
+    window.location.href =
+        'provider-booking.html?package_id=' +
+        encodeURIComponent(pkg.id);
+}
+    /**
+     * Show a status badge class.
+     */
+    function statusBadgeClass(status) {
+        var s = String(status || '').toLowerCase();
+        if (s === 'published') return 'status-published';
+        if (s === 'archived') return 'status-archived';
+        return 'status-draft';
     }
 
     /**
      * Render a single package card as an <li>.
-     * @param {Object} pkg
-     * @returns {string} HTML string
      */
-    function renderCard(pkg) {
-        const skillsLine = pkg.skills.join(' \u2022 ');
-        return `
-            <li>
-                <article class="package-card" tabindex="0"
-                         data-name="${escapeHtml(pkg.name)}"
-                         aria-label="${escapeHtml(pkg.name)} package, skills ${escapeHtml(skillsLine)}, rated ${pkg.rating.toFixed(1)} out of 5">
-                    <div class="package-avatar" style="background-image: ${buildAvatar(pkg.name)}" aria-hidden="true"></div>
-                    <div class="package-text">
-                        <p class="package-name">${escapeHtml(pkg.name)}</p>
-                        <p class="package-skills">${escapeHtml(skillsLine)}</p>
-                        <div class="package-rating" aria-label="Rated ${pkg.rating.toFixed(1)} out of 5">
-                            <span class="stars" aria-hidden="true">${buildStars(pkg.rating)}</span>
-                            <span class="rating-value">${pkg.rating.toFixed(1)}</span>
-                        </div>
-                    </div>
-                </article>
-            </li>
-        `.trim();
+ function renderCard(pkg, isMine) {
+
+    var servicesLine = (pkg.services || [])
+        .map(function (service) {
+            return escapeHtml(service.name);
+        })
+        .join(' • ');
+
+
+    var metaTags = [];
+
+    if (pkg.duration) {
+        metaTags.push(
+            '<span class="package-meta-tag">' +
+                '<span class="package-meta-icon">⏱</span>' +
+                escapeHtml(pkg.duration) +
+            '</span>'
+        );
     }
+
+    if (pkg.location) {
+        metaTags.push(
+            '<span class="package-meta-tag">' +
+                '<span class="package-meta-icon">⌖</span>' +
+                escapeHtml(pkg.location) +
+            '</span>'
+        );
+    }
+
+    if (pkg.availability) {
+        metaTags.push(
+            '<span class="package-meta-tag">' +
+                '<span class="package-meta-icon">◷</span>' +
+                escapeHtml(pkg.availability) +
+            '</span>'
+        );
+    }
+
+
+    var controlsHtml = '';
+
+    if (isMine) {
+
+        var editHref =
+            'provider-create-package.html' +
+            '?type=multitasking' +
+            '&package_id=' +
+            pkg.id;
+
+        controlsHtml =
+            '<div class="package-controls">' +
+
+                '<a href="' +
+                    editHref +
+                    '" class="btn-sm btn-edit">' +
+                    'Edit' +
+                '</a>' +
+
+                '<button ' +
+                    'type="button" ' +
+                    'class="btn-sm btn-delete" ' +
+                    'data-action="archive" ' +
+                    'data-id="' +
+                    pkg.id +
+                    '">' +
+                    'Delete' +
+                '</button>' +
+
+            '</div>';
+    }
+
+
+    return (
+        '<li>' +
+
+'<article ' +
+    'class="package-card" ' +
+    'tabindex="0" ' +
+    'data-package-id="' +
+    pkg.id +
+    '" ' +
+    'aria-label="View ' +
+    escapeHtml(pkg.name) +
+    '">' +
+
+
+                '<div class="package-card-header">' +
+
+                    '<div class="package-title-area">' +
+
+                        '<h3 class="package-name">' +
+                            escapeHtml(pkg.name) +
+                        '</h3>' +
+
+                        (
+                            pkg.description
+                                ? '<p class="package-description">' +
+                                    escapeHtml(pkg.description) +
+                                  '</p>'
+                                : ''
+                        ) +
+
+                    '</div>' +
+
+
+                    '<div class="package-price">' +
+                        formatPrice(pkg.price) +
+                    '</div>' +
+
+                '</div>' +
+
+
+                (
+                    servicesLine
+                        ? '<div class="package-service-box">' +
+
+                            '<span class="package-section-label">' +
+                                'Services included' +
+                            '</span>' +
+
+                            '<p class="package-services">' +
+                                servicesLine +
+                            '</p>' +
+
+                          '</div>'
+                        : ''
+                ) +
+
+
+                (
+                    metaTags.length
+                        ? '<div class="package-meta-row">' +
+                            metaTags.join('') +
+                          '</div>'
+                        : ''
+                ) +
+
+
+                controlsHtml +
+
+            '</article>' +
+
+        '</li>'
+    );
+}
 
     /**
      * Render the full package list into the container.
-     * @param {Array} packages
-     * @param {HTMLElement} container
-     * @param {HTMLElement} emptyState
      */
     function renderList(packages, container, emptyState) {
-        container.innerHTML = packages.map(renderCard).join('');
+        container.innerHTML = packages.map(function (pkg) {
+            return renderCard(pkg, currentTab === 'mine');
+        }).join('');
         if (emptyState) emptyState.hidden = packages.length > 0;
-    }
 
-    /**
-     * Live-filter packages against the search query.
-     * Empty query returns the full list.
-     * @param {string} query
-     * @returns {Array}
-     */
-    function filterPackages(query) {
-        const q = String(query || '').trim().toLowerCase();
-        if (!q) return PACKAGES.slice();
+        container.querySelectorAll('[data-action="publish"]').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                publishPackage(Number(btn.getAttribute('data-id')));
+            });
+        });
+        container.querySelectorAll('[data-action="unpublish"]').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                unpublishPackage(Number(btn.getAttribute('data-id')));
+            });
+        });
+        container.querySelectorAll('[data-action="archive"]').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                archivePackage(Number(btn.getAttribute('data-id')));
+            });
+        });
+        if (currentTab === 'explore') {
 
-        return PACKAGES.filter((pkg) => {
-            const skillText = pkg.skills.join(' ').toLowerCase();
-            return (
-                pkg.name.toLowerCase().includes(q) ||
-                skillText.includes(q)
+    container
+        .querySelectorAll(
+            '.package-card[data-package-id]'
+        )
+        .forEach(function (card) {
+
+            function openCard(event) {
+
+                if (
+                    event.target.closest(
+                        '.package-controls'
+                    )
+                ) {
+                    return;
+                }
+
+                var packageId =
+                    Number(
+                        card.getAttribute(
+                            'data-package-id'
+                        )
+                    );
+
+                var pkg =
+                    findPackageById(packageId);
+
+                openPackageBooking(pkg);
+            }
+
+
+            card.addEventListener(
+                'click',
+                openCard
+            );
+
+
+            card.addEventListener(
+                'keydown',
+                function (event) {
+
+                    if (
+                        event.key === 'Enter' ||
+                        event.key === ' '
+                    ) {
+                        event.preventDefault();
+                        openCard(event);
+                    }
+                }
             );
         });
+}
     }
 
     /**
-     * Wire up the search input so the list updates as the
-     * user types.
+     * Fetch explore packages (published, multitasking type).
      */
-    function initSearch(container, emptyState) {
-        const input = document.getElementById('packageSearch');
-        if (!input) return;
+    function fetchExplore() {
+        var list = document.getElementById('packageList');
+        var empty = document.getElementById('emptyState');
+        var loading = document.getElementById('loadingState');
+        var error = document.getElementById('errorState');
+        if (loading) loading.hidden = false;
+        if (error) error.hidden = true;
+        if (list) list.innerHTML = '';
+        if (empty) empty.hidden = true;
 
-        input.addEventListener('input', function () {
-            const filtered = filterPackages(input.value);
-            renderList(filtered, container, emptyState);
+        return api.apiFetch('/api/packages?package_type=multitasking').then(function (response) {
+            if (!response.ok) throw new Error('Failed to load explore packages');
+            return response.json();
+        }).then(function (data) {
+            allPackages = data || [];
+            if (loading) loading.hidden = true;
+            applyFilter();
+        }).catch(function () {
+            allPackages = [];
+            if (loading) loading.hidden = true;
+            if (error) error.hidden = false;
+            if (empty) empty.hidden = true;
+            if (list) list.innerHTML = '';
         });
     }
 
     /**
-     * Wire up click + Enter / Space activation on each
-     * package card so it routes to booking.html. This is
-     * the direct entry into the shared Booking Details
-     * page; selecting a multitasking package must NOT
-     * route through team-package.html or team-page.html.
+     * Fetch my packages (all statuses for current worker).
      */
-    function initCardNavigation(container) {
-        if (!container) return;
+    function fetchMyPackages() {
+        var list = document.getElementById('packageList');
+        var empty = document.getElementById('emptyState');
+        var loading = document.getElementById('loadingState');
+        var error = document.getElementById('errorState');
+        if (loading) loading.hidden = false;
+        if (error) error.hidden = true;
+        if (list) list.innerHTML = '';
+        if (empty) empty.hidden = true;
 
-        container.addEventListener('click', function (event) {
-            const card = event.target.closest('.package-card');
-            if (!card || !container.contains(card)) return;
-            try {
-                sessionStorage.setItem('handyhire.provider.previousPage', 'provider-multitasking-package.html');
-            } catch (e) {}
-            window.location.href = 'provider-booking.html';
-        });
-
-        container.addEventListener('keydown', function (event) {
-            const card = event.target.closest('.package-card');
-            if (!card || !container.contains(card)) return;
-            if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                try {
-                    sessionStorage.setItem('handyhire.provider.previousPage', 'provider-multitasking-package.html');
-                } catch (e) {}
-                window.location.href = 'provider-booking.html';
+        return api.apiFetch('/api/worker/packages').then(function (response) {
+            if (response.status === 401 || response.status === 403) {
+                api.clearAuth();
+                window.location.href = 'login.html';
+                return [];
             }
+            if (!response.ok) throw new Error('Failed to load my packages');
+            return response.json();
+        }).then(function (data) {
+            myPackages = (data || []).filter(function (pkg) {
+    return pkg.package_type === 'multitasking';
+});
+            if (loading) loading.hidden = true;
+            applyFilter();
+        }).catch(function () {
+            myPackages = [];
+            if (loading) loading.hidden = true;
+            if (error) error.hidden = false;
+            if (empty) empty.hidden = true;
+            if (list) list.innerHTML = '';
         });
     }
 
     /**
-     * Initialize the Multitasking Packages page.
+     * Apply the current search filter to the active tab data.
+     */
+    function applyFilter() {
+        var list = document.getElementById('packageList');
+        var empty = document.getElementById('emptyState');
+        var error = document.getElementById('errorState');
+        var searchInput = document.getElementById('packageSearch');
+        var q = searchInput ? String(searchInput.value || '').trim().toLowerCase() : '';
+
+        var source = currentTab === 'explore' ? allPackages : myPackages;
+        var filtered = source;
+        if (q) {
+            filtered = source.filter(function (pkg) {
+                return pkg.name.toLowerCase().includes(q) ||
+                    (pkg.description || '').toLowerCase().includes(q) ||
+                    (pkg.services || []).some(function (s) { return s.name.toLowerCase().includes(q); });
+            });
+        }
+
+        if (error) error.hidden = true;
+        renderList(filtered, list, empty);
+    }
+
+    /**
+     * Publish a draft package.
+     */
+    function publishPackage(packageId) {
+        if (!confirm('Publish this package? It will be visible to customers in Explore.')) return;
+        api.apiFetch('/api/worker/packages/' + packageId + '/publish', { method: 'PATCH' }).then(function (response) {
+            if (response.status === 401 || response.status === 403) {
+                api.clearAuth();
+                window.location.href = 'login.html';
+                return;
+            }
+            if (!response.ok) {
+                return response.json().then(function (err) {
+                    throw new Error(err && err.detail ? err.detail : 'Failed to publish');
+                }).catch(function () { throw new Error('Failed to publish'); });
+            }
+            return response.json();
+        }).then(function (data) {
+            if (!data) return;
+            var idx = myPackages.findIndex(function (p) { return p.id === packageId; });
+            if (idx >= 0) myPackages[idx] = data;
+            if (currentTab === 'mine') applyFilter();
+        }).catch(function (err) {
+            alert(err && err.message ? err.message : 'Failed to publish package');
+        });
+    }
+
+    /**
+     * Unpublish a published package.
+     */
+    function unpublishPackage(packageId) {
+        if (!confirm('Unpublish this package? It will be hidden from Explore.')) return;
+        api.apiFetch('/api/worker/packages/' + packageId + '/unpublish', { method: 'PATCH' }).then(function (response) {
+            if (response.status === 401 || response.status === 403) {
+                api.clearAuth();
+                window.location.href = 'login.html';
+                return;
+            }
+            if (!response.ok) {
+                return response.json().then(function (err) {
+                    throw new Error(err && err.detail ? err.detail : 'Failed to unpublish');
+                }).catch(function () { throw new Error('Failed to unpublish'); });
+            }
+            return response.json();
+        }).then(function (data) {
+            if (!data) return;
+            var idx = myPackages.findIndex(function (p) { return p.id === packageId; });
+            if (idx >= 0) myPackages[idx] = data;
+            if (currentTab === 'mine') applyFilter();
+        }).catch(function (err) {
+            alert(err && err.message ? err.message : 'Failed to unpublish package');
+        });
+    }
+
+    /**
+     * Archive a package.
+     */
+    function archivePackage(packageId) {
+        if (!confirm('Archive this package? This action cannot be undone.')) return;
+        api.apiFetch('/api/worker/packages/' + packageId, { method: 'DELETE' }).then(function (response) {
+            if (response.status === 401 || response.status === 403) {
+                api.clearAuth();
+                window.location.href = 'login.html';
+                return;
+            }
+            if (!response.ok) {
+                return response.json().then(function (err) {
+                    throw new Error(err && err.detail ? err.detail : 'Failed to archive');
+                }).catch(function () { throw new Error('Failed to archive'); });
+            }
+            myPackages = myPackages.filter(function (p) { return p.id !== packageId; });
+            applyFilter();
+        }).catch(function (err) {
+            alert(err && err.message ? err.message : 'Failed to archive package');
+        });
+    }
+
+    /**
+     * Switch the active tab.
+     */
+    function switchTab(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.tab-btn').forEach(function (btn) {
+            btn.classList.toggle('is-active', btn.getAttribute('data-tab') === tab);
+        });
+        var createRow = document.getElementById('createRow');
+        if (createRow) createRow.hidden = tab !== 'mine';
+        applyFilter();
+        if (tab === 'explore') {
+            fetchExplore();
+        } else {
+            fetchMyPackages();
+        }
+    }
+
+    /**
+     * Initialize the page.
      */
     function init() {
-        if (!(window.HandyHireAPI && window.HandyHireAPI.requireRole('worker'))) return;
-        const list = document.getElementById('packageList');
-        const emptyState = document.getElementById('emptyState');
-        if (!list) return;
+        if (!api.requireRole('worker')) return;
 
-        renderList(PACKAGES, list, emptyState);
-        initSearch(list, emptyState);
-        initCardNavigation(list);
+        var tabExplore = document.getElementById('tabExplore');
+        var tabMine = document.getElementById('tabMine');
+
+        tabExplore.addEventListener('click', function () { switchTab('explore'); });
+        tabMine.addEventListener('click', function () { switchTab('mine'); });
+
+        var searchInput = document.getElementById('packageSearch');
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                applyFilter();
+            });
+        }
+
+        switchTab('explore');
     }
 
-    // Run after DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {

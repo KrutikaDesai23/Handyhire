@@ -291,6 +291,19 @@ def test_package_listing(client):
 
 def test_package_detail(client, db):
     from app.models import Package, Service, PackageService
+    from app.auth import security
+    from app.models.user import User
+
+    owner = User(
+        full_name="Package Owner",
+        email="packageowner@example.com",
+        mobile_number="9998887777",
+        password_hash=security.hash_password("password123"),
+        role="worker",
+    )
+    db.add(owner)
+    db.flush()
+    db.refresh(owner)
 
     service = db.query(Service).first()
     package = db.query(Package).first()
@@ -299,7 +312,7 @@ def test_package_detail(client, db):
         db.add(service)
         db.flush()
 
-        package = Package(name="Test Package", package_type="multitasking", price=500)
+        package = Package(name="Test Package", package_type="multitasking", price=500, owner_id=owner.id, status="published")
         db.add(package)
         db.flush()
 
@@ -317,6 +330,19 @@ def test_package_detail(client, db):
 
 def test_package_search(client, db):
     from app.models import Package, Service, PackageService
+    from app.auth import security
+    from app.models.user import User
+
+    owner = User(
+        full_name="Search Owner",
+        email="searchowner@example.com",
+        mobile_number="8887776666",
+        password_hash=security.hash_password("password123"),
+        role="worker",
+    )
+    db.add(owner)
+    db.flush()
+    db.refresh(owner)
 
     service = db.query(Service).first()
     package = db.query(Package).first()
@@ -325,7 +351,7 @@ def test_package_search(client, db):
         db.add(service)
         db.flush()
 
-        package = Package(name="Searchable Package", description="Find me", package_type="multitasking", price=500)
+        package = Package(name="Searchable Package", description="Find me", package_type="multitasking", price=500, owner_id=owner.id, status="published")
         db.add(package)
         db.flush()
 
@@ -342,6 +368,19 @@ def test_package_search(client, db):
 
 def test_package_category_filter(client, db):
     from app.models import Package, Service, PackageService
+    from app.auth import security
+    from app.models.user import User
+
+    owner = User(
+        full_name="Cat Owner",
+        email="catowner@example.com",
+        mobile_number="7776665555",
+        password_hash=security.hash_password("password123"),
+        role="worker",
+    )
+    db.add(owner)
+    db.flush()
+    db.refresh(owner)
 
     service = db.query(Service).first()
     package = db.query(Package).first()
@@ -350,7 +389,7 @@ def test_package_category_filter(client, db):
         db.add(service)
         db.flush()
 
-        package = Package(name="Cat Package", package_type="multitasking", price=500)
+        package = Package(name="Cat Package", package_type="multitasking", price=500, owner_id=owner.id, status="published")
         db.add(package)
         db.flush()
 
@@ -381,6 +420,19 @@ def test_team_package_filter(client):
 
 def test_package_services_returned(client, db):
     from app.models import Package, Service, PackageService
+    from app.auth import security
+    from app.models.user import User
+
+    owner = User(
+        full_name="Services Owner",
+        email="servicesowner@example.com",
+        mobile_number="6665554444",
+        password_hash=security.hash_password("password123"),
+        role="worker",
+    )
+    db.add(owner)
+    db.flush()
+    db.refresh(owner)
 
     service = db.query(Service).first()
     package = db.query(Package).first()
@@ -389,7 +441,7 @@ def test_package_services_returned(client, db):
         db.add(service)
         db.flush()
 
-        package = Package(name="Test Package 2", package_type="team", price=500)
+        package = Package(name="Test Package 2", package_type="team", price=500, owner_id=owner.id, status="published")
         db.add(package)
         db.flush()
 
@@ -556,3 +608,313 @@ def test_existing_worker_tests_still_pass(client):
     assert response.status_code == 401
     response = client.get("/api/worker/dashboard")
     assert response.status_code == 401
+
+
+# =========================================================
+# Worker Package Management Tests
+# =========================================================
+
+def test_worker_can_create_multitasking_package(client, worker, db):
+    from app.models import Service
+    service = db.query(Service).first()
+    if not service:
+        service = Service(name="Create Service", category="General", base_price=100)
+        db.add(service)
+        db.flush()
+        db.refresh(service)
+
+    token = security.create_access_token({"sub": str(worker.id), "role": worker.role})
+    response = client.post(
+        "/api/worker/packages",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "name": "My Multitasking Package",
+            "description": "A test package",
+            "package_type": "multitasking",
+            "price": 1200,
+            "duration": "3 hours",
+            "location": "Downtown",
+            "availability": "Weekdays",
+            "status": "draft",
+            "service_ids": [service.id],
+        },
+    )
+    assert response.status_code == 201
+    data = response.json()
+    assert data["name"] == "My Multitasking Package"
+    assert data["status"] == "draft"
+    assert data["owner_id"] == worker.id
+    assert len(data["services"]) >= 1
+
+
+def test_worker_can_create_team_package(client, worker, db):
+    from app.models import Service, User
+
+    other_worker = User(
+        full_name="Team Package Worker",
+        email="teampkgworker@example.com",
+        mobile_number="1231231234",
+        password_hash=security.hash_password("password123"),
+        role="worker",
+    )
+    third_worker = User(
+        full_name="Third Team Worker",
+        email="thirdteamworker@example.com",
+        mobile_number="4445556666",
+        password_hash=security.hash_password("password123"),
+        role="worker",
+    )
+    db.add_all([other_worker, third_worker])
+    db.flush()
+    db.refresh(other_worker)
+    db.refresh(third_worker)
+
+    service = db.query(Service).first()
+    if not service:
+        service = Service(name="Team Create Service", category="General", base_price=100)
+        db.add(service)
+        db.flush()
+        db.refresh(service)
+
+    token = security.create_access_token({"sub": str(worker.id), "role": worker.role})
+    response = client.post(
+        "/api/worker/packages",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "name": "My Team Package",
+            "description": "A team package",
+            "package_type": "team",
+            "price": 2500,
+            "duration": "Full day",
+            "location": "Uptown",
+            "availability": "Weekends",
+            "status": "published",
+            "service_ids": [service.id],
+            "worker_ids": [other_worker.id, third_worker.id],
+        },
+    )
+    assert response.status_code == 201
+    data = response.json()
+    assert data["name"] == "My Team Package"
+    assert data["package_type"] == "team"
+    assert data["status"] == "published"
+    assert len(data["workers"]) == 2
+
+
+def test_customer_cannot_create_package(client, customer):
+    token = security.create_access_token({"sub": str(customer.id), "role": customer.role})
+    response = client.post(
+        "/api/worker/packages",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"name": "Bad Package", "package_type": "multitasking", "price": 100, "service_ids": []},
+    )
+    assert response.status_code == 403
+
+
+def test_worker_lists_own_packages(client, worker, db):
+    from app.models import Package, Service, PackageService
+    service = db.query(Service).first()
+    if not service:
+        service = Service(name="List Service", category="General", base_price=100)
+        db.add(service)
+        db.flush()
+        db.refresh(service)
+
+    pkg = Package(name="Worker List Pkg", package_type="multitasking", price=800, owner_id=worker.id, status="published")
+    db.add(pkg)
+    db.flush()
+    ps = PackageService(package_id=pkg.id, service_id=service.id)
+    db.add(ps)
+    db.commit()
+
+    token = security.create_access_token({"sub": str(worker.id), "role": worker.role})
+    response = client.get("/api/worker/packages", headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == 200
+    data = response.json()
+    assert any(p["id"] == pkg.id for p in data)
+
+
+def test_worker_cannot_list_other_workers_packages(client, worker, db):
+    from app.models import User, Package, Service, PackageService
+    other = User(
+        full_name="Other Worker",
+        email="otherpkgworker@example.com",
+        mobile_number="1112223333",
+        password_hash=security.hash_password("password123"),
+        role="worker",
+    )
+    db.add(other)
+    db.flush()
+    db.refresh(other)
+
+    service = db.query(Service).first()
+    if not service:
+        service = Service(name="Other List Service", category="General", base_price=100)
+        db.add(service)
+        db.flush()
+        db.refresh(service)
+
+    pkg = Package(name="Other Worker Pkg", package_type="multitasking", price=900, owner_id=other.id, status="published")
+    db.add(pkg)
+    db.flush()
+    ps = PackageService(package_id=pkg.id, service_id=service.id)
+    db.add(ps)
+    db.commit()
+
+    token = security.create_access_token({"sub": str(worker.id), "role": worker.role})
+    response = client.get("/api/worker/packages", headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == 200
+    data = response.json()
+    assert not any(p["id"] == pkg.id for p in data)
+
+
+def test_worker_can_update_own_package(client, worker, db):
+    from app.models import Package, Service, PackageService
+    service = db.query(Service).first()
+    if not service:
+        service = Service(name="Update Service", category="General", base_price=100)
+        db.add(service)
+        db.flush()
+        db.refresh(service)
+
+    pkg = Package(name="Old Name", package_type="multitasking", price=500, owner_id=worker.id, status="draft")
+    db.add(pkg)
+    db.flush()
+    ps = PackageService(package_id=pkg.id, service_id=service.id)
+    db.add(ps)
+    db.commit()
+    db.refresh(pkg)
+
+    token = security.create_access_token({"sub": str(worker.id), "role": worker.role})
+    response = client.put(
+        f"/api/worker/packages/{pkg.id}",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"name": "New Name", "price": 1500, "status": "published"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["name"] == "New Name"
+    assert data["price"] == 1500
+    assert data["status"] == "published"
+
+
+def test_worker_cannot_update_other_package(client, worker, db):
+    from app.models import User, Package
+    other = User(
+        full_name="Other Updater",
+        email="otherupdater@example.com",
+        mobile_number="2223334444",
+        password_hash=security.hash_password("password123"),
+        role="worker",
+    )
+    db.add(other)
+    db.flush()
+    db.refresh(other)
+
+    pkg = Package(name="Protected Pkg", package_type="multitasking", price=500, owner_id=other.id, status="draft")
+    db.add(pkg)
+    db.commit()
+    db.refresh(pkg)
+
+    token = security.create_access_token({"sub": str(worker.id), "role": worker.role})
+    response = client.put(
+        f"/api/worker/packages/{pkg.id}",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"name": "Hacked"},
+    )
+    assert response.status_code == 403
+
+
+def test_worker_can_publish_and_unpublish(client, worker, db):
+    from app.models import Package, Service, PackageService
+    service = db.query(Service).first()
+    if not service:
+        service = Service(name="Pub Service", category="General", base_price=100)
+        db.add(service)
+        db.flush()
+        db.refresh(service)
+
+    pkg = Package(name="Pub Pkg", package_type="multitasking", price=500, owner_id=worker.id, status="draft")
+    db.add(pkg)
+    db.flush()
+    ps = PackageService(package_id=pkg.id, service_id=service.id)
+    db.add(ps)
+    db.commit()
+    db.refresh(pkg)
+
+    token = security.create_access_token({"sub": str(worker.id), "role": worker.role})
+
+    pub = client.patch(f"/api/worker/packages/{pkg.id}/publish", headers={"Authorization": f"Bearer {token}"})
+    assert pub.status_code == 200
+    assert pub.json()["status"] == "published"
+
+    unpub = client.patch(f"/api/worker/packages/{pkg.id}/unpublish", headers={"Authorization": f"Bearer {token}"})
+    assert unpub.status_code == 200
+    assert unpub.json()["status"] == "draft"
+
+
+def test_worker_can_archive_package(client, worker, db):
+    from app.models import Package, Service, PackageService
+    service = db.query(Service).first()
+    if not service:
+        service = Service(name="Archive Service", category="General", base_price=100)
+        db.add(service)
+        db.flush()
+        db.refresh(service)
+
+    pkg = Package(name="Archive Pkg", package_type="multitasking", price=500, owner_id=worker.id, status="published")
+    db.add(pkg)
+    db.flush()
+    ps = PackageService(package_id=pkg.id, service_id=service.id)
+    db.add(ps)
+    db.commit()
+    db.refresh(pkg)
+
+    token = security.create_access_token({"sub": str(worker.id), "role": worker.role})
+    response = client.delete(f"/api/worker/packages/{pkg.id}", headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == 204
+
+    check = client.get(f"/api/worker/packages/{pkg.id}", headers={"Authorization": f"Bearer {token}"})
+    assert check.status_code == 200
+    assert check.json()["status"] == "archived"
+
+
+def test_public_packages_excludes_draft_and_archived(client, db):
+    from app.models import Package, Service, PackageService
+    from app.models.user import User
+
+    owner = User(
+        full_name="Public Owner",
+        email="publicowner@example.com",
+        mobile_number="3334445555",
+        password_hash=security.hash_password("password123"),
+        role="worker",
+    )
+    db.add(owner)
+    db.flush()
+    db.refresh(owner)
+
+    service = db.query(Service).first()
+    if not service:
+        service = Service(name="Public Service", category="General", base_price=100)
+        db.add(service)
+        db.flush()
+        db.refresh(service)
+
+    draft = Package(name="Draft Pkg", package_type="multitasking", price=500, owner_id=owner.id, status="draft")
+    published = Package(name="Published Pkg", package_type="multitasking", price=600, owner_id=owner.id, status="published")
+    archived = Package(name="Archived Pkg", package_type="multitasking", price=700, owner_id=owner.id, status="archived")
+    db.add_all([draft, published, archived])
+    db.flush()
+
+    for p in [draft, published, archived]:
+        ps = PackageService(package_id=p.id, service_id=service.id)
+        db.add(ps)
+    db.commit()
+
+    resp = client.get("/api/packages?package_type=multitasking")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert any(p["name"] == "Published Pkg" for p in data)
+    assert not any(p["name"] == "Draft Pkg" for p in data)
+    assert not any(p["name"] == "Archived Pkg" for p in data)

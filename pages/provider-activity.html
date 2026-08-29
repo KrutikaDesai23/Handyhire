@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8" />
 
@@ -11,15 +10,20 @@
 
     <meta
         name="description"
-        content="HandyHire - View your booking history and activity."
+        content="HandyHire - View jobs received and workers hired."
     />
 
-    <meta name="theme-color" content="#68865C" />
+    <meta
+        name="theme-color"
+        content="#68865C"
+    />
 
     <title>Activity | HandyHire</title>
 
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    />
 
     <link
         rel="preconnect"
@@ -32,7 +36,6 @@
         rel="stylesheet"
     />
 
-    <!-- Activity CSS -->
     <link
         rel="stylesheet"
         href="../css/provider-activity.css"
@@ -40,14 +43,10 @@
 </head>
 
 <body>
-
-    <!-- ========================================
-         TOP NAVIGATION
-         ======================================== -->
-
-    <header class="app-header" role="banner">
-
-        <!-- HandyHire Logo -->
+    <header
+        class="app-header"
+        role="banner"
+    >
         <a
             href="provider-home.html"
             class="brand-mark"
@@ -60,14 +59,10 @@
             />
         </a>
 
-
-        <!-- Navigation Tabs -->
         <nav
             class="app-nav"
             aria-label="Primary navigation"
         >
-
-            <!-- Home -->
             <a
                 href="provider-home.html"
                 class="nav-tab"
@@ -75,8 +70,6 @@
                 Home
             </a>
 
-
-            <!-- Request -->
             <a
                 href="provider-request.html"
                 class="nav-tab"
@@ -93,8 +86,6 @@
                 </span>
             </a>
 
-
-            <!-- Activity -->
             <a
                 href="provider-activity.html"
                 class="nav-tab is-active"
@@ -104,8 +95,6 @@
                 Activity
             </a>
 
-
-            <!-- Profile -->
             <a
                 href="provider-worker-profile.html"
                 class="nav-tab"
@@ -113,49 +102,62 @@
             >
                 Profile
             </a>
-
         </nav>
 
-
-        <!-- Keeps navbar centered -->
         <span
             class="icon-btn-spacer"
             aria-hidden="true"
         ></span>
-
     </header>
-
-
-
-    <!-- ========================================
-         MAIN CONTENT
-         ======================================== -->
 
     <main
         class="app-main"
         role="main"
     >
+        <section
+            class="activity-mode-section"
+            aria-label="Activity type"
+        >
+            <div
+                class="activity-mode-tabs"
+                id="activityModeTabs"
+                role="tablist"
+                aria-label="Choose activity type"
+            >
+                <button
+                    type="button"
+                    class="activity-mode-tab is-active"
+                    data-mode="received"
+                    role="tab"
+                    aria-selected="true"
+                >
+                    Jobs Received
+                </button>
 
-
-        <!-- ========================================
-             SEARCH BAR
-             ======================================== -->
+                <button
+                    type="button"
+                    class="activity-mode-tab"
+                    data-mode="sent"
+                    role="tab"
+                    aria-selected="false"
+                >
+                    Workers Hired
+                </button>
+            </div>
+        </section>
 
         <section
             class="search-section"
-            aria-label="Search bookings"
+            aria-label="Search activity"
         >
-
             <label
                 class="visually-hidden"
                 for="activitySearch"
             >
-                Search bookings
+                Search activity
             </label>
 
-
             <div class="search-wrap">
-
                 <span
                     class="search-icon"
                     aria-hidden="true"
@@ -163,71 +165,33 @@
                     &#128269;
                 </span>
 
-
                 <input
                     type="search"
                     id="activitySearch"
                     class="search-input"
-                    placeholder="Search for ur preference"
+                    placeholder="Search jobs received"
                     autocomplete="off"
                 />
-
             </div>
-
         </section>
-
-
-
-        <!-- ========================================
-             BOOKING HISTORY
-             ======================================== -->
 
         <section
             class="activity-feed"
-            aria-label="Booking history"
+            aria-label="Provider activity"
         >
+            <div id="activityFeed"></div>
 
-            <div id="activityFeed">
-
-                <!--
-                    Booking sections are rendered
-                    dynamically by provider-activity.js
-                -->
-
-            </div>
-
-
-            <!-- Empty / Loading / Error State -->
             <p
                 class="empty-state"
                 id="emptyState"
                 hidden
             >
-                No bookings match your search.
+                No activity yet.
             </p>
-
         </section>
-
     </main>
 
-
-
-    <!-- ========================================
-         JAVASCRIPT
-         ======================================== -->
-
-    <!--
-        IMPORTANT:
-        api.js MUST load before provider-activity.js
-        because provider-activity.js uses
-        window.HandyHireAPI.apiFetch()
-    -->
-
     <script src="../js/api.js"></script>
-
     <script src="../js/provider-activity.js"></script>
-
-
 </body>
-
 </html>

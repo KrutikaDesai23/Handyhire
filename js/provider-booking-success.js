@@ -1,46 +1,162 @@
-/* =========================================================
-   HandyHire - Booking Success JavaScript
-   Minimal: the success state is rendered entirely by the
-   markup. This script exists so the page can read the
-   last booking summary persisted by booking.js (if any)
-   for future expansion, and to keep the interaction
-   surface consistent with the rest of the project.
-   ========================================================= */
-
 (function () {
     'use strict';
 
-    /**
-     * Try to read the booking summary persisted by booking.js.
-     * The shape is:
-     *   { worker: string, date: 'YYYY-MM-DD',
-     *     hours: number, total: number }
-     * @returns {Object|null}
-     */
     function readLastBooking() {
         try {
-            const raw = sessionStorage.getItem('handyhire.lastBooking');
+            const raw =
+                sessionStorage.getItem(
+                    'handyhire.lastBooking'
+                );
+
             if (!raw) return null;
-            const parsed = JSON.parse(raw);
-            return parsed && typeof parsed === 'object' ? parsed : null;
-        } catch (e) {
+
+            const booking =
+                JSON.parse(raw);
+
+            return (
+                booking &&
+                typeof booking === 'object'
+            )
+                ? booking
+                : null;
+        } catch (error) {
             return null;
         }
     }
 
-    /**
-     * Initialize the Booking Success page.
-     */
-    function init() {
-        // Reserved for future enhancements (toast, analytics,
-        // navigation guards, etc.). The visible UI is fully
-        // declarative in the markup.
-        readLastBooking();
+    function formatDate(value) {
+        if (!value) return '--';
+
+        const parts =
+            String(value).split('-');
+
+        if (parts.length !== 3) {
+            return value;
+        }
+
+        const date = new Date(
+            Number(parts[0]),
+            Number(parts[1]) - 1,
+            Number(parts[2])
+        );
+
+        return date.toLocaleDateString(
+            'en-IN',
+            {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            }
+        );
     }
 
-    // Run after DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
+    function formatTime(value) {
+        if (!value) return '--';
+
+        const parts =
+            String(value).split(':');
+
+        const hour =
+            Number(parts[0]);
+
+        const minute =
+            Number(parts[1]) || 0;
+
+        if (!Number.isFinite(hour)) {
+            return value;
+        }
+
+        const suffix =
+            hour >= 12
+                ? 'PM'
+                : 'AM';
+
+        const displayHour =
+            hour % 12 || 12;
+
+        return (
+            displayHour +
+            ':' +
+            String(minute).padStart(2, '0') +
+            ' ' +
+            suffix
+        );
+    }
+
+    function setText(id, value) {
+        const element =
+            document.getElementById(id);
+
+        if (element) {
+            element.textContent = value;
+        }
+    }
+
+    function init() {
+        const booking =
+            readLastBooking();
+
+        if (!booking) {
+            setText(
+                'successTitle',
+                'Booking Request Sent'
+            );
+
+            setText(
+                'successSubtitle',
+                'Your booking request was created successfully.'
+            );
+
+            return;
+        }
+
+        setText(
+            'successTitle',
+            'Booking Request Sent'
+        );
+
+        setText(
+            'successSubtitle',
+            'The worker will review your request.'
+        );
+
+        setText(
+            'successBookingId',
+            'Booking ID: #' +
+                booking.id
+        );
+
+        setText(
+            'successWorker',
+            'Worker: ' +
+                booking.worker
+        );
+
+        setText(
+            'successSchedule',
+            'Schedule: ' +
+                formatDate(booking.date) +
+                ' at ' +
+                formatTime(booking.time)
+        );
+
+        setText(
+            'successAmount',
+            'Total: \u20B9' +
+                Number(
+                    booking.total || 0
+                ).toLocaleString('en-IN')
+        );
+    }
+
+    if (
+        document.readyState ===
+        'loading'
+    ) {
+        document.addEventListener(
+            'DOMContentLoaded',
+            init
+        );
     } else {
         init();
     }

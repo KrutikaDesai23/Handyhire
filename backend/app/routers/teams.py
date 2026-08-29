@@ -14,6 +14,7 @@ def _build_member_response(m: models.TeamMember) -> dict:
     worker = m.worker
     worker_profile = worker.worker_profile if worker else None
     return {
+        "team_member_id": m.id,
         "worker_id": m.worker_id,
         "full_name": worker.full_name if worker else None,
         "profession": worker_profile.profession if worker_profile else None,

@@ -24,6 +24,8 @@ engine = create_engine(
     poolclass=StaticPool,
 )
 
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 @pytest.fixture(scope="session")
 def db_engine():
     Base.metadata.drop_all(bind=engine)

@@ -5,19 +5,19 @@ from typing import Optional
 
 from app.database.connection import get_db
 from app.models import Package, PackageService, Service
-from app.schemas import PackageResponse, ServiceSummary
+from app.schemas import PackageSummary, ServiceSummary
 
 router = APIRouter(prefix="/api/packages", tags=["packages"])
 
 
-@router.get("", response_model=list[PackageResponse])
+@router.get("", response_model=list[PackageSummary])
 def list_packages(
     package_type: Optional[str] = Query(None),
     search: Optional[str] = Query(None),
     category: Optional[str] = Query(None),
     db: Session = Depends(get_db),
 ):
-    query = db.query(Package)
+    query = db.query(Package).filter(Package.status == "published")
     if package_type:
         query = query.filter(Package.package_type == package_type)
 
@@ -47,12 +47,16 @@ def list_packages(
             .all()
         )
         response.append(
-            PackageResponse(
+            PackageSummary(
                 id=package.id,
                 name=package.name,
                 description=package.description,
                 package_type=package.package_type,
                 price=package.price,
+                duration=package.duration,
+                location=package.location,
+                availability=package.availability,
+                status=package.status,
                 services=[
                     ServiceSummary(
                         id=s.id,
@@ -68,10 +72,13 @@ def list_packages(
     return response
 
 
-@router.get("/{package_id}", response_model=PackageResponse)
+@router.get("/{package_id}", response_model=PackageSummary)
 def get_package(package_id: int, db: Session = Depends(get_db)):
     package = db.query(Package).filter(Package.id == package_id).first()
     if not package:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Package not found")
+
+    if package.status != "published":
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Package not found")
 
     services = (
@@ -80,12 +87,16 @@ def get_package(package_id: int, db: Session = Depends(get_db)):
         .filter(PackageService.package_id == package.id)
         .all()
     )
-    return PackageResponse(
+    return PackageSummary(
         id=package.id,
         name=package.name,
         description=package.description,
         package_type=package.package_type,
         price=package.price,
+        duration=package.duration,
+        location=package.location,
+        availability=package.availability,
+        status=package.status,
         services=[
             ServiceSummary(
                 id=s.id,

@@ -1,712 +1,573 @@
-/* =========================================================
-   HandyHire - Provider Home
-   Registered workers + working filters
-   ========================================================= */
-
 (function () {
-    'use strict';
+    "use strict";
 
-    let allWorkers = [];
-    let currentFilter = 'all';
-
-    const FILTER_KEY = 'handyhire.provider.homeFilter';
-
-
-    /* =========================================================
-       AUTH
-       ========================================================= */
+    var allWorkers = [];
+    var currentFilter = "all";
 
     function requireAuth() {
-<<<<<<< Updated upstream
+        var api = window.HandyHireAPI;
+
+        if (!api) {
+            window.location.href = "login.html";
+            return false;
+        }
+
         if (
-            !window.HandyHireAPI ||
-            !window.HandyHireAPI.isLoggedIn()
+            typeof api.isLoggedIn === "function" &&
+            !api.isLoggedIn()
         ) {
-            window.location.href = 'login.html';
+            window.location.href = "login.html";
             return false;
         }
 
         return true;
-=======
-        if (!(window.HandyHireAPI && typeof window.HandyHireAPI.requireRole === 'function')) {
-            window.location.href = 'login.html';
-            return false;
+    }
+
+    function showMessage(message) {
+        var grid = document.getElementById("serviceGrid");
+
+        if (!grid) {
+            return;
         }
-        return window.HandyHireAPI.requireRole('worker');
->>>>>>> Stashed changes
+
+        grid.innerHTML = "";
+
+        var paragraph = document.createElement("p");
+        paragraph.className = "empty-state";
+        paragraph.textContent = message;
+        paragraph.style.gridColumn = "1 / -1";
+        paragraph.style.textAlign = "center";
+        paragraph.style.padding = "32px 0";
+
+        grid.appendChild(paragraph);
     }
 
-
-    /* =========================================================
-       ESCAPE HTML
-       ========================================================= */
-
-    function escapeHtml(value) {
-        return String(value == null ? '' : value)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
-    }
-
-
-    /* =========================================================
-       PLACEHOLDER AVATAR
-       ========================================================= */
-
-    function buildAvatar(name) {
-        const clean = String(name || '?').trim() || '?';
-
-        const initials = clean
-            .split(' ')
+    function getInitials(name) {
+        return String(name || "Worker")
+            .trim()
+            .split(" ")
             .filter(Boolean)
             .map(function (part) {
                 return part.charAt(0).toUpperCase();
             })
             .slice(0, 2)
-            .join('') || '?';
-
-        const hue = Array.from(clean).reduce(
-            function (sum, character) {
-                return sum + character.charCodeAt(0);
-            },
-            0
-        ) % 360;
-
-        const svg = `
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 72 72"
-            >
-                <rect
-                    width="72"
-                    height="72"
-                    fill="hsl(${hue}, 30%, 65%)"
-                />
-
-                <text
-                    x="50%"
-                    y="54%"
-                    text-anchor="middle"
-                    font-family="Inter, sans-serif"
-                    font-size="28"
-                    font-weight="700"
-                    fill="#ffffff"
-                    dominant-baseline="middle"
-                >
-                    ${initials}
-                </text>
-            </svg>
-        `.trim();
-
-        return `url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}")`;
+            .join("");
     }
 
+    function normalizeAvailability(value) {
+        var availability = String(value || "")
+            .toLowerCase()
+            .trim()
+            .replace(/_/g, "-")
+            .replace(/\s+/g, "-");
 
-    /* =========================================================
-       MESSAGE
-       ========================================================= */
-
-    function showMessage(container, message) {
-        if (!container) return;
-
-        container.innerHTML = `
-            <p
-                class="empty-state"
-                style="
-                    grid-column: 1 / -1;
-                    text-align: center;
-                    padding: 32px 0;
-                    color: var(--color-text-muted);
-                "
-            >
-                ${escapeHtml(message)}
-            </p>
-        `;
-    }
-
-
-    /* =========================================================
-       WORKER IMAGE
-       ========================================================= */
-
-    function getWorkerAvatar(worker) {
-        if (worker.profile_image) {
-            return `url("${worker.profile_image}")`;
+        if (availability === "prebooking") {
+            return "pre-booking";
         }
 
-        return buildAvatar(worker.full_name);
+        if (availability === "onspot") {
+            return "on-spot";
+        }
+
+        return availability;
     }
 
+    function normalizeWorker(record) {
+        var item = record || {};
+        var profile =
+            item["worker_profile"] ||
+            item["profile"] ||
+            {};
 
-    /* =========================================================
-       RENDER WORKERS
-       ========================================================= */
+        var user =
+            item["user"] ||
+            profile["user"] ||
+            {};
 
-    function renderWorkers(workers) {
-        const container =
-            document.getElementById('serviceGrid');
+        return {
+            id:
+                item["id"] ||
+                item["worker_id"] ||
+                profile["worker_id"] ||
+                user["id"] ||
+                "",
 
-        if (!container) return;
+            fullName:
+                item["full_name"] ||
+                profile["full_name"] ||
+                user["full_name"] ||
+                user["name"] ||
+                "Worker",
 
+            profession:
+                item["profession"] ||
+                profile["profession"] ||
+                item["service"] ||
+                "Professional",
 
-        if (!Array.isArray(workers) || workers.length === 0) {
+            location:
+                item["location"] ||
+                profile["location"] ||
+                "Location not specified",
 
-            let message = 'No workers found.';
+            price:
+                item["price"] != null
+                    ? item["price"]
+                    : profile["price"],
 
-            if (currentFilter === 'pre-booking') {
-                message = 'No pre-booking workers available.';
+            availability:
+                item["availability"] ||
+                profile["availability"] ||
+                item["booking_type"] ||
+                item["service_type"] ||
+                "",
+
+            rating:
+                item["average_rating"] != null
+                    ? item["average_rating"]
+                    : (
+                        profile["average_rating"] != null
+                            ? profile["average_rating"]
+                            : item["rating"]
+                    ),
+
+            profileImage:
+                item["profile_image"] ||
+                profile["profile_image"] ||
+                user["profile_image"] ||
+                ""
+        };
+    }
+
+    function createParagraph(className, text) {
+        var paragraph = document.createElement("p");
+        paragraph.className = className;
+        paragraph.textContent = text;
+        return paragraph;
+    }
+
+    function createWorkerCard(worker) {
+        var card = document.createElement("article");
+        card.className = "worker-card";
+        card.dataset.workerId = worker.id;
+                card.tabIndex = 0;
+        card.setAttribute("role", "button");
+        card.setAttribute(
+            "aria-label",
+            "View " + worker.fullName + "'s profile"
+        );
+        card.style.cursor = "pointer";
+
+        card.addEventListener("click", function () {
+            openWorkerProfile(worker);
+        });
+
+        card.addEventListener("keydown", function (event) {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                openWorkerProfile(worker);
+            }
+        });
+
+        var avatar = document.createElement("div");
+        avatar.className = "worker-avatar";
+
+        if (worker.profileImage) {
+            avatar.style.backgroundImage =
+                "url(\"" + worker.profileImage + "\")";
+        } else {
+            avatar.textContent = getInitials(worker.fullName);
+        }
+
+        var name = document.createElement("h3");
+        name.className = "worker-name";
+        name.textContent = worker.fullName;
+
+        var profession = createParagraph(
+            "worker-profession",
+            worker.profession
+        );
+
+        var location = createParagraph(
+            "worker-profession",
+            "📍 " + worker.location
+        );
+
+        var availabilityValue =
+            normalizeAvailability(worker.availability);
+
+        var availability = null;
+
+        if (availabilityValue) {
+            var availabilityLabel = availabilityValue;
+
+            if (availabilityValue === "pre-booking") {
+                availabilityLabel = "Pre-booking";
             }
 
-            if (currentFilter === 'on-spot') {
-                message = 'No on-spot workers available.';
+            if (availabilityValue === "on-spot") {
+                availabilityLabel = "On-spot";
             }
 
-            if (currentFilter === 'near-me') {
-                message = 'No workers found near your location.';
+            if (availabilityValue === "both") {
+                availabilityLabel =
+                    "Pre-booking + On-spot";
             }
 
-            if (currentFilter === 'budget') {
-                message = 'No workers available.';
-            }
+            availability = createParagraph(
+                "worker-profession",
+                availabilityLabel
+            );
 
-            showMessage(container, message);
+            availability.style.fontWeight = "600";
+        }
 
+        var meta = document.createElement("div");
+        meta.className = "worker-meta";
+
+        var rating = document.createElement("span");
+        rating.className = "worker-rating";
+
+        var ratingNumber = Number(worker.rating);
+
+        rating.textContent =
+            Number.isFinite(ratingNumber)
+                ? "★ " + ratingNumber.toFixed(1)
+                : "★ New";
+
+        var price = document.createElement("span");
+        price.className = "worker-price";
+        price.textContent =
+            "₹" + Number(worker.price || 0);
+
+        meta.appendChild(rating);
+        meta.appendChild(price);
+
+        card.appendChild(avatar);
+        card.appendChild(name);
+        card.appendChild(profession);
+        card.appendChild(location);
+
+        if (availability) {
+            card.appendChild(availability);
+        }
+
+        card.appendChild(meta);
+
+        return card;
+    }
+        function openWorkerProfile(worker) {
+        if (!worker || !worker.id) {
             return;
         }
 
+        try {
+            sessionStorage.setItem(
+                "handyhire.selectedWorkerId",
+                String(worker.id)
+            );
 
-        container.innerHTML =
-            workers.map(function (worker) {
+            sessionStorage.setItem(
+                "handyhire.provider.previousPage",
+                window.location.href
+            );
+        } catch (error) {
+            // Navigation still works without sessionStorage.
+        }
 
-                const name =
-                    worker.full_name || 'Worker';
-
-                const profession =
-                    worker.profession || 'Professional';
-
-                const location =
-                    worker.location || 'Location not specified';
-
-                const price =
-                    Number(worker.price || 0);
-
-                const rating =
-                    worker.average_rating != null
-                        ? Number(worker.average_rating)
-                        : null;
-
-                let availabilityText = '';
-
-                const availability =
-                    String(worker.availability || '')
-                        .toLowerCase()
-                        .trim();
-
-                if (availability === 'pre-booking') {
-                    availabilityText = 'Pre-booking';
-                }
-
-                if (availability === 'on-spot') {
-                    availabilityText = 'On-spot';
-                }
-
-                if (availability === 'both') {
-                    availabilityText = 'Pre-booking + On-spot';
-                }
-
-
-                return `
-                    <article
-                        class="worker-card"
-                        data-worker-id="${escapeHtml(worker.id)}"
-                    >
-
-                        <div
-                            class="worker-avatar"
-                            style="
-                                background-image:
-                                ${getWorkerAvatar(worker)};
-                            "
-                        ></div>
-
-
-                        <h3 class="worker-name">
-                            ${escapeHtml(name)}
-                        </h3>
-
-
-                        <p class="worker-profession">
-                            ${escapeHtml(profession)}
-                        </p>
-
-
-                        <p
-                            class="worker-profession"
-                            style="margin-bottom: 4px;"
-                        >
-                            📍 ${escapeHtml(location)}
-                        </p>
-
-
-                        ${
-                            availabilityText
-                                ? `
-                                    <p
-                                        class="worker-profession"
-                                        style="
-                                            margin-bottom: 6px;
-                                            font-weight: 600;
-                                        "
-                                    >
-                                        ${escapeHtml(availabilityText)}
-                                    </p>
-                                `
-                                : ''
-                        }
-
-
-                        <div class="worker-meta">
-
-                            <span class="worker-rating">
-
-                                <span class="star">
-                                    ★
-                                </span>
-
-                                ${
-                                    rating !== null
-                                        ? escapeHtml(rating.toFixed(1))
-                                        : 'New'
-                                }
-
-                            </span>
-
-
-                            <span class="worker-price">
-                                ₹${escapeHtml(price)}
-                            </span>
-
-                        </div>
-
-                    </article>
-                `;
-
-            }).join('');
+        window.location.href =
+            "provider-job-hire.html?worker_id=" +
+            encodeURIComponent(
+                String(worker.id)
+            );
     }
 
+    function renderWorkers(workers) {
+        var grid = document.getElementById("serviceGrid");
 
-    /* =========================================================
-       GET CURRENT WORKER LOCATION
-       ========================================================= */
+        if (!grid) {
+            return;
+        }
 
-    function getCurrentLocation() {
+        grid.innerHTML = "";
 
-        try {
+        if (!workers.length) {
+            var message = "No workers found.";
 
-            const raw =
-                sessionStorage.getItem(
-                    'handyhire.provider.profile'
-                );
-
-            if (!raw) {
-                return '';
+            if (currentFilter === "pre-booking") {
+                message =
+                    "No pre-booking workers available.";
             }
 
-            const profile =
-                JSON.parse(raw);
+            if (currentFilter === "on-spot") {
+                message =
+                    "No on-spot workers available.";
+            }
+
+            if (currentFilter === "near-me") {
+                message =
+                    "No workers found near your location.";
+            }
+
+            showMessage(message);
+            return;
+        }
+
+                workers.forEach(function (worker) {
+            grid.appendChild(
+                createWorkerCard(worker)
+            );
+        });
+    }
+
+    function getCurrentLocation() {
+        try {
+            var storedProfile =
+                sessionStorage.getItem(
+                    "handyhire.provider.profile"
+                );
+
+            if (!storedProfile) {
+                return "";
+            }
+
+            var profile =
+                JSON.parse(storedProfile);
 
             return String(
-                profile.address || ''
+                profile["location"] ||
+                profile["address"] ||
+                ""
             )
                 .toLowerCase()
                 .trim();
-
         } catch (error) {
-
-            return '';
+            return "";
         }
     }
 
-
-    /* =========================================================
-       FILTER WORKERS
-       ========================================================= */
-
     function applyFilter(filter) {
+        currentFilter = filter || "all";
 
-        currentFilter = filter;
+        var filteredWorkers =
+            allWorkers.slice();
 
-        let filteredWorkers =
-            [...allWorkers];
-
-
-        /* =====================
-           ALL
-           ===================== */
-
-        if (filter === 'all') {
-
+        if (
+            currentFilter === "pre-booking" ||
+            currentFilter === "on-spot"
+        ) {
             filteredWorkers =
-                [...allWorkers];
-        }
-
-
-        /* =====================
-           PRE-BOOKING
-           ===================== */
-
-        else if (filter === 'pre-booking') {
-
-            filteredWorkers =
-                allWorkers.filter(
-                    function (worker) {
-
-                        const availability =
-                            String(
-                                worker.availability || ''
-                            )
-                                .toLowerCase()
-                                .trim();
-
-
-                        return (
-                            availability === 'pre-booking' ||
-                            availability === 'both'
+                allWorkers.filter(function (worker) {
+                    var availability =
+                        normalizeAvailability(
+                            worker.availability
                         );
-                    }
-                );
+
+                    return (
+                        availability === currentFilter ||
+                        availability === "both"
+                    );
+                });
         }
 
-
-        /* =====================
-           ON-SPOT
-           ===================== */
-
-        else if (filter === 'on-spot') {
-
-            filteredWorkers =
-                allWorkers.filter(
-                    function (worker) {
-
-                        const availability =
-                            String(
-                                worker.availability || ''
-                            )
-                                .toLowerCase()
-                                .trim();
-
-
-                        return (
-                            availability === 'on-spot' ||
-                            availability === 'both'
-                        );
-                    }
-                );
-        }
-
-
-        /* =====================
-           NEAR ME
-           ===================== */
-
-        else if (filter === 'near-me') {
-
-            const currentLocation =
+        if (currentFilter === "near-me") {
+            var currentLocation =
                 getCurrentLocation();
 
-
             if (!currentLocation) {
-
                 renderWorkers([]);
-
                 return;
             }
 
-
             filteredWorkers =
-                allWorkers.filter(
-                    function (worker) {
+                allWorkers.filter(function (worker) {
+                    var workerLocation =
+                        String(worker.location || "")
+                            .toLowerCase()
+                            .trim();
 
-                        const workerLocation =
-                            String(
-                                worker.location || ''
-                            )
-                                .toLowerCase()
-                                .trim();
-
-
-                        return (
-                            workerLocation ===
+                    return (
+                        workerLocation === currentLocation ||
+                        workerLocation.includes(
                             currentLocation
-                        );
-                    }
-                );
+                        ) ||
+                        currentLocation.includes(
+                            workerLocation
+                        )
+                    );
+                });
         }
 
-
-        /* =====================
-           BUDGET
-           ===================== */
-
-        else if (filter === 'budget') {
-
-            filteredWorkers =
-                [...allWorkers].sort(
-                    function (a, b) {
-
-                        return (
-                            Number(a.price || 0) -
-                            Number(b.price || 0)
-                        );
-                    }
-                );
+        if (currentFilter === "budget") {
+            filteredWorkers.sort(
+                function (first, second) {
+                    return (
+                        Number(first.price || 0) -
+                        Number(second.price || 0)
+                    );
+                }
+            );
         }
-
 
         renderWorkers(filteredWorkers);
     }
 
-
-    /* =========================================================
-       ACTIVE CHIP
-       ========================================================= */
-
     function setActiveFilter(filter) {
-
-        const chips =
+        var chips =
             document.querySelectorAll(
-                '.filter-chips .chip'
+                ".filter-chips .chip"
             );
 
-
         chips.forEach(function (chip) {
-
-            const active =
+            var active =
                 chip.dataset.filter === filter;
 
-
             chip.classList.toggle(
-                'is-active',
+                "is-active",
                 active
             );
 
-
             chip.setAttribute(
-                'aria-pressed',
-                active ? 'true' : 'false'
+                "aria-pressed",
+                active ? "true" : "false"
             );
         });
-
-
-        try {
-
-            sessionStorage.setItem(
-                FILTER_KEY,
-                filter
-            );
-
-        } catch (error) {}
     }
 
-
-    /* =========================================================
-       FILTER CHIP CLICKS
-       ========================================================= */
-
-    function initFilterChips() {
-
-        const chips =
+    function initializeFilters() {
+        var chips =
             document.querySelectorAll(
-                '.filter-chips .chip'
+                ".filter-chips .chip"
             );
 
-
-        if (!chips.length) return;
-
-
-        setActiveFilter('all');
-
+        currentFilter = "all";
+        setActiveFilter("all");
 
         chips.forEach(function (chip) {
-
             chip.addEventListener(
-                'click',
+                "click",
                 function () {
-
-                    const filter =
-                        chip.dataset.filter || 'all';
-
+                    var filter =
+                        chip.dataset.filter ||
+                        "all";
 
                     setActiveFilter(filter);
-
                     applyFilter(filter);
                 }
             );
         });
     }
 
-
-    /* =========================================================
-       LOAD ALL REGISTERED WORKERS
-       ========================================================= */
-
     async function loadWorkers() {
-
-        const container =
-            document.getElementById(
-                'serviceGrid'
-            );
-
-
-        if (!container) return;
-
-
-        showMessage(
-            container,
-            'Loading workers...'
-        );
-
+        showMessage("Loading workers...");
 
         try {
+            var api = window.HandyHireAPI;
 
-            const response =
-                await window.HandyHireAPI.apiFetch(
-                    '/api/worker/directory'
+            if (
+                !api ||
+                typeof api.apiFetch !== "function"
+            ) {
+                throw new Error(
+                    "HandyHire API helper is unavailable."
                 );
+            }
 
+            var response =
+                await api.apiFetch("/api/workers");
 
             if (response.status === 401) {
-
-                window.HandyHireAPI.clearAuth();
+                if (
+                    typeof api.clearAuth === "function"
+                ) {
+                    api.clearAuth();
+                }
 
                 window.location.href =
-                    'login.html';
+                    "login.html";
 
                 return;
             }
 
-
             if (!response.ok) {
-
                 showMessage(
-                    container,
-                    'Unable to load workers.'
+                    "Unable to load workers."
                 );
 
                 return;
             }
 
-
-            const data =
+            var data =
                 await response.json();
 
-
-            allWorkers =
+            var records =
                 Array.isArray(data)
                     ? data
+                    : (
+                        data["workers"] ||
+                        data["items"] ||
+                        data["results"] ||
+                        data["data"] ||
+                        []
+                    );
+
+            var currentUser =
+                typeof api.getCurrentUser === "function"
+                    ? api.getCurrentUser()
+                    : null;
+
+            var currentUserId =
+                currentUser
+                    ? (
+                        currentUser.id ||
+                        currentUser.user_id
+                    )
+                    : null;
+
+            allWorkers =
+                Array.isArray(records)
+                    ? records
+                        .map(normalizeWorker)
+                        .filter(function (worker) {
+                            if (!currentUserId) {
+                                return true;
+                            }
+
+                            return (
+                                String(worker.id) !==
+                                String(currentUserId)
+                            );
+                        })
                     : [];
 
-
-            applyFilter('all');
-
-
+            applyFilter("all");
         } catch (error) {
-
             console.error(
-                'Failed to load workers:',
+                "Failed to load workers:",
                 error
             );
 
-
             showMessage(
-                container,
-                'Network error. Please check your backend.'
+                "Network error. Please check your backend."
             );
         }
     }
 
-
-    /* =========================================================
-       PACKAGE TILES
-       ========================================================= */
-
-    function initPackageTiles() {
-
-        const section =
-            document.querySelector(
-                '.pkg-section'
-            );
-
-
-        if (!section) return;
-
-
-        section.addEventListener(
-            'keydown',
-            function (event) {
-
-                if (event.key !== ' ') {
-                    return;
-                }
-
-
-                const tile =
-                    event.target.closest(
-                        '.pkg-tile'
-                    );
-
-
-                if (!tile) return;
-
-
-                event.preventDefault();
-
-
-                const href =
-                    tile.getAttribute('href');
-
-
-                if (href) {
-                    window.location.href = href;
-                }
-            }
-        );
-    }
-
-
-    /* =========================================================
-       INIT
-       ========================================================= */
-
-    function init() {
-
+    function initializePage() {
         if (!requireAuth()) {
             return;
         }
 
-
-        initFilterChips();
-
-        initPackageTiles();
-
+        initializeFilters();
         loadWorkers();
     }
 
-
-    if (
-        document.readyState === 'loading'
-    ) {
-
+    if (document.readyState === "loading") {
         document.addEventListener(
-            'DOMContentLoaded',
-            init
+            "DOMContentLoaded",
+            initializePage
         );
-
     } else {
-
-        init();
+        initializePage();
     }
-
 })();

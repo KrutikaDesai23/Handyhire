@@ -7,7 +7,7 @@ from app.schemas.auth import (
 )
 from app.schemas.booking import BookingCreate, BookingResponse
 from app.schemas.customer import CustomerProfileResponse, CustomerProfileUpdate
-from app.schemas.package import PackageResponse, ServiceSummary
+from app.schemas.package import PackageCreate, PackageResponse, PackageSummary, PackageUpdate, PackageWorkerSummary, ServiceSummary
 from app.schemas.review import ReviewCreate, ReviewResponse
 from app.schemas.service import ServiceResponse
 from app.schemas.team import TeamCreate, TeamDetailResponse, TeamMemberResponse, TeamResponse
@@ -30,6 +30,10 @@ __all__ = [
     "CustomerProfileResponse",
     "CustomerProfileUpdate",
     "PackageResponse",
+    "PackageSummary",
+    "PackageCreate",
+    "PackageUpdate",
+    "PackageMemberSummary",
     "ServiceSummary",
     "ServiceResponse",
     "WorkerResponse",

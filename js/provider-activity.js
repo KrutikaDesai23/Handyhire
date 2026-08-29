@@ -1,74 +1,138 @@
-/* =========================================================
-   HandyHire - Activity / Booking History JavaScript
-   Fetches the authenticated provider's real bookings from
-   the FastAPI backend (GET /api/worker/bookings) and renders
-   them grouped by Today / Yesterday / Earlier.
-   Providers can update booking status via the backend.
-   ========================================================= */
-
 (function () {
     'use strict';
 
-    const SECTION_TITLES = {
-        today:     'Today',
+    const GROUP_TITLES = {
+        today: 'Today',
         yesterday: 'Yesterday',
-        older:     'Earlier',
+        older: 'Earlier'
     };
 
-    const STATUS_MAP = {
-        pending:   { label: 'Pending',   css: 'booking-status--pending' },
-        accepted:  { label: 'Accepted',  css: 'booking-status--confirmed' },
-        confirmed: { label: 'Confirmed', css: 'booking-status--confirmed' },
-        rejected:  { label: 'Rejected',  css: 'booking-status--cancelled' },
-        declined:  { label: 'Declined',  css: 'booking-status--cancelled' },
-        cancelled: { label: 'Cancelled', css: 'booking-status--cancelled' },
-        completed: { label: 'Completed', css: 'booking-status--completed' },
+    const MODES = {
+        received: {
+            endpoint: '/api/worker/bookings',
+            personLabel: 'Booked by',
+            empty:
+                'No jobs received yet. Bookings made for you will appear here.'
+        },
+
+        sent: {
+            endpoint:
+                '/api/worker/bookings/sent',
+
+            personLabel:
+                'Worker',
+
+            empty:
+                'You have not hired any workers yet.'
+        }
     };
 
-    const STATUS_ACTIONS = {
+    const STATUSES = {
         pending: [
-            { key: 'accept', label: 'Accept', newStatus: 'accepted', css: 'booking-action-btn--accept' },
-            { key: 'reject', label: 'Reject', newStatus: 'rejected', css: 'booking-action-btn--reject' },
+            'Pending',
+            'booking-status--pending'
         ],
+
         accepted: [
-            { key: 'complete', label: 'Complete', newStatus: 'completed', css: 'booking-action-btn--complete' },
-            { key: 'cancel',   label: 'Cancel',   newStatus: 'cancelled', css: 'booking-action-btn--cancel' },
+            'Accepted',
+            'booking-status--confirmed'
         ],
+
+        confirmed: [
+            'Confirmed',
+            'booking-status--confirmed'
+        ],
+
+        rejected: [
+            'Rejected',
+            'booking-status--cancelled'
+        ],
+
+        declined: [
+            'Declined',
+            'booking-status--cancelled'
+        ],
+
+        cancelled: [
+            'Cancelled',
+            'booking-status--cancelled'
+        ],
+
+        completed: [
+            'Completed',
+            'booking-status--completed'
+        ]
     };
 
+    const ACTIONS = {
+        pending: [
+            [
+                'accept',
+                'Accept',
+                'booking-action-btn--accept'
+            ],
+            [
+                'reject',
+                'Reject',
+                'booking-action-btn--reject'
+            ]
+        ],
+
+        accepted: [
+            [
+                'complete',
+                'Complete',
+                'booking-action-btn--complete'
+            ],
+            [
+                'cancel',
+                'Cancel',
+                'booking-action-btn--cancel'
+            ]
+        ]
+    };
+
+    const ACTION_STATUS = {
+        accept: 'accepted',
+        reject: 'rejected',
+        complete: 'completed',
+        cancel: 'cancelled'
+    };
+
+    let activeMode = 'received';
     let loadedBookings = [];
+    let loadVersion = 0;
 
     function getApi() {
-        if (window.HandyHireAPI && typeof window.HandyHireAPI.apiFetch === 'function') {
-            return window.HandyHireAPI;
-        }
-        return null;
-    }
+        const api =
+            window.HandyHireAPI;
 
-    function hasSession() {
-        try {
-            const token = localStorage.getItem('handyhire.auth.token');
-            return Boolean(token && token.trim());
-        } catch (e) {
-            return false;
-        }
+        return (
+            api &&
+            typeof api.apiFetch === 'function'
+        )
+            ? api
+            : null;
     }
 
     function redirectToLogin() {
         try {
-            sessionStorage.setItem('handyhire.provider.previousPage', 'provider-activity.html');
-        } catch (e) {}
-        window.location.href = 'login.html';
+            sessionStorage.setItem(
+                'handyhire.provider.previousPage',
+                'provider-activity.html'
+            );
+        } catch (error) {
+            // Continue to login.
+        }
+
+        window.location.href =
+            'login.html';
     }
 
-    function buildStars(rating) {
-        const full = Math.max(0, Math.min(5, Math.floor(Number(rating) || 0)));
-        const empty = 5 - full;
-        return '\u2605'.repeat(full) + '\u2606'.repeat(empty);
-    }
-
-    function escapeHtml(str) {
-        return String(str == null ? '' : str)
+    function escapeHtml(value) {
+        return String(
+            value == null ? '' : value
+        )
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
@@ -78,355 +142,888 @@
 
     function parseDate(value) {
         if (!value) return null;
-        const text = String(value).trim();
-        const parts = text.split('-').map(Number);
-        if (parts.length === 3 && parts.every((n) => Number.isFinite(n))) {
-            return new Date(parts[0], parts[1] - 1, parts[2]);
+
+        const parts =
+            String(value)
+                .split('-')
+                .map(Number);
+
+        if (
+            parts.length === 3 &&
+            parts.every(Number.isFinite)
+        ) {
+            return new Date(
+                parts[0],
+                parts[1] - 1,
+                parts[2]
+            );
         }
-        const d = new Date(text);
-        return isNaN(d.getTime()) ? null : d;
+
+        const date = new Date(value);
+
+        return isNaN(date.getTime())
+            ? null
+            : date;
     }
 
-    function isSameDay(a, b) {
-        return a.getFullYear() === b.getFullYear() &&
-            a.getMonth() === b.getMonth() &&
-            a.getDate() === b.getDate();
+    function sameDay(
+        first,
+        second
+    ) {
+        return (
+            first.getFullYear() ===
+                second.getFullYear() &&
+
+            first.getMonth() ===
+                second.getMonth() &&
+
+            first.getDate() ===
+                second.getDate()
+        );
     }
 
-    function groupFor(date) {
+    function getGroup(date) {
         if (!date) return 'older';
-        const now = new Date();
-        if (isSameDay(date, now)) return 'today';
-        const yesterday = new Date(now);
-        yesterday.setDate(now.getDate() - 1);
-        if (isSameDay(date, yesterday)) return 'yesterday';
-        return 'older';
+
+        const today = new Date();
+
+        if (sameDay(date, today)) {
+            return 'today';
+        }
+
+        const yesterday =
+            new Date(today);
+
+        yesterday.setDate(
+            today.getDate() - 1
+        );
+
+        return sameDay(
+            date,
+            yesterday
+        )
+            ? 'yesterday'
+            : 'older';
     }
 
     function formatDate(date) {
         if (!date) return '--';
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        const dayNum = date.getDate();
-        const month = months[date.getMonth()];
-        const year = date.getFullYear();
-        const now = new Date();
-        if (isSameDay(date, now)) return 'Today, ' + dayNum + ' ' + month;
-        const yesterday = new Date(now);
-        yesterday.setDate(now.getDate() - 1);
-        if (isSameDay(date, yesterday)) return 'Yesterday, ' + dayNum + ' ' + month;
-        return dayNum + ' ' + month + ' ' + year;
-    }
 
-    function formatTime(time) {
-        const text = String(time || '').trim();
-        if (!text) return '--';
-        const match = text.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
-        if (match) {
-            let hour = parseInt(match[1], 10);
-            const minute = match[2];
-            const suffix = hour >= 12 ? 'PM' : 'AM';
-            hour = hour % 12 || 12;
-            return hour + ':' + minute + ' ' + suffix;
+        const months = [
+            'Jan',
+            'Feb',
+            'Mar',
+            'Apr',
+            'May',
+            'Jun',
+            'Jul',
+            'Aug',
+            'Sep',
+            'Oct',
+            'Nov',
+            'Dec'
+        ];
+
+        const today = new Date();
+
+        const yesterday =
+            new Date(today);
+
+        yesterday.setDate(
+            today.getDate() - 1
+        );
+
+        const normal =
+            date.getDate() +
+            ' ' +
+            months[date.getMonth()] +
+            ' ' +
+            date.getFullYear();
+
+        if (sameDay(date, today)) {
+            return (
+                'Today, ' +
+                date.getDate() +
+                ' ' +
+                months[date.getMonth()]
+            );
         }
-        return text;
+
+        if (
+            sameDay(
+                date,
+                yesterday
+            )
+        ) {
+            return (
+                'Yesterday, ' +
+                date.getDate() +
+                ' ' +
+                months[date.getMonth()]
+            );
+        }
+
+        return normal;
     }
 
-    function formatPrice(amount) {
-        const n = Number(amount);
-        if (!Number.isFinite(n) || n <= 0) return '--';
-        return '\u20B9' + n.toLocaleString('en-IN');
+    function formatTime(value) {
+        const text =
+            String(value || '').trim();
+
+        const match = text.match(
+            /^(\d{1,2}):(\d{2})(?::\d{2})?$/
+        );
+
+        if (!match) {
+            return text || '--';
+        }
+
+        let hour =
+            parseInt(match[1], 10);
+
+        const suffix =
+            hour >= 12
+                ? 'PM'
+                : 'AM';
+
+        hour = hour % 12 || 12;
+
+        return (
+            hour +
+            ':' +
+            match[2] +
+            ' ' +
+            suffix
+        );
     }
 
-    function statusClass(status) {
-        const key = String(status || 'pending').toLowerCase();
-        const mapped = STATUS_MAP[key];
-        if (mapped) return 'booking-status ' + mapped.css;
-        return 'booking-status booking-status--pending';
+    function formatPrice(value) {
+        const amount =
+            Number(value);
+
+        return Number.isFinite(amount)
+            ? (
+                '\u20B9' +
+                amount.toLocaleString(
+                    'en-IN'
+                )
+            )
+            : '--';
     }
 
-    function mapBooking(b) {
-        const statusKey = String(b.status || 'pending').toLowerCase();
-        const status = STATUS_MAP[statusKey] || { label: escapeHtml(b.status || '--'), css: 'booking-status--pending' };
-        const date = parseDate(b.booking_date);
+    function mapBooking(
+        booking,
+        mode
+    ) {
+        const statusKey =
+            String(
+                booking.status ||
+                'pending'
+            ).toLowerCase();
+
+        const status =
+            STATUSES[statusKey] || [
+                booking.status ||
+                    'Pending',
+
+                'booking-status--pending'
+            ];
+
+        const date =
+            parseDate(
+                booking.booking_date
+            );
 
         return {
-            id: b.id,
-            name: b.customer_name || '--',
-            occupation: b.service_name || '--',
-            status: status.label,
-            statusCss: status.css,
-            date: formatDate(date),
-            time: formatTime(b.booking_time),
-            group: groupFor(date),
-            amount: typeof b.amount === 'number' ? b.amount : null,
-            address: b.address || '--',
+            id:
+                booking.id,
+
+            mode:
+                mode,
+
+            personLabel:
+                MODES[mode].personLabel,
+
+            name:
+                mode === 'sent'
+                    ? (
+                        booking.worker_name ||
+                        '--'
+                    )
+                    : (
+                        booking.customer_name ||
+                        '--'
+                    ),
+
+            occupation:
+                booking.service_name ||
+                (
+                    mode === 'sent'
+                        ? 'Worker hired'
+                        : 'Job booking'
+                ),
+
+            statusKey:
+                statusKey,
+
+            status:
+                status[0],
+
+            statusCss:
+                status[1],
+
+            date:
+                formatDate(date),
+
+            time:
+                formatTime(
+                    booking.booking_time
+                ),
+
+            group:
+                getGroup(date),
+
+            amount:
+                Number(
+                    booking.amount
+                ),
+
+            address:
+                booking.address ||
+                '--',
+
+            description:
+                booking.description ||
+                ''
         };
     }
 
-    function renderActions(booking) {
-        const key = String(booking.status || '').toLowerCase();
-        const actions = STATUS_ACTIONS[key];
-        if (!actions || !actions.length) return '';
+    function renderActions(
+        booking
+    ) {
+        if (
+            booking.mode !==
+            'received'
+        ) {
+            return '';
+        }
 
-        const buttons = actions.map(function (a) {
-            return "<button type='button' class='booking-action-btn " + escapeHtml(a.css) + "' data-action='" + escapeHtml(a.key) + "' data-id='" + escapeHtml(booking.id) + "'>" + escapeHtml(a.label) + "</button>";
-        }).join('');
+        const actions =
+            ACTIONS[
+                booking.statusKey
+            ];
 
-        return "<div class='booking-actions'>" + buttons + "</div>";
+        if (!actions) return '';
+
+        return (
+            "<div class='booking-actions'>" +
+
+            actions.map(
+                function (action) {
+                    return (
+                        "<button type='button' " +
+
+                        "class='booking-action-btn " +
+                        escapeHtml(action[2]) +
+                        "' " +
+
+                        "data-action='" +
+                        escapeHtml(action[0]) +
+                        "' " +
+
+                        "data-id='" +
+                        escapeHtml(booking.id) +
+                        "'>" +
+
+                        escapeHtml(action[1]) +
+
+                        "</button>"
+                    );
+                }
+            ).join('') +
+
+            '</div>'
+        );
     }
 
-    function renderCard(b) {
-        const ratingRow = (b.rating != null)
-            ? "<div class='booking-rating' aria-label='Rated " + Number(b.rating).toFixed(1) + " out of 5'>" +
-                    "<span class='stars' aria-hidden='true'>" + buildStars(b.rating) + "</span>" +
-                    "<span class='rating-value'>" + Number(b.rating).toFixed(1) + "</span>" +
-              "</div>"
-            : '';
-
-        const amountRow = (b.amount != null)
-            ? "<div class='booking-meta'>" +
-                    "<span><span class='meta-label'>Amount:</span><span class='meta-value'>" + escapeHtml(formatPrice(b.amount)) + "</span></span>" +
-              "</div>"
-            : '';
+    function renderCard(
+        booking
+    ) {
+        const description =
+            booking.description
+                ? (
+                    "<p class='booking-description'>" +
+                    escapeHtml(
+                        booking.description
+                    ) +
+                    '</p>'
+                )
+                : '';
 
         return `
-            <article class="booking-card" tabindex="0"
-                     data-booking-id="${escapeHtml(b.id)}"
-                     aria-label="Booking ${escapeHtml(b.id)} with ${escapeHtml(b.name)}, ${escapeHtml(b.occupation)}, ${escapeHtml(b.status)} on ${escapeHtml(b.date)} at ${escapeHtml(b.time)}">
+            <article
+                class="booking-card"
+                data-booking-id="${escapeHtml(booking.id)}"
+            >
+                <p class="booking-direction">
+                    ${escapeHtml(booking.personLabel)}
+                </p>
+
                 <div class="booking-top">
                     <div>
-                        <p class="booking-name">${escapeHtml(b.name)}</p>
-                        <p class="booking-occupation">${escapeHtml(b.occupation)}</p>
+                        <p class="booking-name">
+                            ${escapeHtml(booking.name)}
+                        </p>
+
+                        <p class="booking-occupation">
+                            ${escapeHtml(booking.occupation)}
+                        </p>
                     </div>
-                    <span class="${b.statusCss}">${escapeHtml(b.status)}</span>
+
+                    <span class="booking-status ${escapeHtml(booking.statusCss)}">
+                        ${escapeHtml(booking.status)}
+                    </span>
                 </div>
-                ${ratingRow}
+
                 <div class="booking-meta">
-                    <span><span class="meta-label">Date:</span><span class="meta-value">${escapeHtml(b.date)}</span></span>
-                    <span><span class="meta-label">Time:</span><span class="meta-value">${escapeHtml(b.time)}</span></span>
+                    <span>
+                        <span class="meta-label">
+                            Date:
+                        </span>
+
+                        <span class="meta-value">
+                            ${escapeHtml(booking.date)}
+                        </span>
+                    </span>
+
+                    <span>
+                        <span class="meta-label">
+                            Time:
+                        </span>
+
+                        <span class="meta-value">
+                            ${escapeHtml(booking.time)}
+                        </span>
+                    </span>
                 </div>
-                ${amountRow}
-                ${renderActions({
-                    id: b.id,
-                    status: b.status,
-                })}
+
+                <div class="booking-meta">
+                    <span>
+                        <span class="meta-label">
+                            Amount:
+                        </span>
+
+                        <span class="meta-value">
+                            ${escapeHtml(formatPrice(booking.amount))}
+                        </span>
+                    </span>
+                </div>
+
+                ${description}
+                ${renderActions(booking)}
             </article>
         `.trim();
     }
 
-    function renderSection(groupKey, items) {
-        if (!items.length) return '';
-        const title = SECTION_TITLES[groupKey] || '';
-        const idSafe = groupKey.replace(/[^a-z0-9]/gi, '-');
-        const cards = items.map(renderCard).join('');
+    function renderSection(
+        group,
+        bookings
+    ) {
+        if (!bookings.length) {
+            return '';
+        }
+
         return `
-            <section class="section-group" aria-labelledby="group-${idSafe}">
-                <h2 class="section-title" id="group-${idSafe}">${title}</h2>
-                ${cards}
+            <section class="section-group">
+                <h2 class="section-title">
+                    ${GROUP_TITLES[group]}
+                </h2>
+
+                ${bookings.map(renderCard).join('')}
             </section>
         `.trim();
     }
 
-    function renderFeed(bookings, container, emptyState) {
-        const groups = { today: [], yesterday: [], older: [] };
-        bookings.forEach(function (b) {
-            if (groups[b.group]) groups[b.group].push(b);
-        });
+    function matchesSearch(
+        booking,
+        search
+    ) {
+        return (
+            booking.name
+                .toLowerCase()
+                .includes(search) ||
 
-        const html = ['today', 'yesterday', 'older']
-            .map(function (key) { return renderSection(key, groups[key]); })
-            .filter(Boolean)
-            .join('');
+            booking.occupation
+                .toLowerCase()
+                .includes(search) ||
 
-        container.innerHTML = html;
-        if (emptyState) emptyState.hidden = Boolean(html);
+            booking.status
+                .toLowerCase()
+                .includes(search) ||
+
+            booking.date
+                .toLowerCase()
+                .includes(search) ||
+
+            booking.time
+                .toLowerCase()
+                .includes(search) ||
+
+            booking.address
+                .toLowerCase()
+                .includes(search) ||
+
+            booking.description
+                .toLowerCase()
+                .includes(search) ||
+
+            String(
+                booking.amount
+            ).includes(search)
+        );
     }
 
-    function filterBookings(bookings, query) {
-        const q = String(query || '').trim().toLowerCase();
-        if (!q) return bookings.slice();
-
-        return bookings.filter(function (b) {
-            return (
-                b.name.toLowerCase().includes(q) ||
-                b.occupation.toLowerCase().includes(q) ||
-                b.status.toLowerCase().includes(q) ||
-                b.date.toLowerCase().includes(q) ||
-                b.time.toLowerCase().includes(q) ||
-                b.address.toLowerCase().includes(q) ||
-                (b.amount != null && String(b.amount).includes(q))
+    function showMessage(message) {
+        const feed =
+            document.getElementById(
+                'activityFeed'
             );
-        });
-    }
 
-    function initSearch(container, emptyState) {
-        const input = document.getElementById('activitySearch');
-        if (!input) return;
+        const empty =
+            document.getElementById(
+                'emptyState'
+            );
 
-        input.addEventListener('input', function () {
-            const filtered = filterBookings(loadedBookings, input.value);
-            renderFeed(filtered, container, emptyState);
-            if (emptyState && !filtered.length && loadedBookings.length) {
-                emptyState.textContent = 'No bookings match your search.';
-                emptyState.hidden = false;
-            }
-        });
-    }
+        if (feed) {
+            feed.innerHTML = '';
+        }
 
-    function renderLoading(container, emptyState) {
-        container.innerHTML = '';
-        if (emptyState) {
-            emptyState.textContent = 'Loading your bookings...';
-            emptyState.hidden = false;
+        if (empty) {
+            empty.textContent =
+                message;
+
+            empty.hidden = false;
         }
     }
 
-    function renderError(container, emptyState, message) {
-        container.innerHTML = '';
-        if (emptyState) {
-            emptyState.textContent = message;
-            emptyState.hidden = false;
-        }
-    }
+    function render() {
+        const feed =
+            document.getElementById(
+                'activityFeed'
+            );
 
-    function renderEmpty(emptyState) {
-        if (emptyState) {
-            emptyState.textContent = 'No bookings yet. When a customer books you, your bookings will appear here.';
-            emptyState.hidden = false;
-        }
-    }
+        const empty =
+            document.getElementById(
+                'emptyState'
+            );
 
-    function loadBookings(container, emptyState) {
-        const api = getApi();
-        if (!api) {
-            renderError(container, emptyState, 'Booking service is unavailable right now. Please try again later.');
+        const searchInput =
+            document.getElementById(
+                'activitySearch'
+            );
+
+        if (!feed) return;
+
+        const search =
+            String(
+                searchInput
+                    ? searchInput.value
+                    : ''
+            )
+                .trim()
+                .toLowerCase();
+
+        const visible =
+            search
+                ? loadedBookings.filter(
+                    function (booking) {
+                        return matchesSearch(
+                            booking,
+                            search
+                        );
+                    }
+                )
+                : loadedBookings.slice();
+
+        if (!visible.length) {
+            showMessage(
+                search
+                    ? 'No activity matches your search.'
+                    : MODES[activeMode].empty
+            );
+
             return;
         }
 
-        renderLoading(container, emptyState);
+        const groups = {
+            today: [],
+            yesterday: [],
+            older: []
+        };
 
-        api.apiFetch('/api/worker/bookings')
-            .then(function (response) {
-                if (response.status === 401) {
-                    redirectToLogin();
-                    return null;
-                }
-                if (response.status === 403) {
-                    renderError(container, emptyState, 'You are not allowed to view these bookings.');
-                    return null;
-                }
-                if (!response.ok) {
-                    renderError(container, emptyState, 'Unable to load your bookings. Please try again.');
-                    return null;
-                }
-                return response.json();
+        visible.forEach(
+            function (booking) {
+                groups[
+                    booking.group
+                ].push(booking);
+            }
+        );
+
+        feed.innerHTML = [
+            'today',
+            'yesterday',
+            'older'
+        ]
+            .map(function (group) {
+                return renderSection(
+                    group,
+                    groups[group]
+                );
             })
-            .then(function (data) {
-                if (!data) return;
+            .filter(Boolean)
+            .join('');
 
-                loadedBookings = (Array.isArray(data) ? data : []).map(mapBooking);
-                if (!loadedBookings.length) {
-                    container.innerHTML = '';
-                    renderEmpty(emptyState);
-                    return;
-                }
-
-                renderFeed(loadedBookings, container, emptyState);
-                initSearch(container, emptyState);
-            })
-            .catch(function () {
-                renderError(container, emptyState, 'Unable to connect to HandyHire. Please try again.');
-            });
+        if (empty) {
+            empty.hidden = true;
+        }
     }
 
-    function submitStatusUpdate(bookingId, newStatus) {
+    async function loadBookings() {
         const api = getApi();
+
+        if (!api) {
+            showMessage(
+                'Booking service is unavailable.'
+            );
+
+            return;
+        }
+
+        const requestedMode =
+            activeMode;
+
+        const version =
+            ++loadVersion;
+
+        showMessage(
+            'Loading activity...'
+        );
+
+        try {
+            const response =
+                await api.apiFetch(
+                    MODES[
+                        requestedMode
+                    ].endpoint
+                );
+
+            if (
+                version !==
+                    loadVersion ||
+
+                requestedMode !==
+                    activeMode
+            ) {
+                return;
+            }
+
+            if (
+                response.status === 401
+            ) {
+                redirectToLogin();
+                return;
+            }
+
+            if (
+                response.status === 403
+            ) {
+                showMessage(
+                    'You are not allowed to view this activity.'
+                );
+
+                return;
+            }
+
+            if (!response.ok) {
+                showMessage(
+                    'Unable to load activity. Please try again.'
+                );
+
+                return;
+            }
+
+            const data =
+                await response.json();
+
+            loadedBookings = (
+                Array.isArray(data)
+                    ? data
+                    : []
+            ).map(function (booking) {
+                return mapBooking(
+                    booking,
+                    requestedMode
+                );
+            });
+
+            render();
+        } catch (error) {
+            if (
+                version ===
+                    loadVersion &&
+
+                requestedMode ===
+                    activeMode
+            ) {
+                showMessage(
+                    'Unable to connect to HandyHire.'
+                );
+            }
+        }
+    }
+
+    async function updateStatus(
+        bookingId,
+        newStatus
+    ) {
+        if (
+            activeMode !==
+            'received'
+        ) {
+            return;
+        }
+
+        const api = getApi();
+
         if (!api) return;
 
-        const container = document.getElementById('activityFeed');
-        const emptyState = document.getElementById('emptyState');
-        const endpoint = '/api/worker/bookings/' + encodeURIComponent(String(bookingId)) + '/status?new_status=' + encodeURIComponent(newStatus);
+        const endpoint =
+            '/api/worker/bookings/' +
 
-        api.apiFetch(endpoint, { method: 'PUT' })
-            .then(function (response) {
-                if (response.status === 401) {
-                    redirectToLogin();
-                    return null;
-                }
-                if (response.status === 403) {
-                    renderError(container, emptyState, 'You are not allowed to update this booking.');
-                    return null;
-                }
-                if (response.status === 404) {
-                    renderError(container, emptyState, 'This booking could not be found.');
-                    return null;
-                }
-                if (response.status === 400) {
-                    renderError(container, emptyState, 'This booking can no longer be updated in its current state.');
-                    return null;
-                }
-                if (!response.ok) {
-                    renderError(container, emptyState, 'Unable to update this booking. Please try again.');
-                    return null;
-                }
-                return response.json();
-            })
-            .then(function (updated) {
-                if (!updated) return;
-                const idx = loadedBookings.findIndex(function (b) { return String(b.id) === String(updated.id); });
-                if (idx >= 0) {
-                    loadedBookings[idx] = mapBooking(updated);
-                }
-                renderFeed(loadedBookings, container, emptyState);
-                initSearch(container, emptyState);
-            })
-            .catch(function () {
-                renderError(container, emptyState, 'Unable to connect to HandyHire. Please try again.');
-            });
+            encodeURIComponent(
+                String(bookingId)
+            ) +
+
+            '/status?new_status=' +
+
+            encodeURIComponent(
+                newStatus
+            );
+
+        try {
+            const response =
+                await api.apiFetch(
+                    endpoint,
+                    {
+                        method: 'PUT'
+                    }
+                );
+
+            if (
+                response.status === 401
+            ) {
+                redirectToLogin();
+                return;
+            }
+
+            if (!response.ok) {
+                showMessage(
+                    'This booking could not be updated.'
+                );
+
+                return;
+            }
+
+            const updated =
+                await response.json();
+
+            const index =
+                loadedBookings.findIndex(
+                    function (booking) {
+                        return (
+                            String(
+                                booking.id
+                            ) ===
+
+                            String(
+                                updated.id
+                            )
+                        );
+                    }
+                );
+
+            if (index >= 0) {
+                loadedBookings[index] =
+                    mapBooking(
+                        updated,
+                        'received'
+                    );
+            }
+
+            render();
+        } catch (error) {
+            showMessage(
+                'Unable to connect to HandyHire.'
+            );
+        }
     }
 
-    function initActions() {
-        const panelEl = document.getElementById('activityFeed');
-        if (!panelEl) return;
+    function selectMode(mode) {
+        if (
+            !MODES[mode] ||
+            mode === activeMode
+        ) {
+            return;
+        }
 
-        panelEl.addEventListener('click', function (event) {
-            const btn = event.target.closest('[data-action]');
-            if (!btn || !panelEl.contains(btn)) return;
+        activeMode = mode;
+        loadedBookings = [];
 
-            const action = btn.dataset.action;
-            const id = btn.dataset.id;
-            if (!action || !id) return;
+        document
+            .querySelectorAll(
+                '[data-mode]'
+            )
+            .forEach(function (tab) {
+                const selected =
+                    tab.dataset.mode ===
+                    activeMode;
 
-            const newStatusMap = {
-                accept: 'accepted',
-                reject: 'rejected',
-                complete: 'completed',
-                cancel: 'cancelled',
-            };
-            const newStatus = newStatusMap[action];
-            if (!newStatus) return;
+                tab.classList.toggle(
+                    'is-active',
+                    selected
+                );
 
-            btn.disabled = true;
-            btn.textContent = btn.textContent.replace(/\.\.\.$/, '') + '...';
+                tab.setAttribute(
+                    'aria-selected',
+                    selected
+                        ? 'true'
+                        : 'false'
+                );
+            });
 
-            submitStatusUpdate(id, newStatus);
-        });
+        const search =
+            document.getElementById(
+                'activitySearch'
+            );
+
+        if (search) {
+            search.value = '';
+
+            search.placeholder =
+                activeMode === 'sent'
+                    ? 'Search workers hired'
+                    : 'Search jobs received';
+        }
+
+        loadBookings();
     }
 
     function init() {
-        const feed = document.getElementById('activityFeed');
-        const emptyState = document.getElementById('emptyState');
-        if (!feed) return;
+        const api =
+            window.HandyHireAPI;
 
-        if (!(window.HandyHireAPI && window.HandyHireAPI.requireRole('worker'))) return;
+        if (
+            !api ||
+            api.requireRole(
+                'worker'
+            ) === false
+        ) {
+            return;
+        }
 
-        initActions();
-        loadBookings(feed, emptyState);
+        const tabs =
+            document.getElementById(
+                'activityModeTabs'
+            );
+
+        const search =
+            document.getElementById(
+                'activitySearch'
+            );
+
+        const feed =
+            document.getElementById(
+                'activityFeed'
+            );
+
+        if (tabs) {
+            tabs.addEventListener(
+                'click',
+                function (event) {
+                    const button =
+                        event.target.closest(
+                            '[data-mode]'
+                        );
+
+                    if (
+                        button &&
+                        tabs.contains(button)
+                    ) {
+                        selectMode(
+                            button.dataset.mode
+                        );
+                    }
+                }
+            );
+        }
+
+        if (search) {
+            search.addEventListener(
+                'input',
+                render
+            );
+        }
+
+        if (feed) {
+            feed.addEventListener(
+                'click',
+                function (event) {
+                    const button =
+                        event.target.closest(
+                            '[data-action]'
+                        );
+
+                    if (
+                        !button ||
+                        !feed.contains(button)
+                    ) {
+                        return;
+                    }
+
+                    const nextStatus =
+                        ACTION_STATUS[
+                            button.dataset.action
+                        ];
+
+                    if (!nextStatus) {
+                        return;
+                    }
+
+                    button.disabled =
+                        true;
+
+                    button.textContent +=
+                        '...';
+
+                    updateStatus(
+                        button.dataset.id,
+                        nextStatus
+                    );
+                }
+            );
+        }
+
+        loadBookings();
     }
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
+    if (
+        document.readyState ===
+        'loading'
+    ) {
+        document.addEventListener(
+            'DOMContentLoaded',
+            init
+        );
     } else {
         init();
     }

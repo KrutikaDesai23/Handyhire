@@ -1,84 +1,25 @@
 /* =========================================================
-   HandyHire - Team Packages JavaScript
-   Renders a vertical list of WHOLE-TEAM package cards.
-   Each card represents booking the entire team (no
-   individual worker rates). Live filtering supports both
-   the search input and the Team Size select.
-   Selecting a card routes to team-page.html.
+   HandyHire - Provider Team Packages JavaScript
+   Supports Explore and My Packages tabs. Fetches real data
+   from the backend and renders cards with manage controls
+   for owned packages.
    ========================================================= */
 
 (function () {
     'use strict';
 
-    /**
-     * Sample team package data. Each entry represents the
-     * WHOLE team - never an individual worker. The price
-     * label is associated with the team, not per-person.
-     */
-    const PACKAGES = [
-        {
-            name: 'BuildRight Crew',
-            category: 'Construction',
-            description: 'A complete team for construction work.',
-            members: ['Mason', 'Carpenter', 'Electrician', 'Helper'],
-            size: 4,
-            rating: 4.8,
-            priceLabel: 'Team package price',
-        },
-        {
-            name: 'Home Renovation Team',
-            category: 'Home Renovation',
-            description: 'A complete team for renovation work.',
-            members: ['Carpenter', 'Painter', 'Electrician'],
-            size: 3,
-            rating: 4.7,
-            priceLabel: 'Team package price',
-        },
-        {
-            name: 'FixIt Squad',
-            category: 'Repair & Maintenance',
-            description: 'A complete team for repair and maintenance work.',
-            members: ['Plumber', 'Electrician', 'Handyman'],
-            size: 3,
-            rating: 4.6,
-            priceLabel: 'Team package price',
-        },
-        {
-            name: 'CleanHome Team',
-            category: 'Cleaning',
-            description: 'A complete team for deep cleaning and upkeep.',
-            members: ['Cleaner', 'Pest Control', 'Helper'],
-            size: 5,
-            rating: 4.9,
-            priceLabel: 'Team package price',
-        },
-        {
-            name: 'PowerGrid Unit',
-            category: 'Electrical',
-            description: 'A complete team for electrical installation and repair.',
-            members: ['Electrician', 'Helper'],
-            size: 2,
-            rating: 4.5,
-            priceLabel: 'Team package price',
-        },
-        {
-            name: 'FreshPaint Crew',
-            category: 'Painting',
-            description: 'A complete team for interior and exterior painting.',
-            members: ['Painter', 'Helper', 'Carpenter'],
-            size: 3,
-            rating: 4.6,
-            priceLabel: 'Team package price',
-        },
-    ];
+    const api = window.HandyHireAPI;
+    if (!api) return;
+
+    let currentTab = 'explore';
+    let allPackages = [];
+    let myPackages = [];
 
     /**
-     * Escape user-supplied text before injecting as HTML.
-     * @param {string} str
-     * @returns {string}
+     * Escape text for safe HTML injection.
      */
     function escapeHtml(str) {
-        return String(str)
+        return String(str == null ? '' : str)
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
@@ -87,262 +28,763 @@
     }
 
     /**
-     * Generate a placeholder avatar data URL so cards
-     * render meaningfully without external images.
-     * @param {string} name
-     * @returns {string} CSS background value
+     * Build a placeholder avatar data URL.
      */
     function buildAvatar(name) {
-        const initials = name
+        var clean = String(name || '?').trim() || '?';
+        var initials = clean
             .split(' ')
             .filter(Boolean)
-            .map((part) => part.charAt(0).toUpperCase())
+            .map(function (part) { return part.charAt(0).toUpperCase(); })
             .slice(0, 2)
             .join('') || '?';
 
-        const hue = Array.from(name).reduce(
-            (sum, ch) => sum + ch.charCodeAt(0),
+        var hue = Array.from(clean).reduce(
+            function (sum, ch) { return sum + ch.charCodeAt(0); },
             0
         ) % 360;
 
-        const svg = `
-            <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'>
-                <defs>
-                    <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
-                        <stop offset='0%' stop-color='hsl(${hue}, 35%, 70%)'/>
-                        <stop offset='100%' stop-color='hsl(${(hue + 40) % 360}, 30%, 55%)'/>
-                    </linearGradient>
-                </defs>
-                <circle cx='40' cy='40' r='40' fill='url(#g)'/>
-                <text x='50%' y='54%' text-anchor='middle'
-                      font-family='Inter, sans-serif' font-size='30'
-                      font-weight='700' fill='#ffffff' dominant-baseline='middle'>
-                    ${initials}
-                </text>
-            </svg>
-        `.trim();
+        var svg = '<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 80 80\'>' +
+            '<defs><linearGradient id=\'g\' x1=\'0\' y1=\'0\' x2=\'1\' y2=\'1\'>' +
+            '<stop offset=\'0%\' stop-color=\'hsl(' + hue + ', 35%, 70%)\'/>' +
+            '<stop offset=\'100%\' stop-color=\'hsl(' + ((hue + 40) % 360) + ', 30%, 55%)\'/>' +
+            '</linearGradient></defs>' +
+            '<circle cx=\'40\' cy=\'40\' r=\'40\' fill=\'url(#g)\'/>' +
+            '<text x=\'50%\' y=\'54%\' text-anchor=\'middle\' font-family=\'Inter, sans-serif\' font-size=\'30\' font-weight=\'700\' fill=\'#ffffff\' dominant-baseline=\'middle\'>' + initials + '</text>' +
+            '</svg>';
 
-        return `url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}")`;
+        return 'url("data:image/svg+xml;utf8,' + encodeURIComponent(svg) + '")';
     }
 
     /**
-     * Build a "â˜… â˜… â˜… â˜… â˜…" style stars string for a rating.
-     * @param {number} rating
-     * @returns {string}
+     * Format a price for display.
      */
-    function buildStars(rating) {
-        const full = Math.floor(rating);
-        const empty = 5 - full;
-        return '\u2605'.repeat(full) + '\u2606'.repeat(empty);
+    function formatPrice(price) {
+        return '\u20B9' + Number(price || 0).toLocaleString();
+    }
+    function getPackageWorkers(pkg) {
+    if (Array.isArray(pkg.workers)) {
+        return pkg.workers;
+    }
+
+    if (Array.isArray(pkg.team_members)) {
+        return pkg.team_members;
+    }
+
+    return [];
+}
+
+function findPackageById(packageId) {
+    var source =
+        currentTab === 'mine'
+            ? myPackages
+            : allPackages;
+
+    return source.find(function (pkg) {
+        return Number(pkg.id) === Number(packageId);
+    }) || null;
+}
+
+function openTeamPackage(pkg) {
+    if (!pkg) return;
+
+    var selectedPackage = Object.assign(
+        {},
+        pkg,
+        {
+            workers: getPackageWorkers(pkg)
+        }
+    );
+
+    try {
+        sessionStorage.setItem(
+            'handyhire.selectedTeamPackage',
+            JSON.stringify(selectedPackage)
+        );
+
+        if (currentTab === 'mine') {
+            sessionStorage.setItem(
+                'handyhire.teamPackageTab',
+                'mine'
+            );
+        } else {
+            sessionStorage.removeItem(
+                'handyhire.teamPackageTab'
+            );
+        }
+    } catch (e) {
+        console.error(
+            'Unable to store selected package:',
+            e
+        );
+    }
+
+    window.location.href =
+        'provider-team-page.html?package_id=' +
+        encodeURIComponent(pkg.id);
+}
+
+    /**
+     * Show a status badge class.
+     */
+    function statusBadgeClass(status) {
+        var s = String(status || '').toLowerCase();
+        if (s === 'published') return 'status-published';
+        if (s === 'archived') return 'status-archived';
+        return 'status-draft';
     }
 
     /**
-     * Format a team size label like "4 members".
-     * @param {number} size
-     * @returns {string}
+     * Render a single team package card as an <li>.
      */
-    function formatSize(size) {
-        const n = Number(size) || 0;
-        return n + ' member' + (n === 1 ? '' : 's');
+ function renderCard(pkg, isMine) {
+    var servicesLine = (pkg.services || [])
+        .map(function (service) {
+            return escapeHtml(service.name);
+        })
+        .join(' • ');
+
+    var workers = Array.isArray(pkg.workers)
+        ? pkg.workers
+        : (Array.isArray(pkg.team_members) ? pkg.team_members : []);
+
+    var workerNames = workers
+        .map(function (worker) {
+            return escapeHtml(
+                worker.full_name ||
+                worker.name ||
+                ''
+            );
+        })
+        .filter(Boolean);
+
+    var teamHtml = '';
+
+    if (workerNames.length) {
+        teamHtml =
+            '<div class="package-team-info">' +
+                '<span class="package-team-label">Team</span>' +
+                '<span class="package-team-members">' +
+                    workerNames.join(', ') +
+                '</span>' +
+            '</div>';
     }
 
-    /**
-     * Render a single WHOLE-TEAM package card as an <li>.
-     * No individual worker rates; the card represents the
-     * entire team and exposes a "Book Whole Team" CTA.
-     * @param {Object} pkg
-     * @returns {string} HTML string
-     */
-    function renderCard(pkg) {
-        const memberBullets = pkg.members
-            .map((m) => `<li>${escapeHtml(m)}</li>`)
-            .join('');
+    var metaTags = [];
 
-        const labelSummary = [
-            formatSize(pkg.size),
-            pkg.category,
-        ].join(' &middot; ');
-
-        return `
-            <li>
-                <article class="package-card" tabindex="0"
-                         data-name="${escapeHtml(pkg.name)}"
-                         aria-label="${escapeHtml(pkg.name)} team package, ${labelSummary}">
-                    <div class="package-avatar" style="background-image: ${buildAvatar(pkg.name)}" aria-hidden="true"></div>
-                    <div class="package-text">
-                        <p class="package-name">${escapeHtml(pkg.name)}</p>
-                        <p class="package-description">${escapeHtml(pkg.description)}</p>
-                        <div class="package-rating" aria-label="Team rated ${pkg.rating.toFixed(1)} out of 5">
-                            <span class="stars" aria-hidden="true">${buildStars(pkg.rating)}</span>
-                            <span class="rating-value">${pkg.rating.toFixed(1)}</span>
-                        </div>
-                        <p class="package-section-label">Team includes:</p>
-                        <ul class="package-members">
-                            ${memberBullets}
-                        </ul>
-                        <div class="package-price-row">
-                            <span class="package-price-label">${escapeHtml(pkg.priceLabel)}</span>
-                        </div>
-                        <button type="button"
-                                class="package-book-cta"
-                                data-target-team="${escapeHtml(pkg.name)}">
-                            Book Whole Team
-                        </button>
-                    </div>
-                </article>
-            </li>
-        `.trim();
+    if (pkg.duration) {
+        metaTags.push(
+            '<span class="package-meta-tag">' +
+                '<span class="package-meta-icon">◷</span>' +
+                escapeHtml(pkg.duration) +
+            '</span>'
+        );
     }
+
+    if (pkg.location) {
+        metaTags.push(
+            '<span class="package-meta-tag">' +
+                '<span class="package-meta-icon">⌖</span>' +
+                escapeHtml(pkg.location) +
+            '</span>'
+        );
+    }
+
+    if (pkg.availability) {
+        metaTags.push(
+            '<span class="package-meta-tag">' +
+                '<span class="package-meta-icon">◫</span>' +
+                escapeHtml(pkg.availability) +
+            '</span>'
+        );
+    }
+
+    var controlsHtml = '';
+
+    if (isMine) {
+        var editHref =
+            'provider-create-package.html?type=' +
+            encodeURIComponent(pkg.package_type) +
+            '&package_id=' +
+            pkg.id;
+
+        controlsHtml =
+            '<div class="package-controls">' +
+                '<a href="' +
+                    editHref +
+                    '" class="btn-sm btn-edit">' +
+                    'Edit' +
+                '</a>' +
+
+                '<button ' +
+                    'type="button" ' +
+                    'class="btn-sm btn-delete" ' +
+                    'data-action="delete" ' +
+                    'data-id="' +
+                    pkg.id +
+                    '">' +
+                    'Delete' +
+                '</button>' +
+            '</div>';
+    }
+
+ return (
+    '<li>' +
+        '<article ' +
+            'class="package-card" ' +
+            'tabindex="0" ' +
+            'data-package-id="' +
+            pkg.id +
+            '" ' +
+            'aria-label="View ' +
+            escapeHtml(pkg.name) +
+            '">' +
+                '<div class="package-card-header">' +
+
+                    '<div class="package-title-area">' +
+                        '<h3 class="package-name">' +
+                            escapeHtml(pkg.name) +
+                        '</h3>' +
+
+                        (
+                            pkg.description
+                                ? '<p class="package-description">' +
+                                    escapeHtml(pkg.description) +
+                                  '</p>'
+                                : ''
+                        ) +
+                    '</div>' +
+
+                    '<div class="package-price">' +
+                        formatPrice(pkg.price) +
+                    '</div>' +
+
+                '</div>' +
+
+                (
+                    servicesLine
+                        ? '<div class="package-service-box">' +
+                            '<span class="package-section-label">' +
+                                'Services included' +
+                            '</span>' +
+                            '<p class="package-services">' +
+                                servicesLine +
+                            '</p>' +
+                          '</div>'
+                        : ''
+                ) +
+
+                teamHtml +
+
+                (
+                    metaTags.length
+                        ? '<div class="package-meta-row">' +
+                            metaTags.join('') +
+                          '</div>'
+                        : ''
+                ) +
+
+                controlsHtml +
+
+            '</article>' +
+        '</li>'
+    );
+}
 
     /**
      * Render the full package list into the container.
-     * @param {Array} packages
-     * @param {HTMLElement} container
-     * @param {HTMLElement} emptyState
      */
-    function renderList(packages, container, emptyState) {
-        container.innerHTML = packages.map(renderCard).join('');
-        if (emptyState) emptyState.hidden = packages.length > 0;
+ function renderList(packages, container, emptyState) {
+
+    container.innerHTML = packages.map(function (pkg) {
+        return renderCard(pkg, currentTab === 'mine');
+    }).join('');
+
+    if (emptyState) {
+        emptyState.hidden = packages.length > 0;
     }
 
-    /**
-     * Filter packages by search query and team size.
-     * @param {string} query
-     * @param {string} teamSize "all" | "2" | "3" | "4" | "5"
-     * @returns {Array}
-     */
-    function filterPackages(query, teamSize) {
-        const q = String(query || '').trim().toLowerCase();
-        const sizeFilter = String(teamSize || 'all');
 
-        return PACKAGES.filter((pkg) => {
-            const matchesText = !q
-                || pkg.name.toLowerCase().includes(q)
-                || pkg.category.toLowerCase().includes(q);
+    // =========================
+    // DELETE BUTTON
+    // =========================
+    container
+        .querySelectorAll('[data-action="delete"]')
+        .forEach(function (btn) {
 
-            const matchesSize = (
-                sizeFilter === 'all' ||
-                (sizeFilter === '5' ? pkg.size >= 5 : pkg.size === Number(sizeFilter))
+            btn.addEventListener(
+                'click',
+                function (event) {
+
+                    event.stopPropagation();
+
+                    deletePackage(
+                        Number(
+                            btn.getAttribute('data-id')
+                        )
+                    );
+                }
+            );
+        });
+
+
+    // =========================
+    // OPEN TEAM PACKAGE CARD
+    // =========================
+    container
+        .querySelectorAll(
+            '.package-card[data-package-id]'
+        )
+        .forEach(function (card) {
+
+            function openCard(event) {
+
+                // Do not open card when
+                // Edit/Delete is clicked.
+                if (
+                    event.target.closest(
+                        '.package-controls'
+                    )
+                ) {
+                    return;
+                }
+
+                var packageId =
+                    Number(
+                        card.getAttribute(
+                            'data-package-id'
+                        )
+                    );
+
+                var pkg =
+                    findPackageById(packageId);
+
+                openTeamPackage(pkg);
+            }
+
+
+            card.addEventListener(
+                'click',
+                openCard
             );
 
-            return matchesText && matchesSize;
+
+            card.addEventListener(
+                'keydown',
+                function (event) {
+
+                    if (
+                        event.key === 'Enter' ||
+                        event.key === ' '
+                    ) {
+                        event.preventDefault();
+
+                        openCard(event);
+                    }
+                }
+            );
+        });
+}
+
+    /**
+     * Fetch explore packages (published, team type).
+     */
+ function fetchExplore() {
+    var list =
+        document.getElementById('packageList');
+
+    var empty =
+        document.getElementById('emptyState');
+
+    var loading =
+        document.getElementById('loadingState');
+
+    var error =
+        document.getElementById('errorState');
+
+
+    if (loading) loading.hidden = false;
+    if (error) error.hidden = true;
+    if (list) list.innerHTML = '';
+    if (empty) empty.hidden = true;
+
+
+    var exploreRequest =
+        api.apiFetch(
+            '/api/packages?package_type=team'
+        )
+        .then(function (response) {
+
+            if (!response.ok) {
+                throw new Error(
+                    'Failed to load explore packages'
+                );
+            }
+
+            return response.json();
+        });
+
+
+    var myPackagesRequest =
+        api.apiFetch(
+            '/api/worker/packages?package_type=team'
+        )
+        .then(function (response) {
+
+            if (
+                response.status === 401 ||
+                response.status === 403
+            ) {
+                api.clearAuth();
+
+                window.location.href =
+                    'login.html';
+
+                return [];
+            }
+
+            if (!response.ok) {
+                throw new Error(
+                    'Failed to load my packages'
+                );
+            }
+
+            return response.json();
+        });
+
+
+    return Promise.all([
+        exploreRequest,
+        myPackagesRequest
+    ])
+        .then(function (results) {
+
+            var explorePackages =
+                results[0] || [];
+
+            var ownedPackages =
+                results[1] || [];
+
+
+            /*
+             * Collect IDs of packages
+             * created by this provider.
+             */
+            var ownedIds = new Set(
+                ownedPackages.map(
+                    function (pkg) {
+                        return Number(pkg.id);
+                    }
+                )
+            );
+
+
+            /*
+             * Explore should show only
+             * packages from OTHER providers.
+             */
+            allPackages =
+                explorePackages.filter(
+                    function (pkg) {
+
+                        return !ownedIds.has(
+                            Number(pkg.id)
+                        );
+                    }
+                );
+
+
+            if (loading) {
+                loading.hidden = true;
+            }
+
+            applyFilter();
+        })
+        .catch(function () {
+
+            allPackages = [];
+
+            if (loading) {
+                loading.hidden = true;
+            }
+
+            if (error) {
+                error.hidden = false;
+            }
+
+            if (empty) {
+                empty.hidden = true;
+            }
+
+            if (list) {
+                list.innerHTML = '';
+            }
+        });
+}
+    /**
+     * Fetch my packages (all statuses for current worker).
+     */
+    function fetchMyPackages() {
+        var list = document.getElementById('packageList');
+        var empty = document.getElementById('emptyState');
+        var loading = document.getElementById('loadingState');
+        var error = document.getElementById('errorState');
+        if (loading) loading.hidden = false;
+        if (error) error.hidden = true;
+        if (list) list.innerHTML = '';
+        if (empty) empty.hidden = true;
+
+api.apiFetch('/api/worker/packages?package_type=team').then(function (response) {
+            if (response.status === 401 || response.status === 403) {
+                api.clearAuth();
+                window.location.href = 'login.html';
+                return [];
+            }
+            if (!response.ok) throw new Error('Failed to load my packages');
+            return response.json();
+}).then(function (data) {
+    myPackages = (data || []).filter(function (pkg) {
+        return String(pkg.status || '').toLowerCase() !== 'archived';
+    });
+
+    if (loading) loading.hidden = true;
+    applyFilter();
+}).catch(function () {
+            myPackages = [];
+            if (loading) loading.hidden = true;
+            if (error) error.hidden = false;
+            if (empty) empty.hidden = true;
+            if (list) list.innerHTML = '';
         });
     }
 
     /**
-     * Wire up the search input and Team Size select so the
-     * list updates as either changes.
+     * Apply the current search filter to the active tab data.
      */
-    function initFilters(container, emptyState) {
-        const input = document.getElementById('packageSearch');
-        const select = document.getElementById('teamSizeSelect');
-        if (!input && !select) return;
+    function applyFilter() {
+        var list = document.getElementById('packageList');
+        var empty = document.getElementById('emptyState');
+        var error = document.getElementById('errorState');
+        var searchInput = document.getElementById('packageSearch');
+        var q = searchInput ? String(searchInput.value || '').trim().toLowerCase() : '';
 
-        function update() {
-            const q = input ? input.value : '';
-            const size = select ? select.value : 'all';
-            renderList(filterPackages(q, size), container, emptyState);
+        var source = currentTab === 'explore' ? allPackages : myPackages;
+        var filtered = source;
+        if (q) {
+            filtered = source.filter(function (pkg) {
+                return pkg.name.toLowerCase().includes(q) ||
+                    (pkg.description || '').toLowerCase().includes(q) ||
+                    (pkg.services || []).some(function (s) { return s.name.toLowerCase().includes(q); });
+            });
         }
 
-        if (input) input.addEventListener('input', update);
-        if (select) select.addEventListener('change', update);
+        if (error) error.hidden = true;
+        renderList(filtered, list, empty);
     }
 
     /**
-     * Persist the selected whole team so the next page
-     * (team-page.html, booking.html) can read it and show
-     * "Booking: <Team Name>" instead of a single worker.
-     * @param {string} teamName
+     * Publish a draft package.
      */
-    function persistSelectedTeam(teamName) {
-        try {
-            sessionStorage.setItem('handyhire.selectedTeam', teamName);
-        } catch (e) {
-            // Ignore storage errors (private mode etc.).
-        }
-    }
-
-    /**
-     * Resolve the team name from the clicked element. The
-     * user can activate the card body or the "Book Whole
-     * Team" button inside it; both should send the same
-     * team name forward.
-     * @param {HTMLElement} target
-     * @param {HTMLElement} container
-     * @returns {string|null}
-     */
-    function resolveTeamName(target, container) {
-        const card = target.closest('.package-card');
-        if (!card || !container.contains(card)) return null;
-        return card.getAttribute('data-name') || null;
-    }
-
-    /**
-     * Wire up click + Enter / Space on every package card
-     * AND on the "Book Whole Team" CTA inside each card.
-     * Both routes select the whole team and forward to
-     * team-page.html - never to booking.html, never to
-     * worker-profile.html, never to multitasking-package.html.
-     */
-    function initCardNavigation(container) {
-        if (!container) return;
-
-        function navigate(teamName) {
-            if (!teamName) return;
-            persistSelectedTeam(teamName);
-            try {
-                sessionStorage.setItem('handyhire.provider.previousPage', 'provider-team-package.html');
-            } catch (e) {}
-            window.location.href = 'provider-team-page.html';
-        }
-
-        container.addEventListener('click', function (event) {
-            // Activate via card body or via the CTA button.
-            const cta = event.target.closest('.package-book-cta');
-            if (cta && container.contains(cta)) {
-                const name = cta.getAttribute('data-target-team')
-                    || resolveTeamName(cta, container);
-                navigate(name);
+    function publishPackage(packageId) {
+        if (!confirm('Publish this package? It will be visible to customers in Explore.')) return;
+        api.apiFetch('/api/worker/packages/' + packageId + '/publish', { method: 'PATCH' }).then(function (response) {
+            if (response.status === 401 || response.status === 403) {
+                api.clearAuth();
+                window.location.href = 'login.html';
                 return;
             }
-            const card = event.target.closest('.package-card');
-            if (!card || !container.contains(card)) return;
-            navigate(card.getAttribute('data-name'));
-        });
-
-        container.addEventListener('keydown', function (event) {
-            if (event.key !== 'Enter' && event.key !== ' ') return;
-
-            const cta = event.target.closest('.package-book-cta');
-            if (cta && container.contains(cta)) {
-                event.preventDefault();
-                const name = cta.getAttribute('data-target-team')
-                    || resolveTeamName(cta, container);
-                navigate(name);
-                return;
+            if (!response.ok) {
+                return response.json().then(function (err) {
+                    throw new Error(err && err.detail ? err.detail : 'Failed to publish');
+                }).catch(function () { throw new Error('Failed to publish'); });
             }
-            const card = event.target.closest('.package-card');
-            if (!card || !container.contains(card)) return;
-            event.preventDefault();
-            navigate(card.getAttribute('data-name'));
+            return response.json();
+        }).then(function (data) {
+            if (!data) return;
+            var idx = myPackages.findIndex(function (p) { return p.id === packageId; });
+            if (idx >= 0) myPackages[idx] = data;
+            if (currentTab === 'mine') applyFilter();
+        }).catch(function (err) {
+            alert(err && err.message ? err.message : 'Failed to publish package');
         });
     }
 
     /**
-     * Initialize the Team Packages page.
+     * Unpublish a published package.
      */
-    function init() {
-        if (!(window.HandyHireAPI && window.HandyHireAPI.requireRole('worker'))) return;
-        const list = document.getElementById('packageList');
-        const emptyState = document.getElementById('emptyState');
-        if (!list) return;
-
-        renderList(PACKAGES, list, emptyState);
-        initFilters(list, emptyState);
-        initCardNavigation(list);
+    function unpublishPackage(packageId) {
+        if (!confirm('Unpublish this package? It will be hidden from Explore.')) return;
+        api.apiFetch('/api/worker/packages/' + packageId + '/unpublish', { method: 'PATCH' }).then(function (response) {
+            if (response.status === 401 || response.status === 403) {
+                api.clearAuth();
+                window.location.href = 'login.html';
+                return;
+            }
+            if (!response.ok) {
+                return response.json().then(function (err) {
+                    throw new Error(err && err.detail ? err.detail : 'Failed to unpublish');
+                }).catch(function () { throw new Error('Failed to unpublish'); });
+            }
+            return response.json();
+        }).then(function (data) {
+            if (!data) return;
+            var idx = myPackages.findIndex(function (p) { return p.id === packageId; });
+            if (idx >= 0) myPackages[idx] = data;
+            if (currentTab === 'mine') applyFilter();
+        }).catch(function (err) {
+            alert(err && err.message ? err.message : 'Failed to unpublish package');
+        });
     }
 
-    // Run after DOM is ready
+    /**
+     * Archive a package.
+     */
+ function deletePackage(packageId) {
+    if (
+        !confirm(
+            'Are you sure you want to delete this package?'
+        )
+    ) {
+        return;
+    }
+
+    api.apiFetch(
+        '/api/worker/packages/' + packageId,
+        {
+            method: 'DELETE'
+        }
+    )
+    .then(function (response) {
+
+        if (
+            response.status === 401 ||
+            response.status === 403
+        ) {
+            api.clearAuth();
+            window.location.href = 'login.html';
+            return;
+        }
+
+        if (!response.ok) {
+            return response
+                .json()
+                .then(function (error) {
+                    throw new Error(
+                        error && error.detail
+                            ? error.detail
+                            : 'Failed to delete package.'
+                    );
+                });
+        }
+
+        myPackages = myPackages.filter(
+            function (pkg) {
+                return Number(pkg.id) !== Number(packageId);
+            }
+        );
+
+        applyFilter();
+    })
+    .catch(function (error) {
+        alert(
+            error && error.message
+                ? error.message
+                : 'Failed to delete package.'
+        );
+    });
+}
+    /**
+     * Switch the active tab.
+     */
+    function switchTab(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.tab-btn').forEach(function (btn) {
+            btn.classList.toggle('is-active', btn.getAttribute('data-tab') === tab);
+        });
+        var createRow = document.getElementById('createRow');
+        if (createRow) createRow.hidden = tab !== 'mine';
+        var teamSizeSection = document.getElementById('teamSizeSection');
+        if (teamSizeSection) teamSizeSection.hidden = tab !== 'explore';
+        applyFilter();
+        if (tab === 'explore') {
+            fetchExplore();
+        } else {
+            fetchMyPackages();
+        }
+    }
+
+    /**
+     * Initialize the page.
+     */
+  function init() {
+    if (!api.requireRole('worker')) {
+        return;
+    }
+
+    var tabExplore =
+        document.getElementById('tabExplore');
+
+    var tabMine =
+        document.getElementById('tabMine');
+
+    if (tabExplore) {
+        tabExplore.addEventListener(
+            'click',
+            function () {
+                switchTab('explore');
+            }
+        );
+    }
+
+    if (tabMine) {
+        tabMine.addEventListener(
+            'click',
+            function () {
+                switchTab('mine');
+            }
+        );
+    }
+
+    var searchInput =
+        document.getElementById('packageSearch');
+
+    if (searchInput) {
+        searchInput.addEventListener(
+            'input',
+            function () {
+                applyFilter();
+            }
+        );
+    }
+
+    var teamSizeSelect =
+        document.getElementById('teamSizeSelect');
+
+    if (teamSizeSelect) {
+        teamSizeSelect.addEventListener(
+            'change',
+            function () {
+                applyFilter();
+            }
+        );
+    }
+
+    var savedTab =
+        sessionStorage.getItem(
+            'handyhire.teamPackageTab'
+        );
+
+    if (savedTab === 'mine') {
+        sessionStorage.removeItem(
+            'handyhire.teamPackageTab'
+        );
+
+        switchTab('mine');
+    } else {
+        switchTab('explore');
+    }
+}
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {

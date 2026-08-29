@@ -2,41 +2,127 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="description" content="HandyHire - Schedule a booking with a service professional." />
-    <meta name="theme-color" content="#68865C" />
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+
+    <meta
+        name="description"
+        content="HandyHire - Schedule a booking with a service professional."
+    />
+
+    <meta
+        name="theme-color"
+        content="#68865C"
+    />
+
     <title>Booking | HandyHire</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    />
 
-    <link rel="stylesheet" href="../css/provider-booking.css" />
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    />
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    />
+
+    <link
+        rel="stylesheet"
+        href="../css/provider-booking.css"
+    />
 </head>
+
 <body>
-    <!-- ========== TOP BAR ========== -->
-    <header class="booking-topbar" role="banner">
-        <a href="provider-team-page.html" class="back-btn" id="backLink" aria-label="Back">
-            <span class="back-icon" aria-hidden="true">&#8592;</span>
-            <span class="back-label">Back</span>
+    <header
+        class="booking-topbar"
+        role="banner"
+    >
+        <a
+            href="provider-job-hire.html"
+            class="back-btn"
+            id="backLink"
+            aria-label="Back"
+        >
+            <span
+                class="back-icon"
+                aria-hidden="true"
+            >
+                &#8592;
+            </span>
+
+            <span class="back-label">
+                Back
+            </span>
         </a>
-        <h1 class="booking-topbar-title">Booking</h1>
-        <span class="icon-btn-spacer" aria-hidden="true"></span>
+
+        <h1 class="booking-topbar-title">
+            Booking
+        </h1>
+
+        <span
+            class="icon-btn-spacer"
+            aria-hidden="true"
+        ></span>
     </header>
 
-    <main class="booking-page" role="main">
-        <!-- ========== SUBJECT HEADER (worker or team) ========== -->
-        <section class="worker-header" aria-label="Booking subject">
-            <div class="worker-avatar" id="workerAvatar" aria-hidden="true"></div>
-            <h2 class="worker-name" id="workerName">Ravi Kumar</h2>
-            <p class="worker-mode" id="workerMode" hidden>Booking: Team</p>
-            <hr class="worker-divider" aria-hidden="true" />
+    <main
+        class="booking-page"
+        role="main"
+    >
+        <section
+            class="worker-header"
+            aria-label="Booking subject"
+        >
+            <div
+                class="worker-avatar"
+                id="workerAvatar"
+                aria-hidden="true"
+            ></div>
+
+            <h2
+                class="worker-name"
+                id="workerName"
+            >
+                Loading worker...
+            </h2>
+
+            <p
+                class="worker-mode"
+                id="workerMode"
+                hidden
+            >
+                Professional
+            </p>
+
+            <hr
+                class="worker-divider"
+                aria-hidden="true"
+            />
         </section>
 
-        <!-- ========== BOOKING FORM ========== -->
-        <form class="booking-form" id="bookingForm" novalidate>
+        <form
+            class="booking-form"
+            id="bookingForm"
+            novalidate
+        >
             <div class="form-row">
-                <label class="form-label" for="scheduleDate">Schedule</label>
+                <label
+                    class="form-label"
+                    for="scheduleDate"
+                >
+                    Schedule Date
+                </label>
+
                 <input
                     type="date"
                     id="scheduleDate"
@@ -44,38 +130,167 @@
                     aria-describedby="scheduleHelp"
                     required
                 />
-                <p class="form-help" id="scheduleHelp">Pick a date for the service.</p>
+
+                <p
+                    class="form-help"
+                    id="scheduleHelp"
+                >
+                    Pick a date for the service.
+                </p>
             </div>
 
             <div class="form-row">
-                <label class="form-label" for="hoursSelect">Number of Hours</label>
+                <label
+                    class="form-label"
+                    for="scheduleTime"
+                >
+                    Time
+                </label>
+
+                <input
+                    type="time"
+                    id="scheduleTime"
+                    class="form-input"
+                    required
+                />
+
+                <p class="form-help">
+                    Choose the preferred starting time.
+                </p>
+            </div>
+
+            <div class="form-row">
+                <label
+                    class="form-label"
+                    for="hoursSelect"
+                >
+                    Number of Hours
+                </label>
+
                 <div class="select-wrap">
-                    <select id="hoursSelect" class="form-select">
-                        <option value="1">1 hour</option>
-                        <option value="2" selected>2 hours</option>
-                        <option value="3">3 hours</option>
-                        <option value="4">4 hours</option>
-                        <option value="5">5 hours</option>
-                        <option value="6">6 hours</option>
-                        <option value="8">8 hours</option>
+                    <select
+                        id="hoursSelect"
+                        class="form-select"
+                    >
+                        <option value="1">
+                            1 hour
+                        </option>
+
+                        <option
+                            value="2"
+                            selected
+                        >
+                            2 hours
+                        </option>
+
+                        <option value="3">
+                            3 hours
+                        </option>
+
+                        <option value="4">
+                            4 hours
+                        </option>
+
+                        <option value="5">
+                            5 hours
+                        </option>
+
+                        <option value="6">
+                            6 hours
+                        </option>
+
+                        <option value="8">
+                            8 hours
+                        </option>
                     </select>
-                    <span class="select-caret" aria-hidden="true">&#9662;</span>
+
+                    <span
+                        class="select-caret"
+                        aria-hidden="true"
+                    >
+                        &#9662;
+                    </span>
                 </div>
-                <p class="form-help">Choose how long you need the professional.</p>
+
+                <p class="form-help">
+                    Choose how long you need the professional.
+                </p>
+            </div>
+
+            <div class="form-row">
+                <label
+                    class="form-label"
+                    for="serviceAddress"
+                >
+                    Service Address
+                </label>
+
+                <textarea
+                    id="serviceAddress"
+                    class="form-input"
+                    rows="3"
+                    minlength="3"
+                    placeholder="Enter the complete service address"
+                    autocomplete="street-address"
+                    required
+                ></textarea>
+            </div>
+
+            <div class="form-row">
+                <label
+                    class="form-label"
+                    for="serviceDescription"
+                >
+                    Work Details
+                </label>
+
+                <textarea
+                    id="serviceDescription"
+                    class="form-input"
+                    rows="3"
+                    placeholder="Describe the work required (optional)"
+                ></textarea>
             </div>
 
             <div class="form-row form-row--total">
-                <span class="form-label">Total Cost</span>
-                <p class="total-value" id="totalCost" aria-live="polite">&#8377;500</p>
-                <p class="form-help">Auto-calculated at &#8377;250 / hour.</p>
+                <span class="form-label">
+                    Total Cost
+                </span>
+
+                <p
+                    class="total-value"
+                    id="totalCost"
+                    aria-live="polite"
+                >
+                    &#8377;500
+                </p>
+
+                <p
+                    class="form-help"
+                    id="rateHelp"
+                >
+                    Loading the worker's rate...
+                </p>
             </div>
 
-            <button type="submit" class="book-btn" id="bookBtn">
+            <p
+                class="form-help"
+                id="bookingFormError"
+                role="alert"
+                aria-live="polite"
+            ></p>
+
+            <button
+                type="submit"
+                class="book-btn"
+                id="bookBtn"
+            >
                 Book
             </button>
         </form>
     </main>
 
+    <script src="../js/api.js"></script>
     <script src="../js/provider-booking.js"></script>
 </body>
 </html>

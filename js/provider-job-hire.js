@@ -399,12 +399,61 @@
      * ever exists on this page it is permanently disabled, so
      * navigation to the customer booking flow is impossible.
      */
-    function initBookNow() {
-        const btn = document.getElementById('bookNowBtn');
+     function initBookNow(worker) {
+        const btn =
+            document.getElementById('bookNowBtn');
+
         if (!btn) return;
-        btn.hidden = true;
-        btn.setAttribute('aria-hidden', 'true');
-        btn.tabIndex = -1;
+
+        const workerId =
+            worker && worker.__workerId;
+
+        if (!workerId) {
+            btn.hidden = true;
+            return;
+        }
+
+        btn.hidden = false;
+        btn.removeAttribute('aria-hidden');
+        btn.removeAttribute('tabindex');
+
+        btn.setAttribute(
+            'href',
+            'provider-booking.html?worker_id=' +
+                encodeURIComponent(workerId)
+        );
+
+        btn.addEventListener('click', function () {
+            try {
+                sessionStorage.setItem(
+                    'handyhire.selectedWorkerId',
+                    workerId
+                );
+
+                sessionStorage.setItem(
+                    'handyhire.bookingWorker',
+                    JSON.stringify({
+                        id: workerId,
+                        name: worker.name,
+                        profession: worker.profession,
+                        price: worker.__price,
+                        profile_image:
+                            worker.profile_image || ''
+                    })
+                );
+
+                sessionStorage.setItem(
+                    'handyhire.provider.previousPage',
+                    window.location.href
+                );
+
+                sessionStorage.removeItem(
+                    'handyhire.selectedTeam'
+                );
+            } catch (error) {
+                // Worker ID is still available in the URL.
+            }
+        });
     }
 
     /**
@@ -489,7 +538,13 @@
                 };
             }),
             __slug: slug,
-            __workerId: w.id != null ? String(w.id) : null,
+            __workerId:
+                w.id != null
+                    ? String(w.id)
+                    : null,
+
+            __price:
+                Number(w.price) || 0,
         };
     }
 
@@ -519,7 +574,7 @@
         composeAbout(worker);
         renderServices(worker);
         renderReviews(worker);
-        initBookNow(worker.__context || null);
+                initBookNow(worker);
         initNavigation(worker.__context || null);
         initBackButton();
     }

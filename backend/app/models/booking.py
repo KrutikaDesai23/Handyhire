@@ -12,6 +12,7 @@ class Booking(Base):
     customer_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     worker_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     service_id = Column(Integer, ForeignKey("services.id"), nullable=True)
+    package_id = Column(Integer, ForeignKey("packages.id"), nullable=True)
     booking_date = Column(Date, nullable=False)
     booking_time = Column(String(10), nullable=False)
     address = Column(String(500), nullable=False)

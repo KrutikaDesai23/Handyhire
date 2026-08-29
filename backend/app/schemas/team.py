@@ -10,6 +10,7 @@ class TeamCreate(BaseModel):
 
 
 class TeamMemberResponse(BaseModel):
+    team_member_id: int
     worker_id: int
     full_name: Optional[str] = None
     profession: Optional[str] = None

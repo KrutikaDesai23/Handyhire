@@ -93,7 +93,31 @@
         } catch (e) {}
         return null;
     }
+function readSelectedPackage() {
+    try {
+        const raw =
+            sessionStorage.getItem(
+                'handyhire.selectedTeamPackage'
+            );
 
+        if (!raw) {
+            return null;
+        }
+
+        const parsed =
+            JSON.parse(raw);
+
+        return (
+            parsed &&
+            typeof parsed === 'object'
+        )
+            ? parsed
+            : null;
+
+    } catch (e) {
+        return null;
+    }
+}
     /**
      * Render a neutral message into the members list.
      * @param {string} text
@@ -200,10 +224,33 @@
                 team: TEAM ? TEAM.name : '',
             };
 
-            try {
-                sessionStorage.setItem('handyhire.provider.selectedMember', JSON.stringify(member));
-                if (workerId) sessionStorage.setItem('handyhire.selectedWorkerId', workerId);
-            } catch (e) {}
+try {
+    sessionStorage.setItem(
+        'handyhire.selectedMember',
+        JSON.stringify(member)
+    );
+
+    /*
+     * Keep old key temporarily for
+     * compatibility with other pages.
+     */
+    sessionStorage.setItem(
+        'handyhire.provider.selectedMember',
+        JSON.stringify(member)
+    );
+
+    if (workerId) {
+        sessionStorage.setItem(
+            'handyhire.selectedWorkerId',
+            workerId
+        );
+    }
+
+} catch (e) {}
+
+
+window.location.href =
+    'provider-team-member.html';
 
             const url = 'provider-job-hire.html?worker=' + encodeURIComponent(slug) + '&source=team';
             if (workerId) url += '&worker_id=' + encodeURIComponent(workerId);
@@ -279,6 +326,147 @@
      * Fetch the team and its member worker profiles, then render.
      */
     async function loadTeam() {
+        const selectedPackage =
+    readSelectedPackage();
+
+const params =
+    new URLSearchParams(
+        window.location.search
+    );
+
+const requestedPackageId =
+    Number(
+        params.get('package_id')
+    ) || null;
+
+
+/*
+ * TEAM PACKAGE MODE
+ *
+ * A Team Package is NOT a Team object.
+ * It contains individually selected workers.
+ */
+if (
+    selectedPackage &&
+    (
+        !requestedPackageId ||
+        Number(selectedPackage.id) ===
+            requestedPackageId
+    )
+) {
+    showMessage('Loading team...');
+
+    const packageWorkers =
+        Array.isArray(
+            selectedPackage.workers
+        )
+            ? selectedPackage.workers
+            : (
+                Array.isArray(
+                    selectedPackage.team_members
+                )
+                    ? selectedPackage.team_members
+                    : []
+            );
+
+
+    const workerProfiles =
+        await Promise.all(
+            packageWorkers.map(
+                function (worker) {
+
+                    const workerId =
+                        Number(
+                            worker.worker_id ||
+                            worker.id
+                        );
+
+                    if (!workerId) {
+                        return Promise.resolve(null);
+                    }
+
+                    return window.HandyHireAPI
+                        .apiFetch(
+                            '/api/workers/' +
+                            encodeURIComponent(
+                                String(workerId)
+                            )
+                        )
+                        .then(function (response) {
+
+                            return response.ok
+                                ? response.json()
+                                : null;
+                        })
+                        .catch(function () {
+                            return null;
+                        });
+                }
+            )
+        );
+
+
+    const members =
+        packageWorkers.map(
+            function (worker, index) {
+
+                const profile =
+                    workerProfiles[index];
+
+                return {
+                    worker_id:
+                        Number(
+                            worker.worker_id ||
+                            worker.id
+                        ),
+
+                    full_name:
+                        (
+                            profile &&
+                            profile.full_name
+                        ) ||
+                        worker.full_name ||
+                        worker.name ||
+                        'Worker',
+
+                    profession:
+                        (
+                            profile &&
+                            profile.profession
+                        ) ||
+                        worker.profession ||
+                        'Team member',
+
+                    profile_image:
+                        (
+                            profile &&
+                            profile.profile_image
+                        ) ||
+                        worker.profile_image ||
+                        null
+                };
+            }
+        );
+
+
+    TEAM = {
+        id: selectedPackage.id,
+        name:
+            selectedPackage.name ||
+            'Team Package',
+        members: members,
+        is_package: true
+    };
+
+
+    renderTeamHeader(TEAM);
+    renderMembers(TEAM.members);
+    initMemberNavigation();
+    initBookWholeTeam();
+    initExpand();
+
+    return;
+}
         const teamId = readTeamId();
         if (!teamId) {
             showMessage('Select a team to view its details.');

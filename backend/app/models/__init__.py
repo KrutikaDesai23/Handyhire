@@ -7,6 +7,8 @@ from app.models.team import Team
 from app.models.team_member import TeamMember
 from app.models.package import Package
 from app.models.package_service import PackageService
+from app.models.package_member import PackageMember
+from app.models.package_worker import PackageWorker
 from app.models.review import Review
 
 __all__ = [
@@ -19,5 +21,7 @@ __all__ = [
     "TeamMember",
     "Package",
     "PackageService",
+    "PackageMember",
+    "PackageWorker",
     "Review",
 ]

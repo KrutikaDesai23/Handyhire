@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="HandyHire - Create or edit a service package." />
+    <meta name="theme-color" content="#68865C" />
+    <title id="pageTitle">Create Package | HandyHire</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="../css/provider-create-package.css" />
+</head>
+<body>
+    <!-- ========== TOP BAR ========== -->
+    <header class="pkg-topbar" role="banner">
+        <a href="provider-home.html" class="brand-mark" aria-label="HandyHire home">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M14.7 6.3a4 4 0 0 1-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 1 5.4-5.4l-1.4 1.4-2.6-2.6 1.4-1.4Z" />
+            </svg>
+        </a>
+        <span class="icon-btn-spacer" aria-hidden="true"></span>
+    </header>
+
+    <main class="pkg-page" role="main">
+        <!-- ========== BACK ROW ========== -->
+        <section class="back-row" aria-label="Back">
+            <a href="provider-multitasking-package.html" class="back-btn" id="backBtn" aria-label="Back to packages">
+                <span class="back-icon" aria-hidden="true">&#8592;</span>
+                <span class="back-label">Back</span>
+            </a>
+        </section>
+
+        <!-- ========== FORM ========== -->
+        <form class="create-form" id="createForm" novalidate>
+            <input type="hidden" id="packageId" value="" />
+            <input type="hidden" id="packageType" value="" />
+
+            <div class="field-group">
+                <label for="packageName">Package Name <span class="required">*</span></label>
+                <input type="text" id="packageName" class="form-input" placeholder="e.g. Full Home Maintenance" required />
+                <p class="field-error" id="nameError" hidden role="alert"></p>
+            </div>
+
+            <div class="field-group">
+                <label for="packageDescription">Description</label>
+                <textarea id="packageDescription" class="form-input form-textarea" rows="3" placeholder="Describe what is included in this package"></textarea>
+                <p class="field-error" id="descriptionError" hidden role="alert"></p>
+            </div>
+
+            <div class="field-group" id="teamFieldGroup" hidden>
+                <label>Select Team Members <span class="required">*</span></label>
+                <p class="field-hint">Select at least 2 workers from HandyHire.</p>
+
+                <div class="worker-autocomplete" id="workerAutocomplete">
+                    <div class="autocomplete-input-wrap">
+                        <span class="search-icon" aria-hidden="true">&#128269;</span>
+                        <input
+                            type="search"
+                            id="workerSearchInput"
+                            class="autocomplete-input"
+                            placeholder="Select members..."
+                            autocomplete="off"
+                        />
+                        <span class="autocomplete-caret" aria-hidden="true">&#9662;</span>
+                    </div>
+
+                    <div class="autocomplete-dropdown" id="workerDropdown" hidden>
+                        <div class="autocomplete-list" id="workerDropdownList">
+                            <!-- suggestions rendered here -->
+                        </div>
+                    </div>
+                </div>
+
+<div class="selected-workers" id="workerSelectedChips"></div>
+
+                <p class="field-error" id="teamError" hidden role="alert"></p>
+            </div>
+
+            <div class="field-group" id="servicesFieldGroup">
+                <label for="serviceSelect">Services Included <span class="required">*</span></label>
+                <div class="service-picker">
+                    <div class="select-wrap">
+                        <select id="serviceSelect" class="form-select">
+                            <option value="">Add a service</option>
+                        </select>
+                        <span class="select-caret" aria-hidden="true">&#9662;</span>
+                    </div>
+                    <button type="button" class="btn-add-service" id="addServiceBtn">Add</button>
+                </div>
+                <ul class="selected-services" id="selectedServices"></ul>
+                <p class="field-error" id="servicesError" hidden role="alert"></p>
+            </div>
+
+            <div class="field-row">
+                <div class="field-group">
+                    <label for="packageDuration">Duration</label>
+                    <input type="text" id="packageDuration" class="form-input" placeholder="e.g. 2 hours" />
+                    <p class="field-error" id="durationError" hidden role="alert"></p>
+                </div>
+                <div class="field-group">
+                    <label for="packagePrice">Price (&#8377;) <span class="required">*</span></label>
+                    <input type="number" id="packagePrice" class="form-input" placeholder="0" min="1" step="1" required />
+                    <p class="field-error" id="priceError" hidden role="alert"></p>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <label for="packageLocation">Location</label>
+                <input type="text" id="packageLocation" class="form-input" placeholder="e.g. Downtown" />
+                <p class="field-error" id="locationError" hidden role="alert"></p>
+            </div>
+
+            <div class="field-group">
+                <label for="packageAvailability">Availability</label>
+                <input type="text" id="packageAvailability" class="form-input" placeholder="e.g. Weekdays" />
+                <p class="field-error" id="availabilityError" hidden role="alert"></p>
+            </div>
+
+            <div class="field-group" id="statusFieldGroup" hidden>
+                <label for="packageStatus">Status</label>
+                <div class="select-wrap">
+                    <select id="packageStatus" class="form-select">
+                        <option value="draft">Draft</option>
+                        <option value="published">Published</option>
+                    </select>
+                    <span class="select-caret" aria-hidden="true">&#9662;</span>
+                </div>
+                <p class="field-error" id="statusError" hidden role="alert"></p>
+            </div>
+
+            <p class="form-error" id="formError" hidden role="alert"></p>
+
+            <div class="form-actions">
+                <button type="button" class="btn-secondary" id="cancelBtn">Cancel</button>
+                <button type="submit" class="btn-primary" id="submitBtn">Save Package</button>
+            </div>
+        </form>
+    </main>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/provider-create-package.js"></script>
+</body>
+</html>
