@@ -89,9 +89,20 @@
         <section class="profile-section" aria-label="Edit profile">
             <button type="button" class="edit-profile-btn" id="editProfileBtn">Edit Profile</button>
 
-            <form class="edit-form" id="editProfileForm" hidden>
-                <div class="field">
-                    <label for="editFullName">Full Name</label>
+<form class="edit-form" id="editProfileForm" hidden>
+
+    <div class="field">
+        <label for="editProfileImage">Profile Photo</label>
+        <input
+            type="file"
+            id="editProfileImage"
+            name="profile_image"
+            accept="image/jpeg,image/png,image/webp"
+        />
+    </div>
+
+    <div class="field">
+        <label for="editFullName">Full Name</label>
                     <input type="text" id="editFullName" name="full_name" autocomplete="name" />
                 </div>
                 <div class="field">

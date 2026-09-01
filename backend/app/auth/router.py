@@ -64,6 +64,7 @@ def register_customer(
         role="customer",
         address=payload.address,
         city=payload.city,
+        profile_image=payload.profile_image,
     )
 
     db.add(user)

@@ -9,6 +9,7 @@ class CustomerProfileUpdate(BaseModel):
     mobile_number: Optional[str] = Field(None, min_length=10, max_length=20)
     address: Optional[str] = None
     city: Optional[str] = None
+    profile_image: Optional[str] = None
 
 
 class CustomerProfileResponse(BaseModel):
@@ -19,5 +20,6 @@ class CustomerProfileResponse(BaseModel):
     role: str
     address: Optional[str] = None
     city: Optional[str] = None
+    profile_image: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)

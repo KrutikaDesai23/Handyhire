@@ -10,6 +10,7 @@ class CustomerRegister(BaseModel):
     password: str = Field(..., min_length=6)
     address: Optional[str] = None
     city: Optional[str] = None
+    profile_image: Optional[str] = None
 
 
 class WorkerRegister(BaseModel):

@@ -42,6 +42,10 @@ def update_customer_profile(
         current_user.address = payload.address
     if payload.city is not None:
         current_user.city = payload.city
+    print("PROFILE IMAGE RECEIVED:", payload.profile_image is not None)
+    print("PROFILE IMAGE LENGTH:", len(payload.profile_image) if payload.profile_image else 0)
+    if payload.profile_image is not None:
+        current_user.profile_image = payload.profile_image
 
     db.add(current_user)
     db.commit()
