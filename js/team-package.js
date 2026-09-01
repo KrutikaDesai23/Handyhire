@@ -11,68 +11,6 @@
     'use strict';
 
     /**
-     * Sample team package data. Each entry represents the
-     * WHOLE team - never an individual worker. The price
-     * label is associated with the team, not per-person.
-     */
-    const PACKAGES = [
-        {
-            name: 'BuildRight Crew',
-            category: 'Construction',
-            description: 'A complete team for construction work.',
-            members: ['Mason', 'Carpenter', 'Electrician', 'Helper'],
-            size: 4,
-            rating: 4.8,
-            priceLabel: 'Team package price',
-        },
-        {
-            name: 'Home Renovation Team',
-            category: 'Home Renovation',
-            description: 'A complete team for renovation work.',
-            members: ['Carpenter', 'Painter', 'Electrician'],
-            size: 3,
-            rating: 4.7,
-            priceLabel: 'Team package price',
-        },
-        {
-            name: 'FixIt Squad',
-            category: 'Repair & Maintenance',
-            description: 'A complete team for repair and maintenance work.',
-            members: ['Plumber', 'Electrician', 'Handyman'],
-            size: 3,
-            rating: 4.6,
-            priceLabel: 'Team package price',
-        },
-        {
-            name: 'CleanHome Team',
-            category: 'Cleaning',
-            description: 'A complete team for deep cleaning and upkeep.',
-            members: ['Cleaner', 'Pest Control', 'Helper'],
-            size: 5,
-            rating: 4.9,
-            priceLabel: 'Team package price',
-        },
-        {
-            name: 'PowerGrid Unit',
-            category: 'Electrical',
-            description: 'A complete team for electrical installation and repair.',
-            members: ['Electrician', 'Helper'],
-            size: 2,
-            rating: 4.5,
-            priceLabel: 'Team package price',
-        },
-        {
-            name: 'FreshPaint Crew',
-            category: 'Painting',
-            description: 'A complete team for interior and exterior painting.',
-            members: ['Painter', 'Helper', 'Carpenter'],
-            size: 3,
-            rating: 4.6,
-            priceLabel: 'Team package price',
-        },
-    ];
-
-    /**
      * Escape user-supplied text before injecting as HTML.
      * @param {string} str
      * @returns {string}
@@ -122,11 +60,11 @@
             </svg>
         `.trim();
 
-        return `url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}")`;
+        return `url("data:image/svg+xml;utf8,${encodeURIComponent(svg)})`;
     }
 
     /**
-     * Build a "â˜… â˜… â˜… â˜… â˜…" style stars string for a rating.
+     * Build a "★ ★ ★ ★ ☆" style stars string for a rating.
      * @param {number} rating
      * @returns {string}
      */
@@ -147,45 +85,66 @@
     }
 
     /**
+     * Format a price for display as Indian Rupees.
+     * @param {number|string} price
+     * @returns {string}
+     */
+    function formatPrice(price) {
+        return '\u20B9' + Number(price || 0).toLocaleString();
+    }
+
+    /**
+     * Resolve the API helper (js/api.js) with a safe fallback.
+     * @returns {Object|null}
+     */
+    function getApi() {
+        if (window.HandyHireAPI && typeof window.HandyHireAPI.apiFetch === 'function') {
+            return window.HandyHireAPI;
+        }
+        return null;
+    }
+
+    /**
      * Render a single WHOLE-TEAM package card as an <li>.
-     * No individual worker rates; the card represents the
-     * entire team and exposes a "Book Whole Team" CTA.
      * @param {Object} pkg
      * @returns {string} HTML string
      */
     function renderCard(pkg) {
-        const memberBullets = pkg.members
-            .map((m) => `<li>${escapeHtml(m)}</li>`)
+        const workers = Array.isArray(pkg.workers) ? pkg.workers : [];
+        const memberBullets = workers
+            .map((w) => `<li>${escapeHtml(w.full_name || w.profession || 'Worker')}${w.profession ? ' &middot; ' + escapeHtml(w.profession) : ''}</li>`)
             .join('');
 
         const labelSummary = [
-            formatSize(pkg.size),
-            pkg.category,
+            formatSize(workers.length),
+            pkg.category || pkg.package_type || 'Team Package',
         ].join(' &middot; ');
 
         return `
             <li>
                 <article class="package-card" tabindex="0"
+                         data-package-id="${escapeHtml(String(pkg.id))}"
                          data-name="${escapeHtml(pkg.name)}"
                          aria-label="${escapeHtml(pkg.name)} team package, ${labelSummary}">
                     <div class="package-avatar" style="background-image: ${buildAvatar(pkg.name)}" aria-hidden="true"></div>
                     <div class="package-text">
                         <p class="package-name">${escapeHtml(pkg.name)}</p>
-                        <p class="package-description">${escapeHtml(pkg.description)}</p>
-                        <div class="package-rating" aria-label="Team rated ${pkg.rating.toFixed(1)} out of 5">
-                            <span class="stars" aria-hidden="true">${buildStars(pkg.rating)}</span>
-                            <span class="rating-value">${pkg.rating.toFixed(1)}</span>
+                        <p class="package-description">${escapeHtml(pkg.description || '')}</p>
+                        <div class="package-rating" aria-label="Team rated ${Number(pkg.rating || 0).toFixed(1)} out of 5">
+                            <span class="stars" aria-hidden="true">${buildStars(pkg.rating || 0)}</span>
+                            <span class="rating-value">${Number(pkg.rating || 0).toFixed(1)}</span>
                         </div>
                         <p class="package-section-label">Team includes:</p>
                         <ul class="package-members">
                             ${memberBullets}
                         </ul>
                         <div class="package-price-row">
-                            <span class="package-price-label">${escapeHtml(pkg.priceLabel)}</span>
+                            <span class="package-price-label">${escapeHtml(pkg.duration || 'Team package')}${pkg.location ? ' &middot; ' + escapeHtml(pkg.location) : ''}</span>
+                            <span class="package-price-value">${formatPrice(pkg.price)}</span>
                         </div>
                         <button type="button"
                                 class="package-book-cta"
-                                data-target-team="${escapeHtml(pkg.name)}">
+                                data-target-package-id="${escapeHtml(String(pkg.id))}">
                             Book Whole Team
                         </button>
                     </div>
@@ -207,22 +166,39 @@
 
     /**
      * Filter packages by search query and team size.
+     * @param {Array} packages
      * @param {string} query
      * @param {string} teamSize "all" | "2" | "3" | "4" | "5"
      * @returns {Array}
      */
-    function filterPackages(query, teamSize) {
+    function filterPackages(packages, query, teamSize) {
         const q = String(query || '').trim().toLowerCase();
         const sizeFilter = String(teamSize || 'all');
 
-        return PACKAGES.filter((pkg) => {
+        return packages.filter((pkg) => {
+            const workers = Array.isArray(pkg.workers) ? pkg.workers : [];
+            const size = workers.length;
+            const searchText = [
+                pkg.name,
+                pkg.description,
+                pkg.location,
+                pkg.duration,
+                pkg.availability,
+                pkg.category,
+            ].filter(Boolean).join(' ').toLowerCase();
+
+            const workerText = workers
+                .map((w) => [w.full_name, w.profession].filter(Boolean).join(' '))
+                .join(' ')
+                .toLowerCase();
+
             const matchesText = !q
-                || pkg.name.toLowerCase().includes(q)
-                || pkg.category.toLowerCase().includes(q);
+                || searchText.includes(q)
+                || workerText.includes(q);
 
             const matchesSize = (
                 sizeFilter === 'all' ||
-                (sizeFilter === '5' ? pkg.size >= 5 : pkg.size === Number(sizeFilter))
+                (sizeFilter === '5' ? size >= 5 : size === Number(sizeFilter))
             );
 
             return matchesText && matchesSize;
@@ -233,7 +209,7 @@
      * Wire up the search input and Team Size select so the
      * list updates as either changes.
      */
-    function initFilters(container, emptyState) {
+    function initFilters(packages, container, emptyState) {
         const input = document.getElementById('packageSearch');
         const select = document.getElementById('teamSizeSelect');
         if (!input && !select) return;
@@ -241,7 +217,7 @@
         function update() {
             const q = input ? input.value : '';
             const size = select ? select.value : 'all';
-            renderList(filterPackages(q, size), container, emptyState);
+            renderList(filterPackages(packages, q, size), container, emptyState);
         }
 
         if (input) input.addEventListener('input', update);
@@ -249,65 +225,63 @@
     }
 
     /**
-     * Persist the selected whole team so the next page
-     * (team-page.html, booking.html) can read it and show
-     * "Booking: <Team Name>" instead of a single worker.
-     * @param {string} teamName
+     * Persist the selected package so the next page
+     * (team-page.html, booking.html) can read it.
+     * @param {Object} pkg
      */
-    function persistSelectedTeam(teamName) {
+    function persistSelectedPackage(pkg) {
         try {
-            sessionStorage.setItem('handyhire.selectedTeam', teamName);
+            sessionStorage.setItem('handyhire.selectedPackage', JSON.stringify({
+                id: pkg.id,
+                name: pkg.name,
+            }));
         } catch (e) {
             // Ignore storage errors (private mode etc.).
         }
     }
 
     /**
-     * Resolve the team name from the clicked element. The
-     * user can activate the card body or the "Book Whole
-     * Team" button inside it; both should send the same
-     * team name forward.
+     * Resolve the package ID from the clicked element.
      * @param {HTMLElement} target
      * @param {HTMLElement} container
      * @returns {string|null}
      */
-    function resolveTeamName(target, container) {
+    function resolvePackageId(target, container) {
         const card = target.closest('.package-card');
         if (!card || !container.contains(card)) return null;
-        return card.getAttribute('data-name') || null;
+        return card.getAttribute('data-package-id') || null;
     }
 
     /**
      * Wire up click + Enter / Space on every package card
      * AND on the "Book Whole Team" CTA inside each card.
      * Both routes select the whole team and forward to
-     * team-page.html - never to booking.html, never to
-     * worker-profile.html, never to multitasking-package.html.
+     * team-page.html - never to booking.html directly.
      */
-    function initCardNavigation(container) {
+    function initCardNavigation(packages, container) {
         if (!container) return;
 
-        function navigate(teamName) {
-            if (!teamName) return;
-            persistSelectedTeam(teamName);
+        function navigate(packageId) {
+            if (!packageId) return;
+            const pkg = packages.find((p) => String(p.id) === String(packageId));
+            if (pkg) persistSelectedPackage(pkg);
             try {
                 sessionStorage.setItem('handyhire.customer.previousPage', 'team-package.html');
             } catch (e) {}
-            window.location.href = 'team-page.html';
+            window.location.href = 'team-page.html?package_id=' + encodeURIComponent(packageId);
         }
 
         container.addEventListener('click', function (event) {
-            // Activate via card body or via the CTA button.
             const cta = event.target.closest('.package-book-cta');
             if (cta && container.contains(cta)) {
-                const name = cta.getAttribute('data-target-team')
-                    || resolveTeamName(cta, container);
-                navigate(name);
+                const id = cta.getAttribute('data-target-package-id')
+                    || resolvePackageId(cta, container);
+                navigate(id);
                 return;
             }
             const card = event.target.closest('.package-card');
             if (!card || !container.contains(card)) return;
-            navigate(card.getAttribute('data-name'));
+            navigate(card.getAttribute('data-package-id'));
         });
 
         container.addEventListener('keydown', function (event) {
@@ -316,15 +290,15 @@
             const cta = event.target.closest('.package-book-cta');
             if (cta && container.contains(cta)) {
                 event.preventDefault();
-                const name = cta.getAttribute('data-target-team')
-                    || resolveTeamName(cta, container);
-                navigate(name);
+                const id = cta.getAttribute('data-target-package-id')
+                    || resolvePackageId(cta, container);
+                navigate(id);
                 return;
             }
             const card = event.target.closest('.package-card');
             if (!card || !container.contains(card)) return;
             event.preventDefault();
-            navigate(card.getAttribute('data-name'));
+            navigate(card.getAttribute('data-package-id'));
         });
     }
 
@@ -343,6 +317,14 @@
     }
 
     /**
+     * Show an error state inside the list container.
+     */
+    function showError(container, emptyState, message) {
+        if (container) container.innerHTML = '<li class="error-state">' + escapeHtml(message) + '</li>';
+        if (emptyState) emptyState.hidden = true;
+    }
+
+    /**
      * Initialize the Team Packages page.
      */
     function init() {
@@ -351,9 +333,32 @@
         const emptyState = document.getElementById('emptyState');
         if (!list) return;
 
-        renderList(PACKAGES, list, emptyState);
-        initFilters(list, emptyState);
-        initCardNavigation(list);
+        const api = getApi();
+        if (!api) {
+            showError(list, emptyState, 'Unable to load packages. Please try again later.');
+            return;
+        }
+
+        api.apiFetch('/api/packages?package_type=team')
+            .then(function (response) {
+                if (response.status === 401) {
+                    api.clearAuth();
+                    window.location.href = 'login.html';
+                    return [];
+                }
+                if (!response.ok) throw new Error('Failed to load packages');
+                return response.json();
+            })
+            .then(function (packages) {
+                const data = Array.isArray(packages) ? packages : [];
+                renderList(data, list, emptyState);
+                initFilters(data, list, emptyState);
+                initCardNavigation(data, list);
+            })
+            .catch(function () {
+                showError(list, emptyState, 'Unable to load packages. Please try again.');
+            });
+
         initBackButton();
     }
 

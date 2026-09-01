@@ -14,7 +14,10 @@ from app.auth.dependencies import (
     get_current_worker,
 )
 from app.database.connection import get_db
-from app.schemas import BookingResponse
+from app.schemas import (
+    BookingResponse,
+    BookingWorkerSummary,
+)
 
 
 router = APIRouter(
@@ -22,10 +25,85 @@ router = APIRouter(
     tags=["worker"],
 )
 
+def _prefetch_team_workers(
+    bookings: list[models.Booking],
+    db: Session,
+) -> dict[int, list[BookingWorkerSummary]]:
+    team_booking_ids = [
+        b.id for b in bookings
+        if b.package_id
+    ]
+
+    if not team_booking_ids:
+        return {}
+
+    rows = (
+        db.query(models.BookingWorker, models.User, models.WorkerProfile)
+        .join(models.User, models.User.id == models.BookingWorker.worker_id)
+        .outerjoin(models.WorkerProfile, models.WorkerProfile.user_id == models.User.id)
+        .filter(models.BookingWorker.booking_id.in_(team_booking_ids))
+        .all()
+    )
+
+    result: dict[int, list[BookingWorkerSummary]] = {}
+
+    for bw, user, profile in rows:
+        result.setdefault(bw.booking_id, []).append(
+            BookingWorkerSummary(
+                worker_id=user.id,
+                full_name=user.full_name,
+                profession=(
+                    profile.profession
+                    if profile
+                    else None
+                ),
+                role=bw.role,
+            )
+        )
+
+    return result
+
+
+TEAM_MEMBER_VISIBLE_STATUSES = {
+    "accepted",
+    "completion_requested",
+    "completed",
+    "cancelled",
+}
+
+
+def _build_booking_workers(
+    booking_id: int,
+    db: Session,
+) -> list[BookingWorkerSummary]:
+    rows = (
+        db.query(models.BookingWorker, models.User, models.WorkerProfile)
+        .join(models.User, models.User.id == models.BookingWorker.worker_id)
+        .outerjoin(models.WorkerProfile, models.WorkerProfile.user_id == models.User.id)
+        .filter(models.BookingWorker.booking_id == booking_id)
+        .all()
+    )
+
+    return [
+        BookingWorkerSummary(
+            worker_id=user.id,
+            full_name=user.full_name,
+            profession=(
+                profile.profession
+                if profile
+                else None
+            ),
+            role=bw.role,
+        )
+        for bw, user, profile in rows
+    ]
+
 
 def _build_booking_response(
     booking: models.Booking,
     db: Session,
+    *,
+    prefetched_team_workers: Optional[dict[int, list[BookingWorkerSummary]]] = None,
 ) -> BookingResponse:
     customer = (
         db.query(models.User)
@@ -58,6 +136,8 @@ def _build_booking_response(
         )
 
     package_name = None
+    package_type = None
+    team_workers = []
 
     if booking.package_id:
         pkg = (
@@ -65,13 +145,26 @@ def _build_booking_response(
             .filter(models.Package.id == booking.package_id)
             .first()
         )
-        package_name = pkg.name if pkg else None
+
+        if pkg:
+            package_name = pkg.name
+            package_type = pkg.package_type
+
+            if pkg.package_type == "team":
+                if prefetched_team_workers is not None:
+                    team_workers = prefetched_team_workers.get(booking.id, [])
+                else:
+                    team_workers = _build_booking_workers(
+                        booking.id,
+                        db,
+                    )
 
     return BookingResponse(
         id=booking.id,
         customer_id=booking.customer_id,
         worker_id=booking.worker_id,
         service_id=booking.service_id,
+        package_id=booking.package_id,
         booking_date=booking.booking_date,
         booking_time=booking.booking_time,
         address=booking.address,
@@ -99,7 +192,33 @@ def _build_booking_response(
             else None
         ),
         package_name=package_name,
+        package_type=package_type,
+        team_workers=team_workers,
+        has_review=False,
     )
+
+
+def _worker_can_view_booking(
+    booking: models.Booking,
+    worker_id: int,
+    db: Session,
+) -> bool:
+    if booking.worker_id == worker_id:
+        return True
+
+    membership = (
+        db.query(models.BookingWorker)
+        .filter(
+            models.BookingWorker.booking_id == booking.id,
+            models.BookingWorker.worker_id == worker_id,
+        )
+        .first()
+    )
+
+    if not membership:
+        return False
+
+    return booking.status in TEAM_MEMBER_VISIBLE_STATUSES
 
 
 @router.get(
@@ -116,18 +235,28 @@ def list_worker_bookings(
     ),
     db: Session = Depends(get_db),
 ):
-    query = (
+    lead_query = (
         db.query(models.Booking)
+        .filter(models.Booking.worker_id == current_user.id)
+    )
+
+    member_subquery = (
+        db.query(models.Booking)
+        .join(
+            models.BookingWorker,
+            models.BookingWorker.booking_id == models.Booking.id,
+        )
         .filter(
-            models.Booking.worker_id ==
-            current_user.id
+            models.BookingWorker.worker_id == current_user.id,
+            models.Booking.status.in_(TEAM_MEMBER_VISIBLE_STATUSES),
         )
     )
 
+    query = lead_query.union(member_subquery).distinct()
+
     if booking_status:
         query = query.filter(
-            models.Booking.status ==
-            booking_status
+            models.Booking.status == booking_status
         )
 
     bookings = (
@@ -138,10 +267,16 @@ def list_worker_bookings(
         .all()
     )
 
+    prefetched_team_workers = _prefetch_team_workers(
+        bookings,
+        db,
+    )
+
     return [
         _build_booking_response(
             booking,
             db,
+            prefetched_team_workers=prefetched_team_workers,
         )
         for booking in bookings
     ]
@@ -172,8 +307,7 @@ def list_sent_worker_bookings(
 
     if booking_status:
         query = query.filter(
-            models.Booking.status ==
-            booking_status
+            models.Booking.status == booking_status
         )
 
     bookings = (
@@ -214,8 +348,12 @@ def get_worker_booking(
     )
 
     if (
-        not booking or
-        booking.worker_id != current_user.id
+        not booking
+        or not _worker_can_view_booking(
+            booking,
+            current_user.id,
+            db,
+        )
     ):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -262,8 +400,8 @@ def update_worker_booking_status(
     )
 
     if (
-        not booking or
-        booking.worker_id != current_user.id
+        not booking
+        or booking.worker_id != current_user.id
     ):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

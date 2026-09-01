@@ -136,7 +136,13 @@
 
         if (b.package_id && b.package_name) {
             name = b.package_name;
-            occupation = 'Multitasking Package';
+            if (b.package_type === 'team') {
+                occupation = 'TEAM PACKAGE';
+            } else if (b.package_type === 'multitasking') {
+                occupation = 'MULTITASKING PACKAGE';
+            } else {
+                occupation = 'Package';
+            }
         }
 
         return {
@@ -152,6 +158,7 @@
             amount: typeof b.amount === 'number' ? b.amount : null,
             address: b.address || '--',
             worker_id: b.worker_id || null,
+            package_type: b.package_type || null,
         };
     }
 

@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app import models
 from app.auth.dependencies import get_current_customer
 from app.database.connection import get_db
-from app.schemas import CustomerProfileResponse, CustomerProfileUpdate, BookingResponse
+from app.schemas import CustomerProfileResponse, CustomerProfileUpdate, BookingResponse, BookingWorkerSummary
 
 router = APIRouter(prefix="/api/customer", tags=["customer"])
 
@@ -71,6 +71,7 @@ def _load_customer_booking(
 def _build_customer_booking_response(
     booking: models.Booking,
     db: Session,
+    current_customer_id: int,
 ) -> BookingResponse:
     customer = db.query(models.User).filter(models.User.id == booking.customer_id).first()
     worker = db.query(models.User).filter(models.User.id == booking.worker_id).first()
@@ -78,9 +79,32 @@ def _build_customer_booking_response(
     if booking.service_id:
         service = db.query(models.Service).filter(models.Service.id == booking.service_id).first()
     package_name = None
+    package_type = None
+    team_workers = []
     if booking.package_id:
         pkg = db.query(models.Package).filter(models.Package.id == booking.package_id).first()
-        package_name = pkg.name if pkg else None
+        if pkg:
+            package_name = pkg.name
+            package_type = pkg.package_type
+            if pkg.package_type == "team":
+                rows = (
+                    db.query(models.BookingWorker, models.User, models.WorkerProfile)
+                    .join(models.User, models.User.id == models.BookingWorker.worker_id)
+                    .outerjoin(models.WorkerProfile, models.WorkerProfile.user_id == models.User.id)
+                    .filter(models.BookingWorker.booking_id == booking.id)
+                    .all()
+                )
+                team_workers = [
+                    BookingWorkerSummary(
+                        worker_id=user.id,
+                        full_name=user.full_name,
+                        profession=profile.profession if profile else None,
+                        role=bw.role,
+                    )
+                    for bw, user, profile in rows
+                ]
+    existing_review = db.query(models.Review).filter(models.Review.booking_id == booking.id).first()
+    has_review = existing_review is not None
     return BookingResponse(
         id=booking.id,
         customer_id=booking.customer_id,
@@ -98,6 +122,9 @@ def _build_customer_booking_response(
         service_name=service.name if service else None,
         customer_name=customer.full_name if customer else None,
         package_name=package_name,
+        package_type=package_type,
+        team_workers=team_workers,
+        has_review=has_review,
     )
 
 
@@ -117,7 +144,7 @@ def confirm_booking_completion(
     db.add(booking)
     db.commit()
     db.refresh(booking)
-    return _build_customer_booking_response(booking, db)
+    return _build_customer_booking_response(booking, db, current_user.id)
 
 
 @router.put("/bookings/{booking_id}/reject-completion", response_model=BookingResponse)
@@ -136,4 +163,4 @@ def reject_booking_completion(
     db.add(booking)
     db.commit()
     db.refresh(booking)
-    return _build_customer_booking_response(booking, db)
+    return _build_customer_booking_response(booking, db, current_user.id)

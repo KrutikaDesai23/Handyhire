@@ -27,3 +27,4 @@ class Booking(Base):
     service = relationship("Service", back_populates="bookings")
     request = relationship("BookingRequest", back_populates="booking", uselist=False)
     review = relationship("Review", backref="booking", uselist=False)
+    booking_workers = relationship("BookingWorker", back_populates="booking", cascade="all, delete-orphan")

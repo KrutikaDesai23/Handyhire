@@ -4,10 +4,60 @@ from sqlalchemy import or_
 from typing import Optional
 
 from app.database.connection import get_db
-from app.models import Package, PackageService, Service
-from app.schemas import PackageSummary, ServiceSummary
+from app.models import Package, PackageService, Service, PackageWorker, User
+from app.schemas import PackageSummary, ServiceSummary, PackageWorkerSummary
 
 router = APIRouter(prefix="/api/packages", tags=["packages"])
+
+
+def _build_package_summary(package: Package, db: Session) -> PackageSummary:
+    services = (
+        db.query(Service)
+        .join(PackageService, PackageService.service_id == Service.id)
+        .filter(PackageService.package_id == package.id)
+        .all()
+    )
+
+    workers = (
+        db.query(User)
+        .join(PackageWorker, PackageWorker.worker_id == User.id)
+        .filter(PackageWorker.package_id == package.id)
+        .all()
+    )
+
+    return PackageSummary(
+        id=package.id,
+        name=package.name,
+        description=package.description,
+        package_type=package.package_type,
+        price=package.price,
+        duration=package.duration,
+        location=package.location,
+        availability=package.availability,
+        status=package.status,
+        services=[
+            ServiceSummary(
+                id=s.id,
+                name=s.name,
+                description=s.description,
+                category=s.category,
+                base_price=s.base_price,
+            )
+            for s in services
+        ],
+        workers=[
+            PackageWorkerSummary(
+                worker_id=w.id,
+                full_name=w.full_name,
+                profession=(
+                    w.worker_profile.profession
+                    if w.worker_profile
+                    else None
+                ),
+            )
+            for w in workers
+        ],
+    )
 
 
 @router.get("", response_model=list[PackageSummary])
@@ -38,38 +88,10 @@ def list_packages(
         )
 
     packages = query.all()
-    response = []
-    for package in packages:
-        services = (
-            db.query(Service)
-            .join(PackageService, PackageService.service_id == Service.id)
-            .filter(PackageService.package_id == package.id)
-            .all()
-        )
-        response.append(
-            PackageSummary(
-                id=package.id,
-                name=package.name,
-                description=package.description,
-                package_type=package.package_type,
-                price=package.price,
-                duration=package.duration,
-                location=package.location,
-                availability=package.availability,
-                status=package.status,
-                services=[
-                    ServiceSummary(
-                        id=s.id,
-                        name=s.name,
-                        description=s.description,
-                        category=s.category,
-                        base_price=s.base_price,
-                    )
-                    for s in services
-                ],
-            )
-        )
-    return response
+    return [
+        _build_package_summary(package, db)
+        for package in packages
+    ]
 
 
 @router.get("/{package_id}", response_model=PackageSummary)
@@ -81,30 +103,4 @@ def get_package(package_id: int, db: Session = Depends(get_db)):
     if package.status != "published":
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Package not found")
 
-    services = (
-        db.query(Service)
-        .join(PackageService, PackageService.service_id == Service.id)
-        .filter(PackageService.package_id == package.id)
-        .all()
-    )
-    return PackageSummary(
-        id=package.id,
-        name=package.name,
-        description=package.description,
-        package_type=package.package_type,
-        price=package.price,
-        duration=package.duration,
-        location=package.location,
-        availability=package.availability,
-        status=package.status,
-        services=[
-            ServiceSummary(
-                id=s.id,
-                name=s.name,
-                description=s.description,
-                category=s.category,
-                base_price=s.base_price,
-            )
-            for s in services
-        ],
-    )
+    return _build_package_summary(package, db)

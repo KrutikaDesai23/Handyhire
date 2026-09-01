@@ -341,8 +341,20 @@
 
         const packageId = booking.package_id || null;
         const packageName = booking.package_name || null;
+        const packageType = booking.package_type || null;
         const isPackage = Boolean(packageId);
         const bookingType = isPackage ? 'package' : 'individual';
+
+        let typeLabel = 'INDIVIDUAL BOOKING';
+        if (isPackage) {
+            if (packageType === 'team') {
+                typeLabel = 'TEAM PACKAGE';
+            } else if (packageType === 'multitasking') {
+                typeLabel = 'MULTITASKING PACKAGE';
+            } else {
+                typeLabel = 'MULTITASKING PACKAGE';
+            }
+        }
 
         return {
             id:
@@ -367,7 +379,7 @@
 
             occupation:
                 isPackage
-                    ? (packageName || 'Multitasking Package')
+                    ? (packageName || (packageType === 'team' ? 'Team Package' : 'Multitasking Package'))
                     : (
                         booking.service_name ||
                         (
@@ -382,6 +394,9 @@
 
             bookingType:
                 bookingType,
+
+            typeLabel:
+                typeLabel,
 
             packageId:
                 packageId,
@@ -424,6 +439,12 @@
         };
     }
 
+    function getCurrentWorkerId() {
+        const user = window.HandyHireAPI.getCurrentUser();
+        if (user && user.id) return String(user.id);
+        return null;
+    }
+
     function renderActions(
         booking
     ) {
@@ -432,6 +453,13 @@
             'received'
         ) {
             return '';
+        }
+
+        const currentWorkerId = getCurrentWorkerId();
+        const isLead = currentWorkerId && String(booking.worker_id) === currentWorkerId;
+
+        if (!isLead && booking.bookingType === 'package') {
+            return '<div class="booking-readonly-notice">Read-only team booking</div>';
         }
 
         const actions =
@@ -486,9 +514,11 @@
                 )
                 : '';
 
-        const typeLabel = booking.bookingType === 'package'
-            ? 'MULTITASKING PACKAGE'
-            : 'INDIVIDUAL BOOKING';
+        const typeLabel = booking.typeLabel || (
+            booking.bookingType === 'package'
+                ? 'MULTITASKING PACKAGE'
+                : 'INDIVIDUAL BOOKING'
+        );
 
         const typeBadge =
             "<span class='booking-type-badge booking-type-badge--" + escapeHtml(booking.bookingType || 'individual') + "'>" +

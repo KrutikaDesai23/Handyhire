@@ -129,8 +129,20 @@ function toUiStatus(backendStatus) {
     function mapRequest(req) {
         const packageId = req.package_id || null;
         const packageName = req.package_name || null;
+        const packageType = req.package_type || null;
         const isPackage = Boolean(packageId);
         const bookingType = isPackage ? 'package' : 'individual';
+
+        let typeLabel = 'INDIVIDUAL BOOKING';
+        if (isPackage) {
+            if (packageType === 'team') {
+                typeLabel = 'TEAM PACKAGE';
+            } else if (packageType === 'multitasking') {
+                typeLabel = 'MULTITASKING PACKAGE';
+            } else {
+                typeLabel = 'MULTITASKING PACKAGE';
+            }
+        }
 
         return {
             id: req.id,
@@ -141,8 +153,9 @@ function toUiStatus(backendStatus) {
             packageId: packageId,
             packageName: packageName,
             bookingType: bookingType,
+            typeLabel: typeLabel,
             displayTitle: isPackage
-                ? (packageName || 'Multitasking Package')
+                ? (packageName || 'Package')
                 : (req.service_name || 'Service'),
             date: formatDate(req.booking_date),
             time: formatTime(req.booking_time),
@@ -213,9 +226,11 @@ function toUiStatus(backendStatus) {
                 escapeHtml(status.charAt(0).toUpperCase() + status.slice(1)) +
             "</span>";
 
-        const typeLabel = request.bookingType === 'package'
-            ? 'MULTITASKING PACKAGE'
-            : 'INDIVIDUAL BOOKING';
+        const typeLabel = request.typeLabel || (
+            request.bookingType === 'package'
+                ? 'MULTITASKING PACKAGE'
+                : 'INDIVIDUAL BOOKING'
+        );
 
         const typeBadge =
             "<span class='rq-card-type rq-card-type--" + escapeHtml(request.bookingType || 'individual') + "'>" +

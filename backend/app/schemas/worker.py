@@ -1,6 +1,8 @@
 from pydantic import BaseModel, EmailStr, Field
 from pydantic.config import ConfigDict
-from typing import Optional
+from typing import Optional, List
+
+from app.schemas.booking import BookingWorkerSummary
 
 
 class WorkerResponse(BaseModel):
@@ -73,6 +75,8 @@ class BookingRequestResponse(BaseModel):
     amount: Optional[int] = None
     package_id: Optional[int] = None
     package_name: Optional[str] = None
+    package_type: Optional[str] = None
+    team_workers: List[BookingWorkerSummary] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
 

@@ -4,6 +4,15 @@ from typing import Optional, List
 from datetime import date
 
 
+class BookingWorkerSummary(BaseModel):
+    worker_id: int
+    full_name: Optional[str] = None
+    profession: Optional[str] = None
+    role: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class BookingCreate(BaseModel):
     worker_id: Optional[int] = Field(None, gt=0)
     service_id: Optional[int] = Field(None, gt=0)
@@ -24,6 +33,7 @@ class BookingCreate(BaseModel):
 
     description: Optional[str] = None
     amount: int = Field(..., gt=0)
+    hours: Optional[int] = Field(None, gt=0)
 
 
 class BookingResponse(BaseModel):
@@ -48,5 +58,8 @@ class BookingResponse(BaseModel):
     service_name: Optional[str] = None
     customer_name: Optional[str] = None
     package_name: Optional[str] = None
+    package_type: Optional[str] = None
+    team_workers: List[BookingWorkerSummary] = Field(default_factory=list)
+    has_review: bool = False
 
     model_config = ConfigDict(from_attributes=True)

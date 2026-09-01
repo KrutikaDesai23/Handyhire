@@ -18,6 +18,7 @@ from app.database.connection import get_db
 from app.schemas import (
     BookingCreate,
     BookingResponse,
+    BookingWorkerSummary,
 )
 
 
@@ -25,6 +26,222 @@ router = APIRouter(
     prefix="/api/bookings",
     tags=["bookings"],
 )
+
+
+def _build_booking_workers(
+    booking_id: int,
+    db: Session,
+) -> list[BookingWorkerSummary]:
+    rows = (
+        db.query(models.BookingWorker, models.User, models.WorkerProfile)
+        .join(models.User, models.User.id == models.BookingWorker.worker_id)
+        .outerjoin(models.WorkerProfile, models.WorkerProfile.user_id == models.User.id)
+        .filter(models.BookingWorker.booking_id == booking_id)
+        .all()
+    )
+
+    return [
+        BookingWorkerSummary(
+            worker_id=user.id,
+            full_name=user.full_name,
+            profession=(
+                profile.profession
+                if profile
+                else None
+            ),
+            role=bw.role,
+        )
+        for bw, user, profile in rows
+    ]
+
+
+def _build_customer_booking_response(
+    booking: models.Booking,
+    db: Session,
+    current_customer_id: int,
+) -> BookingResponse:
+    customer = (
+        db.query(models.User)
+        .filter(models.User.id == booking.customer_id)
+        .first()
+    )
+
+    worker = (
+        db.query(models.User)
+        .filter(models.User.id == booking.worker_id)
+        .first()
+    )
+
+    service = None
+
+    if booking.service_id:
+        service = (
+            db.query(models.Service)
+            .filter(models.Service.id == booking.service_id)
+            .first()
+        )
+
+    package_name = None
+    package_type = None
+    team_workers = []
+
+    if booking.package_id:
+        pkg = (
+            db.query(models.Package)
+            .filter(models.Package.id == booking.package_id)
+            .first()
+        )
+
+        if pkg:
+            package_name = pkg.name
+            package_type = pkg.package_type
+
+            if pkg.package_type == "team":
+                team_workers = _build_booking_workers(
+                    booking.id,
+                    db,
+                )
+
+    has_review = False
+
+    if booking.customer_id == current_customer_id:
+        existing_review = (
+            db.query(models.Review)
+            .filter(models.Review.booking_id == booking.id)
+            .first()
+        )
+        has_review = existing_review is not None
+
+    return BookingResponse(
+        id=booking.id,
+        customer_id=booking.customer_id,
+        worker_id=booking.worker_id,
+        service_id=booking.service_id,
+        package_id=booking.package_id,
+        booking_date=booking.booking_date,
+        booking_time=booking.booking_time,
+        address=booking.address,
+        description=booking.description,
+        amount=booking.amount,
+        status=booking.status,
+        created_at=(
+            booking.created_at.isoformat()
+            if booking.created_at
+            else None
+        ),
+        worker_name=(
+            worker.full_name
+            if worker
+            else None
+        ),
+        service_name=(
+            service.name
+            if service
+            else None
+        ),
+       customer_name=current_user.full_name,
+        package_name=package_name,
+        package_type=package_type,
+        team_workers=team_workers,
+        has_review=has_review,
+    )
+
+
+def _build_booking_response(
+    booking: models.Booking,
+    db: Session,
+    *,
+    current_customer_id: Optional[int] = None,
+) -> BookingResponse:
+    customer = (
+        db.query(models.User)
+        .filter(models.User.id == booking.customer_id)
+        .first()
+    )
+
+    worker = (
+        db.query(models.User)
+        .filter(models.User.id == booking.worker_id)
+        .first()
+    )
+
+    service = None
+
+    if booking.service_id:
+        service = (
+            db.query(models.Service)
+            .filter(models.Service.id == booking.service_id)
+            .first()
+        )
+
+    package_name = None
+    package_type = None
+    team_workers = []
+
+    if booking.package_id:
+        pkg = (
+            db.query(models.Package)
+            .filter(models.Package.id == booking.package_id)
+            .first()
+        )
+
+        if pkg:
+            package_name = pkg.name
+            package_type = pkg.package_type
+
+            if pkg.package_type == "team":
+                team_workers = _build_booking_workers(
+                    booking.id,
+                    db,
+                )
+
+    has_review = False
+
+    if (
+        current_customer_id is not None
+        and booking.customer_id == current_customer_id
+    ):
+        existing_review = (
+            db.query(models.Review)
+            .filter(models.Review.booking_id == booking.id)
+            .first()
+        )
+
+        has_review = existing_review is not None
+
+    return BookingResponse(
+        id=booking.id,
+        customer_id=booking.customer_id,
+        worker_id=booking.worker_id,
+        service_id=booking.service_id,
+        package_id=booking.package_id,
+        booking_date=booking.booking_date,
+        booking_time=booking.booking_time,
+        address=booking.address,
+        description=booking.description,
+        amount=booking.amount,
+        status=booking.status,
+        created_at=(
+            booking.created_at.isoformat()
+            if booking.created_at
+            else None
+        ),
+        worker_name=(
+            worker.full_name
+            if worker
+            else None
+        ),
+        service_name=(
+            service.name
+            if service
+            else None
+        ),
+        customer_name=current_user.full_name,
+        package_name=package_name,
+        package_type=package_type,
+        team_workers=team_workers,
+        has_review=has_review,
+    )
 
 
 @router.post(
@@ -52,6 +269,8 @@ def create_booking(
     service = None
     package = None
     package_name = None
+    package_type = None
+    team_workers = []
 
     worker_id = payload.worker_id
     service_id = payload.service_id
@@ -59,7 +278,7 @@ def create_booking(
 
 
     # =====================================================
-    # MULTITASKING PACKAGE BOOKING
+    # PACKAGE BOOKING (MULTITASKING OR TEAM)
     # =====================================================
 
     if payload.package_id is not None:
@@ -69,8 +288,6 @@ def create_booking(
             .filter(
                 models.Package.id ==
                 payload.package_id,
-                models.Package.package_type ==
-                "multitasking",
                 models.Package.status ==
                 "published",
             )
@@ -80,10 +297,37 @@ def create_booking(
         if not package:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Multitasking package not found",
+                detail="Package not found",
             )
 
         package_name = package.name
+        package_type = package.package_type
+
+        if package.package_type == "team":
+
+            selected_workers = (
+                db.query(models.PackageWorker)
+                .filter(
+                    models.PackageWorker.package_id ==
+                    package.id
+                )
+                .all()
+            )
+
+            unique_worker_ids = list(
+                dict.fromkeys(
+                    [row.worker_id for row in selected_workers]
+                )
+            )
+
+            if len(unique_worker_ids) < 2:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=(
+                        "This team package does not have "
+                        "enough available members"
+                    ),
+                )
 
         # Package owner is the worker who
         # will receive this booking request.
@@ -111,15 +355,22 @@ def create_booking(
                 detail="You cannot book your own package",
             )
 
-        # A multitasking package contains
-        # multiple services, so one single
-        # service_id must not represent it.
+        # A package booking covers the whole
+        # package, so one single service_id
+        # must not represent it.
         service_id = None
         service = None
 
-        # Never trust the frontend package price.
-        # Use the actual price saved in database.
-        booking_amount = package.price
+        # Never trust the frontend amount.
+        # Independently calculate from the stored package per-hour price
+        # and the selected booking hours.
+        if payload.hours is None or payload.hours <= 0:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Number of hours is required for package booking",
+            )
+
+        booking_amount = package.price * payload.hours
 
 
     # =====================================================
@@ -198,6 +449,33 @@ def create_booking(
 
 
     # =====================================================
+    # SNAPSHOT TEAM PACKAGE WORKERS
+    # =====================================================
+
+    if (
+        package is not None
+        and package.package_type == "team"
+    ):
+        snapshot_rows = (
+            db.query(models.PackageWorker)
+            .filter(
+                models.PackageWorker.package_id ==
+                package.id
+            )
+            .all()
+        )
+
+        for row in snapshot_rows:
+            db.add(
+                models.BookingWorker(
+                    booking_id=booking.id,
+                    worker_id=row.worker_id,
+                    role=None,
+                )
+            )
+
+
+    # =====================================================
     # CREATE REQUEST FOR PROVIDER
     # =====================================================
 
@@ -214,6 +492,12 @@ def create_booking(
 
     db.refresh(booking)
     db.refresh(booking_request)
+
+    if package_type == "team":
+        team_workers = _build_booking_workers(
+            booking.id,
+            db,
+        )
 
 
     # =====================================================
@@ -247,7 +531,11 @@ def create_booking(
             if service
             else None
         ),
+        customer_name=current_user.full_name,
         package_name=package_name,
+        package_type=package_type,
+        team_workers=team_workers,
+        has_review=False,
     )
 
 @router.get(
@@ -286,73 +574,14 @@ def list_customer_bookings(
         .all()
     )
 
-    response = []
-
-    for booking in bookings:
-        worker = (
-            db.query(models.User)
-            .filter(
-                models.User.id ==
-                booking.worker_id
-            )
-            .first()
+    return [
+        _build_customer_booking_response(
+            booking,
+            db,
+            current_user.id,
         )
-
-        service = None
-
-        if booking.service_id:
-            service = (
-                db.query(models.Service)
-                .filter(
-                    models.Service.id ==
-                    booking.service_id
-                )
-                .first()
-            )
-
-        package_name = None
-
-        if booking.package_id:
-            pkg = (
-                db.query(models.Package)
-                .filter(models.Package.id == booking.package_id)
-                .first()
-            )
-            package_name = pkg.name if pkg else None
-
-        response.append(
-            BookingResponse(
-                id=booking.id,
-                customer_id=booking.customer_id,
-                worker_id=booking.worker_id,
-                service_id=booking.service_id,
-                package_id=booking.package_id,
-                booking_date=booking.booking_date,
-                booking_time=booking.booking_time,
-                address=booking.address,
-                description=booking.description,
-                amount=booking.amount,
-                status=booking.status,
-                created_at=(
-                    booking.created_at.isoformat()
-                    if booking.created_at
-                    else None
-                ),
-                worker_name=(
-                    worker.full_name
-                    if worker
-                    else None
-                ),
-                service_name=(
-                    service.name
-                    if service
-                    else None
-                ),
-                package_name=package_name,
-            )
-        )
-
-    return response
+        for booking in bookings
+    ]
 
 
 @router.get(
@@ -387,63 +616,8 @@ def get_customer_booking(
             detail="Booking not found",
         )
 
-    worker = (
-        db.query(models.User)
-        .filter(
-            models.User.id ==
-            booking.worker_id
-        )
-        .first()
-    )
-
-    service = None
-
-    if booking.service_id:
-        service = (
-            db.query(models.Service)
-            .filter(
-                models.Service.id ==
-                booking.service_id
-            )
-            .first()
-        )
-
-    package_name = None
-
-    if booking.package_id:
-        pkg = (
-            db.query(models.Package)
-            .filter(models.Package.id == booking.package_id)
-            .first()
-        )
-        package_name = pkg.name if pkg else None
-
-    return BookingResponse(
-        id=booking.id,
-        customer_id=booking.customer_id,
-        worker_id=booking.worker_id,
-        service_id=booking.service_id,
-        package_id=booking.package_id,
-        booking_date=booking.booking_date,
-        booking_time=booking.booking_time,
-        address=booking.address,
-        description=booking.description,
-        amount=booking.amount,
-        status=booking.status,
-        created_at=(
-            booking.created_at.isoformat()
-            if booking.created_at
-            else None
-        ),
-        worker_name=(
-            worker.full_name
-            if worker
-            else None
-        ),
-        service_name=(
-            service.name
-            if service
-            else None
-        ),
-        package_name=package_name,
+    return _build_customer_booking_response(
+        booking,
+        db,
+        current_user.id,
     )

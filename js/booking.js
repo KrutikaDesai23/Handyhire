@@ -60,18 +60,33 @@
     }
 
     /**
+     * True when the current view represents a package
+     * booking (multitasking or team) determined by the
+     * URL ?package_id= parameter.
+     * @returns {boolean}
+     */
+    function isPackageBooking() {
+        return Boolean(readPackageId());
+    }
+
+    /**
      * True when the current view represents a whole-team
-     * booking (set by team-page.js) rather than a single worker.
+     * booking, determined by URL ?booking_mode=team and
+     * the selected package type.
      * @returns {boolean}
      */
     function isTeamBooking() {
         try {
-            const mode = sessionStorage.getItem('handyhire.bookingMode');
-            const team = sessionStorage.getItem('handyhire.selectedTeam');
-            return (mode === 'team' && team) || (!readWorkerId() && Boolean(team));
+            const params = new URLSearchParams(window.location.search);
+            const mode = params.get('booking_mode');
+            const pkgId = params.get('package_id');
+            if (mode === 'team' && pkgId && selectedPackage) {
+                return selectedPackage.package_type === 'team';
+            }
         } catch (e) {
-            return false;
+            // Ignore URL errors.
         }
+        return false;
     }
 
     /**
@@ -122,24 +137,18 @@
         const avatar = document.getElementById('workerAvatar');
         const name = document.getElementById('workerName');
         const mode = document.getElementById('workerMode');
-        const team = readSelectedTeam();
 
         if (isPackageBooking()) {
             if (name) name.textContent = selectedPackage ? selectedPackage.name : 'Package';
             if (mode) {
-                mode.textContent = 'Booking: Package';
+                mode.textContent = selectedPackage && selectedPackage.package_type === 'team'
+                    ? 'Booking: Team Package'
+                    : 'Booking: Package';
                 mode.hidden = false;
             }
             if (avatar && selectedPackage) {
                 avatar.style.backgroundImage = buildAvatar(selectedPackage.name);
             }
-        } else if (team && isTeamBooking()) {
-            if (name) name.textContent = team;
-            if (mode) {
-                mode.textContent = 'Booking: Team';
-                mode.hidden = false;
-            }
-            if (avatar) avatar.style.backgroundImage = buildAvatar(team);
         } else {
             const displayName = readWorkerName();
             if (avatar) avatar.style.backgroundImage = buildAvatar(displayName);
@@ -222,18 +231,86 @@
      * For package bookings the total is the fixed package
      * price; for direct-worker bookings it is hourly.
      */
-    function updateTotal() {
-        const select = document.getElementById('hoursSelect');
-        const total = document.getElementById('totalCost');
-        if (!total) return;
+function updateTotal() {
+    const select = document.getElementById('hoursSelect');
+    const total = document.getElementById('totalCost');
+    const priceHelp = document.getElementById('priceHelp');
 
-        if (isPackageBooking() && selectedPackage) {
-            total.textContent = formatRupees(selectedPackage.price);
-        } else if (select) {
-            const hours = Math.max(1, Number(select.value) || 1);
-            total.textContent = formatRupees(hours * PACKAGE_HOURLY_RATE);
+    if (!total) return;
+
+    if (isPackageBooking()) {
+        if (
+            selectedPackage &&
+            Number.isFinite(Number(selectedPackage.price))
+        ) {
+            const hours = select ? Math.max(1, Number(select.value) || 1) : 1;
+            const totalAmount = Number(selectedPackage.price) * hours;
+
+            total.textContent = formatRupees(totalAmount);
+
+            if (priceHelp) {
+                priceHelp.textContent =
+                    'Auto-calculated at \u20B9' +
+                    Number(selectedPackage.price).toLocaleString('en-IN') +
+                    ' / hour.';
+            }
+        } else {
+            total.textContent = '\u2014';
+
+            if (priceHelp) {
+                priceHelp.textContent = 'Loading package price...';
+            }
+        }
+
+        return;
+    }
+
+    if (select) {
+        const hours = Math.max(
+            1,
+            Number(select.value) || 1
+        );
+
+        total.textContent = formatRupees(
+            hours * PACKAGE_HOURLY_RATE
+        );
+
+        if (priceHelp) {
+            priceHelp.textContent =
+                'Auto-calculated at \u20B9' +
+                PACKAGE_HOURLY_RATE +
+                ' / hour.';
         }
     }
+}
+function applyPackageDuration() {
+    if (!isPackageBooking() || !selectedPackage) {
+        return;
+    }
+
+    const select = document.getElementById('hoursSelect');
+    if (!select) return;
+
+    const duration = Math.max(
+        1,
+        parseInt(selectedPackage.duration, 10) || 1
+    );
+
+    // Make sure the package duration exists in the dropdown.
+    let option = Array.from(select.options).find(function (item) {
+        return Number(item.value) === duration;
+    });
+
+    if (!option) {
+        option = document.createElement('option');
+        option.value = String(duration);
+        option.textContent =
+            duration + (duration === 1 ? ' hour' : ' hours');
+        select.appendChild(option);
+    }
+
+    select.value = String(duration);
+}
 
     /**
      * Wire up the hour dropdown so the total updates live.
@@ -244,10 +321,7 @@
         const select = document.getElementById('hoursSelect');
         if (!select) return;
 
-        if (!isPackageBooking()) {
-            select.addEventListener('change', updateTotal);
-        }
-        // Run once so the initial value matches the markup.
+        select.addEventListener('change', updateTotal);
         updateTotal();
     }
 
@@ -328,7 +402,7 @@
     /**
      * Build the exact POST /api/bookings body from the
      * existing form fields. Matches backend BookingCreate:
-     *   worker_id, service_id?, package_id?, booking_date,
+     *   worker_id?, service_id?, package_id?, booking_date,
      *   booking_time, address, description?, amount
      * @param {string|null} workerId
      * @param {string} dateValue
@@ -344,11 +418,12 @@
             address: addressValue,
             description: null,
             amount: hours * PACKAGE_HOURLY_RATE,
+            hours: hours,
         };
 
         if (isPackageBooking() && selectedPackage) {
             payload.package_id = Number(selectedPackage.id);
-            payload.amount = Number(selectedPackage.price);
+            payload.amount = Number(selectedPackage.price) * hours;
         } else if (workerId) {
             payload.worker_id = Number(workerId);
         }
@@ -371,15 +446,6 @@
 
             if (isPackageBooking()) {
                 handlePackageBooking();
-                return;
-            }
-
-            // Team bookings cannot be created by the current
-            // backend (POST /api/bookings accepts a single
-            // worker_id). Surface that cleanly without breaking
-            // the existing team UI.
-            if (isTeamBooking()) {
-                showError('Team bookings are not available yet. Please book an individual professional.');
                 return;
             }
 
@@ -420,10 +486,11 @@
         if (!selectedPackage) {
             fetchPackageDetails(packageId)
                 .then(function (pkg) {
-                    selectedPackage = pkg;
-                    initWorkerHeader();
-                    updateTotal();
-                    submitPackageBooking(packageId);
+                   selectedPackage = pkg;
+initWorkerHeader();
+applyPackageDuration();
+updateTotal();
+submitPackageBooking(packageId);
                 })
                 .catch(function (error) {
                     showError('Unable to load package details. Please try again.');
@@ -443,6 +510,25 @@
         const timeInput = document.getElementById('bookingTime');
         const addressInput = document.getElementById('bookingAddress');
         const select = document.getElementById('hoursSelect');
+
+            if (
+        !selectedPackage ||
+        Number(selectedPackage.id) !== Number(packageId)
+    ) {
+        showError(
+            'Package details are still loading. Please wait and try again.'
+        );
+        return;
+    }
+
+    if (
+        !Number.isFinite(Number(selectedPackage.price))
+    ) {
+        showError(
+            'Unable to determine the package price. Please try again.'
+        );
+        return;
+    }
 
         if (dateInput && !dateInput.value) {
             dateInput.reportValidity();
@@ -650,8 +736,9 @@
                 fetchPackageDetails(packageId)
                     .then(function (pkg) {
                         selectedPackage = pkg;
-                        initWorkerHeader();
-                        updateTotal();
+initWorkerHeader();
+applyPackageDuration();
+updateTotal();
                     })
                     .catch(function () {
                         showError('Unable to load package details. Please go back and try again.');

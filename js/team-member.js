@@ -1,93 +1,14 @@
 /* =========================================================
    HandyHire - Team Member JavaScript
-   Reads the selected member (and selected team) from
-   sessionStorage - written by team-page.js when the user
-   taps a member card. Displays the member's details. This
-   page is part of the Team Package flow only; there is NO
-   booking CTA and NO redirect to job-hire / worker-profile.
+   Reads the selected worker ID from URL query params
+   and fetches real data from GET /api/workers/{worker_id}.
+   Displays the member's details. This page is part of the
+   Team Package flow only; there is NO booking CTA and
+   NO redirect to job-hire / worker-profile.
    ========================================================= */
 
 (function () {
     'use strict';
-
-    /**
-     * Catalog of detailed information for every team
-     * member. In production this would come from an API.
-     */
-    const MEMBER_DETAILS = {
-        'Rushda Kalghatgi': {
-            age: 32, mobile: '+91 90123 45678',
-            email: 'rushda.kalghatgi@handyhire.test',
-            address: 'Sector 21, Noida, Uttar Pradesh',
-            qualification: '10 years of construction experience',
-        },
-        'Ravi Kumar': {
-            age: 34, mobile: '+91 98765 43210',
-            email: 'ravi.kumar@handyhire.test',
-            address: 'Sector 18, Noida, Uttar Pradesh',
-            qualification: 'ITI in Plumbing, 8 years field experience',
-        },
-        'Anita Sharma': {
-            age: 30, mobile: '+91 91234 56789',
-            email: 'anita.sharma@handyhire.test',
-            address: 'Sector 12, Noida, Uttar Pradesh',
-            qualification: 'Certified Electrician, 6 years experience',
-        },
-        'Suresh Patel': {
-            age: 41, mobile: '+91 99887 76655',
-            email: 'suresh.patel@handyhire.test',
-            address: 'Sector 9, Noida, Uttar Pradesh',
-            qualification: 'Master Carpenter, 15 years experience',
-        },
-        'Mohan Das': {
-            age: 38, mobile: '+91 98712 34567',
-            email: 'mohan.das@handyhire.test',
-            address: 'Sector 14, Noida, Uttar Pradesh',
-            qualification: 'Expert Painter & Mason',
-        },
-        'Priya Singh': {
-            age: 27, mobile: '+91 90909 80808',
-            email: 'priya.singh@handyhire.test',
-            address: 'Sector 22, Noida, Uttar Pradesh',
-            qualification: 'Certified Cleaner, eco-friendly methods',
-        },
-        'Neha Iyer': {
-            age: 29, mobile: '+91 92345 67890',
-            email: 'neha.iyer@handyhire.test',
-            address: 'Sector 11, Noida, Uttar Pradesh',
-            qualification: 'Licensed Pest Control Specialist',
-        },
-        'Arjun Mehta': {
-            age: 36, mobile: '+91 93456 78901',
-            email: 'arjun.mehta@handyhire.test',
-            address: 'Sector 5, Noida, Uttar Pradesh',
-            qualification: 'Handyman, 10 years multi-trade experience',
-        },
-        'Lata Verma': {
-            age: 33, mobile: '+91 94567 89012',
-            email: 'lata.verma@handyhire.test',
-            address: 'Sector 7, Noida, Uttar Pradesh',
-            qualification: 'AC & Refrigeration Specialist',
-        },
-        'Asha Verma': {
-            age: 28, mobile: '+91 95678 90123',
-            email: 'asha.verma@handyhire.test',
-            address: 'Sector 4, Noida, Uttar Pradesh',
-            qualification: 'Cleaning Helper, 4 years experience',
-        },
-        'Rina Das': {
-            age: 26, mobile: '+91 96789 01234',
-            email: 'rina.das@handyhire.test',
-            address: 'Sector 6, Noida, Uttar Pradesh',
-            qualification: 'Cleaning Helper, 3 years experience',
-        },
-        'Pooja Nair': {
-            age: 31, mobile: '+91 97890 12345',
-            email: 'pooja.nair@handyhire.test',
-            address: 'Sector 8, Noida, Uttar Pradesh',
-            qualification: 'Helper / Painter, 7 years experience',
-        },
-    };
 
     /**
      * Generate a placeholder avatar data URL.
@@ -124,22 +45,48 @@
             </svg>
         `.trim();
 
-        return `url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}")`;
+        return `url("data:image/svg+xml;utf8,${encodeURIComponent(svg)})`;
     }
 
     /**
-     * Read the selected member from sessionStorage.
+     * Read worker_id from URL query params.
+     * @returns {string|null}
+     */
+    function readWorkerId() {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const fromUrl = params.get('worker_id');
+            if (fromUrl) return String(fromUrl).trim();
+        } catch (e) {
+            // Ignore URL errors.
+        }
+        return null;
+    }
+
+    /**
+     * Read package_id from URL query params for Back navigation.
+     * @returns {string|null}
+     */
+    function readPackageId() {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const fromUrl = params.get('package_id');
+            if (fromUrl) return String(fromUrl).trim();
+        } catch (e) {
+            // Ignore URL errors.
+        }
+        return null;
+    }
+
+    /**
+     * Resolve the API helper (js/api.js) with a safe fallback.
      * @returns {Object|null}
      */
-    function readSelectedMember() {
-        try {
-            const raw = sessionStorage.getItem('handyhire.selectedMember');
-            if (!raw) return null;
-            const parsed = JSON.parse(raw);
-            return parsed && typeof parsed === 'object' ? parsed : null;
-        } catch (e) {
-            return null;
+    function getApi() {
+        if (window.HandyHireAPI && typeof window.HandyHireAPI.apiFetch === 'function') {
+            return window.HandyHireAPI;
         }
+        return null;
     }
 
     /**
@@ -153,27 +100,32 @@
     }
 
     /**
-     * Populate the page from the stored member record.
+     * Show an error state on the page.
      */
-    function populatePage() {
-        const member = readSelectedMember();
-        const name = (member && member.name) || 'Team Member';
-        const occupation = (member && member.occupation) || 'Team Member';
-        const team = (member && member.team) || 'Selected Team';
+    function showError(message) {
+        setText('memberNameLarge', 'Error');
+        setText('memberInfoOccupation', message);
+    }
+
+    /**
+     * Populate the page from the real API worker response.
+     * @param {Object} worker
+     */
+    function populatePage(worker) {
+        const name = worker.full_name || 'Team Member';
+        const profession = worker.profession || 'Team Member';
 
         setText('memberNameLarge', name);
-        setText('memberInfoOccupation', occupation);
-        setText('memberTeamLine', 'Part of: ' + team);
+        setText('memberInfoOccupation', profession);
 
-        const details = MEMBER_DETAILS[name] || {};
+        const teamEl = document.getElementById('memberTeamLine');
+        if (teamEl) teamEl.textContent = 'Team Member';
 
-        setText('memberInfoAge',
-            details.age ? details.age + ' years' : '\u2014');
-        setText('memberInfoMobile', details.mobile || '\u2014');
-        setText('memberInfoEmail',   details.email   || '\u2014');
-        setText('memberInfoAddress', details.address || '\u2014');
-        setText('memberInfoQualification',
-            details.qualification || '\u2014');
+        setText('memberInfoAge', '--');
+        setText('memberInfoMobile', '--');
+        setText('memberInfoEmail', '--');
+        setText('memberInfoAddress', '--');
+        setText('memberInfoQualification', '--');
 
         const avatar = document.getElementById('memberAvatarLarge');
         if (avatar) avatar.style.backgroundImage = buildAvatar(name);
@@ -184,7 +136,48 @@
      */
     function init() {
         if (!(window.HandyHireAPI && window.HandyHireAPI.requireRole('customer'))) return;
-        populatePage();
+
+        const workerId = readWorkerId();
+        if (!workerId) {
+            showError('No worker selected. Please go back and choose a team member.');
+            return;
+        }
+
+        const api = getApi();
+        if (!api) {
+            showError('Unable to load member details. Please try again later.');
+            return;
+        }
+
+        api.apiFetch('/api/workers/' + encodeURIComponent(workerId))
+            .then(function (response) {
+                if (response.status === 401) {
+                    api.clearAuth();
+                    window.location.href = 'login.html';
+                    return null;
+                }
+                if (!response.ok) throw new Error('Worker not found');
+                return response.json();
+            })
+            .then(function (worker) {
+                if (!worker) return;
+                populatePage(worker);
+            })
+            .catch(function () {
+                showError('Unable to load member details. Please go back and try again.');
+            });
+
+        const backBtn = document.getElementById('backLink');
+        if (backBtn) {
+            backBtn.addEventListener('click', function (event) {
+                event.preventDefault();
+                const packageId = readPackageId();
+                const fallback = packageId
+                    ? 'team-page.html?package_id=' + encodeURIComponent(packageId)
+                    : 'team-package.html';
+                window.location.href = fallback;
+            });
+        }
     }
 
     if (document.readyState === 'loading') {

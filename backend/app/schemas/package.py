@@ -30,8 +30,8 @@ class PackageCreate(BaseModel):
     location: Optional[str] = Field(None, max_length=255)
     availability: Optional[str] = Field(None, max_length=100)
     status: str = Field("published", min_length=1, max_length=20)
-    service_ids: List[int] = []
-    worker_ids: List[int] = []
+    service_ids: List[int] = Field(default_factory=list)
+    worker_ids: List[int] = Field(default_factory=list)
 
 
 class PackageUpdate(BaseModel):
@@ -58,8 +58,8 @@ class PackageResponse(BaseModel):
     availability: Optional[str] = None
     status: str
     owner_id: int
-    services: List[ServiceSummary] = []
-    workers: List[PackageWorkerSummary] = []
+    services: List[ServiceSummary] = Field(default_factory=list)
+    workers: List[PackageWorkerSummary] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -74,7 +74,7 @@ class PackageSummary(BaseModel):
     location: Optional[str] = None
     availability: Optional[str] = None
     status: str
-    services: List[ServiceSummary] = []
-    workers: List[PackageWorkerSummary] = []
+    services: List[ServiceSummary] = Field(default_factory=list)
+    workers: List[PackageWorkerSummary] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
