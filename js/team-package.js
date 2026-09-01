@@ -11,66 +11,29 @@
     'use strict';
 
     /**
-     * Sample team package data. Each entry represents the
-     * WHOLE team - never an individual worker. The price
-     * label is associated with the team, not per-person.
+     * Fetched team data from the backend.
      */
-    const PACKAGES = [
-        {
-            name: 'BuildRight Crew',
-            category: 'Construction',
-            description: 'A complete team for construction work.',
-            members: ['Mason', 'Carpenter', 'Electrician', 'Helper'],
-            size: 4,
-            rating: 4.8,
-            priceLabel: 'Team package price',
-        },
-        {
-            name: 'Home Renovation Team',
-            category: 'Home Renovation',
-            description: 'A complete team for renovation work.',
-            members: ['Carpenter', 'Painter', 'Electrician'],
-            size: 3,
-            rating: 4.7,
-            priceLabel: 'Team package price',
-        },
-        {
-            name: 'FixIt Squad',
-            category: 'Repair & Maintenance',
-            description: 'A complete team for repair and maintenance work.',
-            members: ['Plumber', 'Electrician', 'Handyman'],
-            size: 3,
-            rating: 4.6,
-            priceLabel: 'Team package price',
-        },
-        {
-            name: 'CleanHome Team',
-            category: 'Cleaning',
-            description: 'A complete team for deep cleaning and upkeep.',
-            members: ['Cleaner', 'Pest Control', 'Helper'],
-            size: 5,
-            rating: 4.9,
-            priceLabel: 'Team package price',
-        },
-        {
-            name: 'PowerGrid Unit',
-            category: 'Electrical',
-            description: 'A complete team for electrical installation and repair.',
-            members: ['Electrician', 'Helper'],
-            size: 2,
-            rating: 4.5,
-            priceLabel: 'Team package price',
-        },
-        {
-            name: 'FreshPaint Crew',
-            category: 'Painting',
-            description: 'A complete team for interior and exterior painting.',
-            members: ['Painter', 'Helper', 'Carpenter'],
-            size: 3,
-            rating: 4.6,
-            priceLabel: 'Team package price',
-        },
-    ];
+    let allTeams = [];
+
+    /**
+     * Map a backend team object to the shape consumed by the
+     * existing card renderer.
+     */
+    function mapTeamToCard(team) {
+        const memberNames = (team.members || [])
+            .map(function (m) { return m.full_name || m.profession || 'Team member'; });
+
+        return {
+            id: team.id,
+            name: team.name || '',
+            category: team.category || '',
+            description: team.description || '',
+            members: memberNames,
+            size: memberNames.length,
+            rating: null,
+            priceLabel: null,
+        };
+    }
 
     /**
      * Escape user-supplied text before injecting as HTML.
@@ -160,29 +123,38 @@
 
         const labelSummary = [
             formatSize(pkg.size),
-            pkg.category,
+            escapeHtml(pkg.category),
         ].join(' &middot; ');
+
+        const ratingHtml = pkg.rating != null
+            ? `<div class="package-rating" aria-label="Team rated ${Number(pkg.rating).toFixed(1)} out of 5">
+                    <span class="stars" aria-hidden="true">${buildStars(pkg.rating)}</span>
+                    <span class="rating-value">${Number(pkg.rating).toFixed(1)}</span>
+               </div>`
+            : '';
+
+        const priceHtml = pkg.priceLabel
+            ? `<div class="package-price-row">
+                    <span class="package-price-label">${escapeHtml(pkg.priceLabel)}</span>
+               </div>`
+            : '';
 
         return `
             <li>
                 <article class="package-card" tabindex="0"
                          data-name="${escapeHtml(pkg.name)}"
+                         data-team-id="${escapeHtml(String(pkg.id))}"
                          aria-label="${escapeHtml(pkg.name)} team package, ${labelSummary}">
                     <div class="package-avatar" style="background-image: ${buildAvatar(pkg.name)}" aria-hidden="true"></div>
                     <div class="package-text">
                         <p class="package-name">${escapeHtml(pkg.name)}</p>
                         <p class="package-description">${escapeHtml(pkg.description)}</p>
-                        <div class="package-rating" aria-label="Team rated ${pkg.rating.toFixed(1)} out of 5">
-                            <span class="stars" aria-hidden="true">${buildStars(pkg.rating)}</span>
-                            <span class="rating-value">${pkg.rating.toFixed(1)}</span>
-                        </div>
+                        ${ratingHtml}
                         <p class="package-section-label">Team includes:</p>
                         <ul class="package-members">
                             ${memberBullets}
                         </ul>
-                        <div class="package-price-row">
-                            <span class="package-price-label">${escapeHtml(pkg.priceLabel)}</span>
-                        </div>
+                        ${priceHtml}
                         <button type="button"
                                 class="package-book-cta"
                                 data-target-team="${escapeHtml(pkg.name)}">
@@ -215,7 +187,7 @@
         const q = String(query || '').trim().toLowerCase();
         const sizeFilter = String(teamSize || 'all');
 
-        return PACKAGES.filter((pkg) => {
+        return allTeams.filter(function (pkg) {
             const matchesText = !q
                 || pkg.name.toLowerCase().includes(q)
                 || pkg.category.toLowerCase().includes(q);
@@ -241,7 +213,11 @@
         function update() {
             const q = input ? input.value : '';
             const size = select ? select.value : 'all';
-            renderList(filterPackages(q, size), container, emptyState);
+            const filtered = filterPackages(q, size);
+            if (emptyState && !filtered.length) {
+                emptyState.textContent = 'No packages match your filters.';
+            }
+            renderList(filtered, container, emptyState);
         }
 
         if (input) input.addEventListener('input', update);
@@ -253,10 +229,14 @@
      * (team-page.html, booking.html) can read it and show
      * "Booking: <Team Name>" instead of a single worker.
      * @param {string} teamName
+     * @param {number|string|null} teamId
      */
-    function persistSelectedTeam(teamName) {
+    function persistSelectedTeam(teamName, teamId) {
         try {
             sessionStorage.setItem('handyhire.selectedTeam', teamName);
+            if (teamId != null) {
+                sessionStorage.setItem('handyhire.selectedTeamId', String(teamId));
+            }
         } catch (e) {
             // Ignore storage errors (private mode etc.).
         }
@@ -287,9 +267,9 @@
     function initCardNavigation(container) {
         if (!container) return;
 
-        function navigate(teamName) {
+        function navigate(teamName, teamId) {
             if (!teamName) return;
-            persistSelectedTeam(teamName);
+            persistSelectedTeam(teamName, teamId);
             try {
                 sessionStorage.setItem('handyhire.customer.previousPage', 'team-package.html');
             } catch (e) {}
@@ -302,12 +282,14 @@
             if (cta && container.contains(cta)) {
                 const name = cta.getAttribute('data-target-team')
                     || resolveTeamName(cta, container);
-                navigate(name);
+                const card = cta.closest('.package-card');
+                const teamId = card ? card.getAttribute('data-team-id') : null;
+                navigate(name, teamId);
                 return;
             }
             const card = event.target.closest('.package-card');
             if (!card || !container.contains(card)) return;
-            navigate(card.getAttribute('data-name'));
+            navigate(card.getAttribute('data-name'), card.getAttribute('data-team-id'));
         });
 
         container.addEventListener('keydown', function (event) {
@@ -318,13 +300,15 @@
                 event.preventDefault();
                 const name = cta.getAttribute('data-target-team')
                     || resolveTeamName(cta, container);
-                navigate(name);
+                const card = cta.closest('.package-card');
+                const teamId = card ? card.getAttribute('data-team-id') : null;
+                navigate(name, teamId);
                 return;
             }
             const card = event.target.closest('.package-card');
             if (!card || !container.contains(card)) return;
             event.preventDefault();
-            navigate(card.getAttribute('data-name'));
+            navigate(card.getAttribute('data-name'), card.getAttribute('data-team-id'));
         });
     }
 
@@ -343,6 +327,56 @@
     }
 
     /**
+     * Fetch teams from the backend and render them.
+     */
+    async function loadTeams() {
+        const list = document.getElementById('packageList');
+        const emptyState = document.getElementById('emptyState');
+        if (!list) return;
+
+        if (emptyState) {
+            emptyState.textContent = 'Loading teams...';
+            emptyState.hidden = false;
+        }
+        list.innerHTML = '';
+
+        if (!(window.HandyHireAPI && typeof window.HandyHireAPI.apiFetch === 'function')) {
+            if (emptyState) {
+                emptyState.textContent = 'Unable to load teams. Please try again.';
+                emptyState.hidden = false;
+            }
+            return;
+        }
+
+        try {
+            const resp = await window.HandyHireAPI.apiFetch('/api/teams');
+
+            if (!resp.ok) {
+                throw new Error('API returned ' + resp.status);
+            }
+
+            const data = await resp.json();
+            allTeams = Array.isArray(data) ? data.map(mapTeamToCard) : [];
+
+            if (!allTeams.length) {
+                if (emptyState) {
+                    emptyState.textContent = 'No teams available.';
+                    emptyState.hidden = false;
+                }
+                return;
+            }
+
+            if (emptyState) emptyState.hidden = true;
+            renderList(allTeams, list, emptyState);
+        } catch (e) {
+            if (emptyState) {
+                emptyState.textContent = 'Unable to load teams. Please try again.';
+                emptyState.hidden = false;
+            }
+        }
+    }
+
+    /**
      * Initialize the Team Packages page.
      */
     function init() {
@@ -351,10 +385,10 @@
         const emptyState = document.getElementById('emptyState');
         if (!list) return;
 
-        renderList(PACKAGES, list, emptyState);
         initFilters(list, emptyState);
         initCardNavigation(list);
         initBackButton();
+        loadTeams();
     }
 
     // Run after DOM is ready

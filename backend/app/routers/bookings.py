@@ -1,4 +1,5 @@
 from typing import Optional
+from datetime import date
 
 from fastapi import (
     APIRouter,
@@ -7,6 +8,7 @@ from fastapi import (
     Query,
     status,
 )
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from app import models
@@ -25,6 +27,28 @@ router = APIRouter(
     prefix="/api/bookings",
     tags=["bookings"],
 )
+
+
+def _build_booking_response(booking, db, team_name=None):
+    worker = db.query(models.User).filter(models.User.id == booking.worker_id).first()
+    service = db.query(models.Service).filter(models.Service.id == booking.service_id).first() if booking.service_id else None
+    return BookingResponse(
+        id=booking.id,
+        customer_id=booking.customer_id,
+        worker_id=booking.worker_id,
+        team_id=booking.team_id,
+        service_id=booking.service_id,
+        booking_date=booking.booking_date,
+        booking_time=booking.booking_time,
+        address=booking.address,
+        description=booking.description,
+        amount=booking.amount,
+        status=booking.status,
+        created_at=booking.created_at.isoformat() if booking.created_at else None,
+        worker_name=worker.full_name if worker else None,
+        service_name=service.name if service else None,
+        team_name=team_name,
+    )
 
 
 @router.post(
@@ -47,6 +71,63 @@ def create_booking(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="This account cannot create bookings",
         )
+
+    if payload.team_id is not None:
+        team = db.query(models.Team).filter(models.Team.id == payload.team_id).first()
+        if not team:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team not found")
+
+        members = db.query(models.TeamMember).filter(models.TeamMember.team_id == payload.team_id).all()
+        if not members:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team has no members")
+
+        if payload.service_id is not None:
+            service = db.query(models.Service).filter(models.Service.id == payload.service_id).first()
+            if not service:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Service not found")
+
+        created_bookings = []
+        for member in members:
+            booking = models.Booking(
+                customer_id=current_user.id,
+                worker_id=member.worker_id,
+                team_id=payload.team_id,
+                service_id=payload.service_id,
+                booking_date=payload.booking_date,
+                booking_time=payload.booking_time,
+                address=payload.address,
+                description=payload.description,
+                amount=payload.amount,
+                status="pending",
+            )
+            db.add(booking)
+            db.flush()
+
+            booking_request = models.BookingRequest(
+                booking_id=booking.id,
+                worker_id=member.worker_id,
+                customer_id=current_user.id,
+                status="pending",
+            )
+            db.add(booking_request)
+            created_bookings.append(booking)
+
+        db.commit()
+        for booking in created_bookings:
+            db.refresh(booking)
+
+        responses = []
+        for booking in created_bookings:
+            responses.append(_build_booking_response(booking, db, team_name=team.name))
+
+        return JSONResponse(
+            content=[r.model_dump(mode="json") for r in responses],
+            status_code=status.HTTP_201_CREATED,
+        )
+
+    worker = db.query(models.User).filter(models.User.id == payload.worker_id, models.User.role == "worker").first()
+    if not worker:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Worker not found")
 
     worker = None
     service = None
@@ -224,6 +305,7 @@ def create_booking(
         id=booking.id,
         customer_id=booking.customer_id,
         worker_id=booking.worker_id,
+        team_id=booking.team_id,
         service_id=booking.service_id,
         package_id=booking.package_id,
         booking_date=booking.booking_date,
@@ -325,6 +407,7 @@ def list_customer_bookings(
                 id=booking.id,
                 customer_id=booking.customer_id,
                 worker_id=booking.worker_id,
+                team_id=booking.team_id,
                 service_id=booking.service_id,
                 package_id=booking.package_id,
                 booking_date=booking.booking_date,
@@ -422,6 +505,7 @@ def get_customer_booking(
         id=booking.id,
         customer_id=booking.customer_id,
         worker_id=booking.worker_id,
+        team_id=booking.team_id,
         service_id=booking.service_id,
         package_id=booking.package_id,
         booking_date=booking.booking_date,

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from pydantic.config import ConfigDict
 from typing import Optional, List
 from datetime import date
@@ -6,6 +6,7 @@ from datetime import date
 
 class BookingCreate(BaseModel):
     worker_id: Optional[int] = Field(None, gt=0)
+    team_id: Optional[int] = Field(None, gt=0)
     service_id: Optional[int] = Field(None, gt=0)
     package_id: Optional[int] = Field(None, gt=0)
 
@@ -25,12 +26,18 @@ class BookingCreate(BaseModel):
     description: Optional[str] = None
     amount: int = Field(..., gt=0)
 
+    @model_validator(mode="after")
+    def validate_worker_or_team(self):
+        if not self.worker_id and not self.team_id:
+            raise ValueError("Either worker_id or team_id must be provided")
+        return self
+
 
 class BookingResponse(BaseModel):
     id: int
     customer_id: int
-    worker_id: int
-
+    worker_id: Optional[int] = None
+    team_id: Optional[int] = None
     service_id: Optional[int] = None
     package_id: Optional[int] = None
 
@@ -48,5 +55,6 @@ class BookingResponse(BaseModel):
     service_name: Optional[str] = None
     customer_name: Optional[str] = None
     package_name: Optional[str] = None
+    team_name: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)

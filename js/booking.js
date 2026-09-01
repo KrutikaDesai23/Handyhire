@@ -106,6 +106,24 @@
     }
 
     /**
+     * Read the numeric team ID from sessionStorage for API
+     * calls. Returns null if no valid numeric ID is stored.
+     * @returns {number|null}
+     */
+    function getSelectedTeamId() {
+        try {
+            const id = sessionStorage.getItem('handyhire.selectedTeamId');
+            if (id) {
+                const num = Number(id);
+                if (Number.isFinite(num) && num > 0) return num;
+            }
+        } catch (e) {
+            // Ignore storage errors.
+        }
+        return null;
+    }
+
+    /**
      * True when the current view represents a multitasking
      * package booking (set by multitasking-package.js).
      * @returns {boolean}
@@ -328,7 +346,7 @@
     /**
      * Build the exact POST /api/bookings body from the
      * existing form fields. Matches backend BookingCreate:
-     *   worker_id, service_id?, package_id?, booking_date,
+     *   worker_id|team_id, service_id?, package_id?, booking_date,
      *   booking_time, address, description?, amount
      * @param {string|null} workerId
      * @param {string} dateValue
@@ -338,7 +356,7 @@
      * @returns {Object}
      */
     function buildBookingPayload(workerId, dateValue, timeValue, addressValue, hours) {
-        var payload = {
+        const payload = {
             booking_date: dateValue,
             booking_time: timeValue,
             address: addressValue,
@@ -349,6 +367,11 @@
         if (isPackageBooking() && selectedPackage) {
             payload.package_id = Number(selectedPackage.id);
             payload.amount = Number(selectedPackage.price);
+        } else if (isTeamBooking()) {
+            const teamId = getSelectedTeamId();
+            if (teamId) {
+                payload.team_id = teamId;
+            }
         } else if (workerId) {
             payload.worker_id = Number(workerId);
         }
@@ -374,17 +397,10 @@
                 return;
             }
 
-            // Team bookings cannot be created by the current
-            // backend (POST /api/bookings accepts a single
-            // worker_id). Surface that cleanly without breaking
-            // the existing team UI.
-            if (isTeamBooking()) {
-                showError('Team bookings are not available yet. Please book an individual professional.');
-                return;
-            }
+            const isTeam = isTeamBooking();
+            const workerId = isTeam ? null : readWorkerId();
 
-            const workerId = readWorkerId();
-            if (!workerId) {
+            if (!isTeam && !workerId) {
                 showError('No professional selected. Please go back and choose a professional to book.');
                 return;
             }
@@ -582,22 +598,23 @@
      * Persist the real backend booking response into the
      * existing handyhire.lastBooking payload so the success
      * page can read from the source of truth.
-     * @param {Object} booking  backend BookingResponse
+     * @param {Object} booking  backend BookingResponse or first item from list
      * @param {number} hours    duration selected on the form
      * @param {Object} payload  payload that was submitted
      */
     function persistBookingSuccess(booking, hours, payload) {
+        const isTeam = isTeamBooking();
         const summary = {
-            bookingId: booking.id,
-            workerId: booking.worker_id,
-            workerName: booking.worker_name || readWorkerName(),
-            booking_date: booking.booking_date || payload.booking_date,
-            booking_time: booking.booking_time || payload.booking_time,
-            address: booking.address || payload.address,
+            bookingId: booking && booking.id ? booking.id : null,
+            workerId: booking && booking.worker_id ? booking.worker_id : null,
+            workerName: isTeam ? readSelectedTeam() : (booking && booking.worker_name ? booking.worker_name : readWorkerName()),
+            booking_date: (booking && booking.booking_date) || payload.booking_date,
+            booking_time: (booking && booking.booking_time) || payload.booking_time,
+            address: (booking && booking.address) || payload.address,
             hours: hours,
-            amount: booking.amount || payload.amount,
-            total: booking.amount || payload.amount,
-            status: booking.status || 'pending',
+            amount: (booking && booking.amount) || payload.amount,
+            total: (booking && booking.amount) || payload.amount,
+            status: (booking && booking.status) || 'pending',
         };
         try {
             sessionStorage.setItem('handyhire.lastBooking', JSON.stringify(summary));

@@ -513,21 +513,28 @@
     })();
 
     /**
-     * Profession-to-services mapping for the Services
-     * Offered pills.
+     * Fetched services from the backend.
      */
-    const SERVICES_MAP = {
-        'Plumber': ['Pipe Repair', 'Leak Fixing', 'Tap Installation', 'Bathroom Fittings', 'Emergency Plumbing'],
-        'Electrician': ['Home Wiring', 'Switchboard Repair', 'Appliance Repair', 'Lighting Installation', 'Electrical Safety'],
-        'Carpenter': ['Furniture Repair', 'Modular Kitchen', 'Custom Woodwork', 'Wardrobe Fitting', 'Door & Frame'],
-        'Cleaner': ['Deep Cleaning', 'Kitchen Cleaning', 'Post-Move Clean', 'Sofa Cleaning', 'Window Cleaning'],
-        'Painter': ['Interior Painting', 'Exterior Painting', 'Wall Finishing', 'Color Consultation', 'Texture Work'],
-        'AC Repair': ['AC Installation', 'Servicing', 'Gas Refilling', 'Split/Window Units', 'Ducting'],
-        'Handyman': ['Drilling', 'Mounting', 'Furniture Assembly', 'Small Repairs', 'Installation'],
-        'Pest Control': ['Cockroach Control', 'Termite Treatment', 'Rodent Management', 'Eco-Friendly Solutions', 'Prevention'],
-        'Laborer': ['Site Preparation', 'Material Handling', 'Finishing Support', 'Heavy Lifting', 'Site Cleanup'],
-        'Helper': ['Cleaning Support', 'Material Transport', 'On-site Coordination', 'Tool Assistance', 'Setup Help'],
-    };
+    let allServices = [];
+
+    /**
+     * Fetch all services from the backend.
+     * @returns {Promise<Array>}
+     */
+    async function loadServices() {
+        if (!(window.HandyHireAPI && typeof window.HandyHireAPI.apiFetch === 'function')) {
+            return [];
+        }
+        try {
+            const resp = await window.HandyHireAPI.apiFetch('/api/services');
+            if (!resp.ok) return [];
+            const data = await resp.json();
+            allServices = Array.isArray(data) ? data : [];
+        } catch (e) {
+            allServices = [];
+        }
+        return allServices;
+    }
 
     /**
      * Quick-info field definitions for the 2-column grid.
@@ -799,16 +806,20 @@
 
     /**
      * Render the Services Offered pills for the resolved
-     * worker based on their profession.
+     * worker from the fetched backend services list.
      * @param {object} worker
      */
     function renderServices(worker) {
         const list = document.getElementById('servicesPills');
         if (!list) return;
 
-        const services = SERVICES_MAP[worker.profession] || ['General Maintenance', 'Consultation', 'On-site Service'];
-        list.innerHTML = services.map(function (s) {
-            return '<li class="service-pill">' + escapeHtml(s) + '</li>';
+        if (!allServices.length) {
+            list.innerHTML = '<li class="service-pill" style="opacity:0.6;">No services available.</li>';
+            return;
+        }
+
+        list.innerHTML = allServices.map(function (s) {
+            return '<li class="service-pill">' + escapeHtml(s.name || '') + '</li>';
         }).join('');
     }
 
@@ -1122,26 +1133,38 @@
      */
     function init() {
         if (!(window.HandyHireAPI && window.HandyHireAPI.requireRole('customer'))) return;
-        const workerId = readWorkerId();
 
-        if (workerId) {
-            renderEmptyState('Loading professional...');
-            return Promise.all([fetchWorkerById(workerId), fetchWorkerReviews(workerId)])
-                .then(function (results) {
-                    const worker = mapApiWorkerToUi(results[0], results[1]);
-                    worker.__context = { source: readQueryParam('source'), member: readSelectedMember() };
-                    renderAll(worker);
-                })
-                .catch(function () {
-                    // Backend unavailable or worker not found: fall back to
-                    // slug/catalog resolution for team deep links.
-                    const resolved = resolveFromContext();
-                    renderAll(resolved.worker);
-                });
+        // Show a loading state in the services area while we
+        // fetch the global services catalog from the backend.
+        const servicesList = document.getElementById('servicesPills');
+        if (servicesList) {
+            servicesList.innerHTML = '<li class="service-pill" style="opacity:0.6;">Loading services...</li>';
         }
 
-        const resolved = resolveFromContext();
-        renderAll(resolved.worker);
+        // Preload services so renderServices() can use them
+        // regardless of which worker resolution path succeeds.
+        Promise.resolve(loadServices()).then(function () {
+            const workerId = readWorkerId();
+
+            if (workerId) {
+                renderEmptyState('Loading professional...');
+                return Promise.all([fetchWorkerById(workerId), fetchWorkerReviews(workerId)])
+                    .then(function (results) {
+                        const worker = mapApiWorkerToUi(results[0], results[1]);
+                        worker.__context = { source: readQueryParam('source'), member: readSelectedMember() };
+                        renderAll(worker);
+                    })
+                    .catch(function () {
+                        // Backend unavailable or worker not found: fall back to
+                        // slug/catalog resolution for team deep links.
+                        const resolved = resolveFromContext();
+                        renderAll(resolved.worker);
+                    });
+            }
+
+            const resolved = resolveFromContext();
+            renderAll(resolved.worker);
+        });
     }
 
     /**

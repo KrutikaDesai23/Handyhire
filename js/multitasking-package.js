@@ -1,10 +1,9 @@
 /* =========================================================
    HandyHire - Multitasking Packages JavaScript
    Renders a vertical list of package cards with avatar,
-   name, skills and star rating. The first card is
-   "Krutika Desai" per the design reference. Live
-   filtering is supported via the search input.
-   Navigation is intentionally not connected yet.
+   name, skills and star rating. Live filtering is supported
+   via the search input. Navigation is intentionally not
+   connected yet.
    ========================================================= */
 
 (function () {
@@ -14,15 +13,6 @@
      * Published multitasking packages loaded from the backend.
      */
     let allPackages = [];
-
-    /**
-     * Build a stars string for display.
-     */
-    function buildStars(rating) {
-        var full = Math.floor(Number(rating) || 0);
-        var empty = 5 - full;
-        return '\u2605'.repeat(full) + '\u2606'.repeat(empty);
-    }
 
     /**
      * Escape user-supplied text before injecting as HTML.
@@ -222,6 +212,9 @@
 
         input.addEventListener('input', function () {
             const filtered = filterPackages(input.value);
+            if (emptyState && !filtered.length) {
+                emptyState.textContent = 'No packages match your search.';
+            }
             renderList(filtered, container, emptyState);
         });
     }
@@ -294,52 +287,54 @@
     }
 
     /**
-     * Show a lightweight loading indicator inside the
-     * package list container.
+     * Fetch multitasking packages from the backend and
+     * render them.
      */
-    function showLoading(container) {
-        if (!container) return;
-        container.innerHTML =
-            '<li class="package-loading" aria-live="polite">' +
-                'Loading packages...' +
-            '</li>';
-    }
+    async function loadPackages() {
+        const list = document.getElementById('packageList');
+        const emptyState = document.getElementById('emptyState');
+        if (!list) return;
 
-    /**
-     * Show an error message inside the package list
-     * container.
-     */
-    function showError(container, message) {
-        if (!container) return;
-        container.innerHTML =
-            '<li class="package-error" aria-live="assertive">' +
-                '<p>Unable to load packages.</p>' +
-                '<p class="package-error-detail">' +
-                    escapeHtml(String(message || '').slice(0, 200)) +
-                '</p>' +
-            '</li>';
-    }
+        if (emptyState) {
+            emptyState.textContent = 'Loading packages...';
+            emptyState.hidden = false;
+        }
+        list.innerHTML = '';
 
-    /**
-     * Load multitasking packages from the backend.
-     */
-    function loadPackages(container, emptyState) {
-        showLoading(container);
-        HandyHireAPI.apiFetch('/api/packages?package_type=multitasking')
-            .then(function (response) {
-                if (!response.ok) {
-                    throw new Error('Failed to load packages (HTTP ' + response.status + ')');
+        if (!(window.HandyHireAPI && typeof window.HandyHireAPI.apiFetch === 'function')) {
+            if (emptyState) {
+                emptyState.textContent = 'Unable to load packages. Please try again.';
+                emptyState.hidden = false;
+            }
+            return;
+        }
+
+        try {
+            const resp = await window.HandyHireAPI.apiFetch('/api/packages?package_type=multitasking');
+
+            if (!resp.ok) {
+                throw new Error('API returned ' + resp.status);
+            }
+
+            const data = await resp.json();
+            allPackages = Array.isArray(data) ? data.slice() : [];
+
+            if (!allPackages.length) {
+                if (emptyState) {
+                    emptyState.textContent = 'No packages available.';
+                    emptyState.hidden = false;
                 }
-                return response.json();
-            })
-            .then(function (data) {
-                var packages = data || [];
-                allPackages = Array.isArray(packages) ? packages.slice() : [];
-                renderList(allPackages, container, emptyState);
-            })
-            .catch(function (error) {
-                showError(container, error.message || 'Unknown error');
-            });
+                return;
+            }
+
+            if (emptyState) emptyState.hidden = true;
+            renderList(allPackages, list, emptyState);
+        } catch (e) {
+            if (emptyState) {
+                emptyState.textContent = 'Unable to load packages. Please try again.';
+                emptyState.hidden = false;
+            }
+        }
     }
 
     /**
@@ -347,14 +342,14 @@
      */
     function init() {
         if (!(window.HandyHireAPI && window.HandyHireAPI.requireRole('customer'))) return;
-        var list = document.getElementById('packageList');
-        var emptyState = document.getElementById('emptyState');
+        const list = document.getElementById('packageList');
+        const emptyState = document.getElementById('emptyState');
         if (!list) return;
 
-        loadPackages(list, emptyState);
         initSearch(list, emptyState);
         initCardNavigation(list);
         initBackButton();
+        loadPackages();
     }
 
     // Run after DOM is ready
