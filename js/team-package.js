@@ -329,28 +329,16 @@
     }
 
     /**
-     * Set the Back button href from sessionStorage so it
-     * returns to the exact previous customer page rather
-     * than a hardcoded fallback, and wire up an explicit
-     * click handler so navigation always fires.
-     */
+      * Wire the Back button to the customer home page
+      * deterministically so it never reopens the Team
+      * details page via browser-history navigation.
+      */
     function initBackButton() {
         const back = document.getElementById('backLink');
         if (!back) return;
-        try {
-            const prev = sessionStorage.getItem('handyhire.customer.previousPage');
-            if (prev && prev.trim()) {
-                back.setAttribute('href', prev.trim());
-            }
-        } catch (e) {
-            // Keep the HTML fallback.
-        }
         back.addEventListener('click', function (event) {
             event.preventDefault();
-            const href = back.getAttribute('href');
-            if (href) {
-                window.location.href = href;
-            }
+            window.location.href = 'home.html';
         });
     }
 

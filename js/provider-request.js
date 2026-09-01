@@ -127,12 +127,23 @@ function toUiStatus(backendStatus) {
     }
 
     function mapRequest(req) {
+        const packageId = req.package_id || null;
+        const packageName = req.package_name || null;
+        const isPackage = Boolean(packageId);
+        const bookingType = isPackage ? 'package' : 'individual';
+
         return {
             id: req.id,
             bookingId: req.booking_id,
             status: toUiStatus(req.status),
             customer: req.customer_name || '--',
             service: req.service_name || '--',
+            packageId: packageId,
+            packageName: packageName,
+            bookingType: bookingType,
+            displayTitle: isPackage
+                ? (packageName || 'Multitasking Package')
+                : (req.service_name || 'Service'),
             date: formatDate(req.booking_date),
             time: formatTime(req.booking_time),
             location: req.address || '--',
@@ -202,6 +213,22 @@ function toUiStatus(backendStatus) {
                 escapeHtml(status.charAt(0).toUpperCase() + status.slice(1)) +
             "</span>";
 
+        const typeLabel = request.bookingType === 'package'
+            ? 'MULTITASKING PACKAGE'
+            : 'INDIVIDUAL BOOKING';
+
+        const typeBadge =
+            "<span class='rq-card-type rq-card-type--" + escapeHtml(request.bookingType || 'individual') + "'>" +
+                escapeHtml(typeLabel) +
+            "</span>";
+
+        const serviceLine = request.bookingType === 'package'
+            ? "<p class='rq-card-service'>" + escapeHtml(request.displayTitle) + "</p>" +
+              (request.packageName
+                  ? "<p class='rq-card-service'>" + escapeHtml(request.packageName) + "</p>"
+                  : '')
+            : "<p class='rq-card-service'>" + escapeHtml(request.service) + "</p>";
+
         return (
             "<article class='rq-card' " +
                 "data-request-id='" + escapeHtml(request.id) + "' " +
@@ -213,10 +240,13 @@ function toUiStatus(backendStatus) {
                         "<span class='rq-card-avatar' style='background-image:" + buildAvatar(request.customer) + "' aria-hidden='true'></span>" +
                         "<div class='rq-card-id-text'>" +
                             "<h3 class='rq-card-customer'>" + escapeHtml(request.customer) + "</h3>" +
-                            "<p class='rq-card-service'>" + escapeHtml(request.service) + "</p>" +
+                            serviceLine +
                         "</div>" +
                     "</div>" +
-                    statusBadge +
+                    "<div class='rq-card-badges'>" +
+                        typeBadge +
+                        statusBadge +
+                    "</div>" +
                 "</header>" +
                 "<dl class='rq-card-grid'>" +
                     "<div><dt>Date</dt><dd>" + escapeHtml(request.date) + "</dd></div>" +
@@ -268,17 +298,38 @@ function toUiStatus(backendStatus) {
     }
 
     function renderModal(request, status) {
+        const isPackage = request.bookingType === 'package';
+        const typeLabel = isPackage ? 'MULTITASKING PACKAGE' : 'INDIVIDUAL BOOKING';
+        const typeBadge =
+            "<span class='rq-card-type rq-card-type--" + escapeHtml(request.bookingType || 'individual') + "'>" +
+                escapeHtml(typeLabel) +
+            "</span>";
+
+        const modalStatusBadge =
+            "<span class='rq-card-status rq-card-status--" + escapeHtml(status) + "'>" +
+                escapeHtml(status.charAt(0).toUpperCase() + status.slice(1)) +
+            "</span>";
+
+        const serviceRow = isPackage
+            ? "<div><dt>Package</dt><dd>" + escapeHtml(request.packageName || request.displayTitle || '--') + "</dd></div>" +
+              "<div><dt>Service</dt><dd>" + escapeHtml(request.service) + "</dd></div>"
+            : "<div><dt>Service</dt><dd>" + escapeHtml(request.service) + "</dd></div>";
+
         return (
             "<div class='rq-modal' id='rqModal' role='dialog' aria-modal='true' aria-labelledby='rqModalTitle'>" +
                 "<div class='rq-modal-backdrop' data-action='close-modal'></div>" +
                 "<div class='rq-modal-card'>" +
                     "<header class='rq-modal-header'>" +
                         "<h2 class='rq-modal-title' id='rqModalTitle'>Request Details</h2>" +
+                        "<div class='rq-modal-badges'>" +
+                            typeBadge +
+                            modalStatusBadge +
+                        "</div>" +
                         "<button type='button' class='rq-modal-close' data-action='close-modal' aria-label='Close details'>&times;</button>" +
                     "</header>" +
                     "<dl class='rq-modal-grid'>" +
                         "<div><dt>Customer</dt><dd>" + escapeHtml(request.customer) + "</dd></div>" +
-                        "<div><dt>Service</dt><dd>" + escapeHtml(request.service) + "</dd></div>" +
+                        serviceRow +
                         "<div><dt>Date</dt><dd>" + escapeHtml(request.date) + "</dd></div>" +
                         "<div><dt>Time</dt><dd>" + escapeHtml(request.time) + "</dd></div>" +
                         "<div><dt>Location</dt><dd>" + escapeHtml(request.location) + "</dd></div>" +

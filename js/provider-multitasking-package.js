@@ -14,6 +14,7 @@
     let currentTab = 'explore';
     let allPackages = [];
     let myPackages = [];
+    var legacyPublishStarted = false;
 
     /**
      * Parse query string parameters.
@@ -390,6 +391,38 @@ function openPackageBooking(pkg) {
     }
 
     /**
+      * Auto-publish any provider-owned draft packages that
+      * pre-date the published-default change. Runs at most
+      * once per session; failures are logged but do not
+      * block the package list from rendering.
+      */
+    function publishLegacyDrafts() {
+        if (legacyPublishStarted) return;
+        legacyPublishStarted = true;
+
+        var drafts = myPackages.filter(function (pkg) {
+            return String(pkg.status || '').toLowerCase() === 'draft';
+        });
+
+        if (!drafts.length) return;
+
+        drafts.forEach(function (pkg) {
+            api.apiFetch('/api/worker/packages/' + pkg.id + '/publish', { method: 'PATCH' })
+                .then(function (response) {
+                    if (response.status === 401 || response.status === 403) {
+                        return;
+                    }
+                    if (!response.ok) {
+                        console.warn('Auto-publish failed for package', pkg.id);
+                    }
+                })
+                .catch(function () {
+                    console.warn('Auto-publish error for package', pkg.id);
+                });
+        });
+    }
+
+    /**
      * Fetch my packages (all statuses for current worker).
      */
     function fetchMyPackages() {
@@ -414,6 +447,7 @@ function openPackageBooking(pkg) {
             myPackages = (data || []).filter(function (pkg) {
     return pkg.package_type === 'multitasking';
 });
+            publishLegacyDrafts();
             if (loading) loading.hidden = true;
             applyFilter();
         }).catch(function () {

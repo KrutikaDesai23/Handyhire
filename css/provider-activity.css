@@ -348,6 +348,33 @@ a {
 .booking-status--cancelled { background-color: var(--color-status-cancelled); }
 .booking-status--completed { background-color: var(--color-status-completed); }
 
+.booking-badges {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.booking-type-badge {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    flex-shrink: 0;
+}
+
+.booking-type-badge--package {
+    background-color: rgba(104, 134, 92, 0.35);
+    color: #ffffff;
+}
+
+.booking-type-badge--individual {
+    background-color: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+}
+
 .booking-rating {
     display: inline-flex;
     align-items: center;

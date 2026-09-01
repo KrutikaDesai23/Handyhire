@@ -371,6 +371,40 @@ body {
     color: var(--color-decline-dark);
 }
 
+.rq-card-badges {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.rq-card-type {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 999px;
+    flex-shrink: 0;
+}
+
+.rq-card-type--package {
+    background-color: rgba(104, 134, 92, 0.16);
+    color: var(--color-primary-dark);
+}
+
+.rq-card-type--individual {
+    background-color: rgba(104, 134, 92, 0.08);
+    color: var(--color-text-muted);
+}
+
+.rq-modal-badges {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
 .rq-card-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));

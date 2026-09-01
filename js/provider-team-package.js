@@ -14,6 +14,7 @@
     let currentTab = 'explore';
     let allPackages = [];
     let myPackages = [];
+    var legacyPublishStarted = false;
 
     /**
      * Escape text for safe HTML injection.
@@ -522,8 +523,40 @@ function openTeamPackage(pkg) {
         });
 }
     /**
-     * Fetch my packages (all statuses for current worker).
-     */
+      * Auto-publish any provider-owned draft packages that
+      * pre-date the published-default change. Runs at most
+      * once per session; failures are logged but do not
+      * block the package list from rendering.
+      */
+    function publishLegacyDrafts() {
+        if (legacyPublishStarted) return;
+        legacyPublishStarted = true;
+
+        var drafts = myPackages.filter(function (pkg) {
+            return String(pkg.status || '').toLowerCase() === 'draft';
+        });
+
+        if (!drafts.length) return;
+
+        drafts.forEach(function (pkg) {
+            api.apiFetch('/api/worker/packages/' + pkg.id + '/publish', { method: 'PATCH' })
+                .then(function (response) {
+                    if (response.status === 401 || response.status === 403) {
+                        return;
+                    }
+                    if (!response.ok) {
+                        console.warn('Auto-publish failed for package', pkg.id);
+                    }
+                })
+                .catch(function () {
+                    console.warn('Auto-publish error for package', pkg.id);
+                });
+        });
+    }
+
+    /**
+      * Fetch my packages (all statuses for current worker).
+      */
     function fetchMyPackages() {
         var list = document.getElementById('packageList');
         var empty = document.getElementById('emptyState');
@@ -542,10 +575,12 @@ api.apiFetch('/api/worker/packages?package_type=team').then(function (response) 
             }
             if (!response.ok) throw new Error('Failed to load my packages');
             return response.json();
-}).then(function (data) {
+        }).then(function (data) {
     myPackages = (data || []).filter(function (pkg) {
         return String(pkg.status || '').toLowerCase() !== 'archived';
     });
+
+    publishLegacyDrafts();
 
     if (loading) loading.hidden = true;
     applyFilter();

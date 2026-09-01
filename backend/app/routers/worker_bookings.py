@@ -57,6 +57,16 @@ def _build_booking_response(
             .first()
         )
 
+    package_name = None
+
+    if booking.package_id:
+        pkg = (
+            db.query(models.Package)
+            .filter(models.Package.id == booking.package_id)
+            .first()
+        )
+        package_name = pkg.name if pkg else None
+
     return BookingResponse(
         id=booking.id,
         customer_id=booking.customer_id,
@@ -88,6 +98,7 @@ def _build_booking_response(
             if customer
             else None
         ),
+        package_name=package_name,
     )
 
 
@@ -223,7 +234,7 @@ VALID_STATUS_TRANSITIONS = {
         "rejected",
     ],
     "accepted": [
-        "completed",
+        "completion_requested",
         "cancelled",
     ],
 }

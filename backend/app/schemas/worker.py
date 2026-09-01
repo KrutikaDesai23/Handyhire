@@ -71,6 +71,8 @@ class BookingRequestResponse(BaseModel):
     address: Optional[str] = None
     description: Optional[str] = None
     amount: Optional[int] = None
+    package_id: Optional[int] = None
+    package_name: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 

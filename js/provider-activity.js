@@ -61,6 +61,11 @@
         completed: [
             'Completed',
             'booking-status--completed'
+        ],
+
+        completion_requested: [
+            'Awaiting customer confirmation',
+            'booking-status--pending'
         ]
     };
 
@@ -80,8 +85,8 @@
 
         accepted: [
             [
-                'complete',
-                'Complete',
+                'request_completion',
+                'Request Completion',
                 'booking-action-btn--complete'
             ],
             [
@@ -95,7 +100,7 @@
     const ACTION_STATUS = {
         accept: 'accepted',
         reject: 'rejected',
-        complete: 'completed',
+        request_completion: 'completion_requested',
         cancel: 'cancelled'
     };
 
@@ -334,6 +339,11 @@
                 booking.booking_date
             );
 
+        const packageId = booking.package_id || null;
+        const packageName = booking.package_name || null;
+        const isPackage = Boolean(packageId);
+        const bookingType = isPackage ? 'package' : 'individual';
+
         return {
             id:
                 booking.id,
@@ -356,12 +366,28 @@
                     ),
 
             occupation:
-                booking.service_name ||
-                (
-                    mode === 'sent'
-                        ? 'Worker hired'
-                        : 'Job booking'
-                ),
+                isPackage
+                    ? (packageName || 'Multitasking Package')
+                    : (
+                        booking.service_name ||
+                        (
+                            mode === 'sent'
+                                ? 'Worker hired'
+                                : 'Job booking'
+                        )
+                    ),
+
+            service_name:
+                booking.service_name,
+
+            bookingType:
+                bookingType,
+
+            packageId:
+                packageId,
+
+            packageName:
+                packageName,
 
             statusKey:
                 statusKey,
@@ -453,12 +479,21 @@
             booking.description
                 ? (
                     "<p class='booking-description'>" +
-                    escapeHtml(
-                        booking.description
-                    ) +
-                    '</p>'
+                        escapeHtml(
+                            booking.description
+                        ) +
+                        '</p>'
                 )
                 : '';
+
+        const typeLabel = booking.bookingType === 'package'
+            ? 'MULTITASKING PACKAGE'
+            : 'INDIVIDUAL BOOKING';
+
+        const typeBadge =
+            "<span class='booking-type-badge booking-type-badge--" + escapeHtml(booking.bookingType || 'individual') + "'>" +
+                escapeHtml(typeLabel) +
+            '</span>';
 
         return `
             <article
@@ -480,9 +515,12 @@
                         </p>
                     </div>
 
-                    <span class="booking-status ${escapeHtml(booking.statusCss)}">
-                        ${escapeHtml(booking.status)}
-                    </span>
+                    <div class="booking-badges">
+                        ${typeBadge}
+                        <span class="booking-status ${escapeHtml(booking.statusCss)}">
+                            ${escapeHtml(booking.status)}
+                        </span>
+                    </div>
                 </div>
 
                 <div class="booking-meta">

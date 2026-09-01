@@ -23,6 +23,19 @@
         rejected:  { label: 'Rejected',  css: 'booking-status--cancelled' },
         cancelled: { label: 'Cancelled', css: 'booking-status--cancelled' },
         completed: { label: 'Completed', css: 'booking-status--completed' },
+        completion_requested: { label: 'Awaiting confirmation', css: 'booking-status--pending' },
+    };
+
+    const ACTIONS = {
+        completion_requested: [
+            ['confirm_completion', 'Confirm Completion', 'booking-action-btn--accept'],
+            ['reject_completion', 'Work Not Completed', 'booking-action-btn--reject']
+        ]
+    };
+
+    const ACTION_STATUS = {
+        confirm_completion: 'completed',
+        reject_completion: 'accepted'
     };
 
     let currentBookings = [];
@@ -118,11 +131,18 @@
         const statusKey = String(b.status || 'pending').toLowerCase();
         const status = STATUS_MAP[statusKey] || { label: escapeHtml(b.status || '--'), css: 'booking-status--pending' };
         const date = parseDate(b.booking_date);
+        var name = b.worker_name || '--';
+        var occupation = b.service_name || '--';
+
+        if (b.package_id && b.package_name) {
+            name = b.package_name;
+            occupation = 'Multitasking Package';
+        }
 
         return {
             id: b.id,
-            name: b.worker_name || '--',
-            occupation: b.service_name || '--',
+            name: name,
+            occupation: occupation,
             status: status.label,
             statusCss: status.css,
             statusKey: statusKey,
@@ -157,6 +177,13 @@
                 ? `<div class="booking-review-row"><span class="reviewed-badge" aria-label="Reviewed">&#10003; Reviewed</span></div>`
                 : '';
 
+        const actions = ACTIONS[b.statusKey] || [];
+        const actionsHtml = actions.length
+            ? `<div class="booking-actions">` + actions.map(function (action) {
+                return `<button type="button" class="booking-action-btn ${escapeHtml(action[2])}" data-action="${escapeHtml(action[0])}" data-id="${escapeHtml(String(b.id))}">${escapeHtml(action[1])}</button>`;
+            }).join('') + `</div>`
+            : '';
+
         return `
             <article class="booking-card" tabindex="0"
                      data-booking-id="${escapeHtml(b.id)}"
@@ -170,6 +197,7 @@
                 </div>
                 ${ratingRow}
                 ${metaRow}
+                ${actionsHtml}
                 ${reviewButtonHtml}
             </article>
         `.trim();
@@ -310,6 +338,45 @@
             });
     }
 
+    // ===================== CUSTOMER ACTIONS =====================
+
+    async function updateCustomerBookingStatus(bookingId, newStatus) {
+        const api = getApi();
+        if (!api) return;
+
+        const endpoint = '/api/customer/bookings/' + encodeURIComponent(String(bookingId)) + '/' + encodeURIComponent(newStatus);
+
+        try {
+            const response = await api.apiFetch(endpoint, { method: 'PUT' });
+
+            if (response.status === 401) {
+                api.clearAuth();
+                window.location.href = 'login.html';
+                return;
+            }
+
+            if (response.status === 403) {
+                alert('You are not allowed to update this booking.');
+                return;
+            }
+
+            if (!response.ok) {
+                const err = await response.json().catch(function () { return {}; });
+                alert((err && err.detail) ? err.detail : 'Unable to update this booking.');
+                return;
+            }
+
+            const updated = await response.json();
+            const index = currentBookings.findIndex(function (b) { return String(b.id) === String(updated.id); });
+            if (index >= 0) {
+                currentBookings[index] = mapBooking(updated);
+            }
+            renderFeed(currentBookings, document.getElementById('activityFeed'), document.getElementById('emptyState'));
+        } catch (error) {
+            alert('Unable to connect to HandyHire.');
+        }
+    }
+
     // ===================== REVIEW MODAL =====================
 
     function openReviewModal(bookingId) {
@@ -330,6 +397,7 @@
         if (overlay) {
             overlay.hidden = false;
             overlay.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
         }
 
         const firstStar = document.querySelector('#starRating .star');
@@ -341,10 +409,20 @@
         selectedRating = 0;
         updateStarDisplay();
 
+        const commentEl = document.getElementById('reviewComment');
+        if (commentEl) commentEl.value = '';
+
+        const errorEl = document.getElementById('reviewError');
+        if (errorEl) { errorEl.hidden = true; errorEl.textContent = ''; }
+
+        const ratingError = document.getElementById('reviewRatingError');
+        if (ratingError) ratingError.hidden = true;
+
         const overlay = document.getElementById('reviewModalOverlay');
         if (overlay) {
             overlay.hidden = true;
-            overlay.style.display = '';
+            overlay.style.display = 'none';
+            document.body.style.overflow = '';
         }
     }
 
@@ -517,6 +595,28 @@
         });
     }
 
+    function initCustomerActions() {
+        const feed = document.getElementById('activityFeed');
+        if (!feed) return;
+
+        feed.addEventListener('click', function (e) {
+            const button = e.target.closest('[data-action]');
+            if (!button || !feed.contains(button)) return;
+
+            const action = button.dataset.action;
+            const bookingId = button.dataset.id;
+            if (!action || !bookingId) return;
+
+            const nextStatus = ACTION_STATUS[action];
+            if (!nextStatus) return;
+
+            button.disabled = true;
+            button.textContent += '...';
+
+            updateCustomerBookingStatus(bookingId, nextStatus);
+        });
+    }
+
     // ===================== INIT =====================
 
     function init() {
@@ -530,6 +630,7 @@
 
         initReviewModal();
         initReviewButtons();
+        initCustomerActions();
         initSearch();
         loadBookings(feed, emptyState);
     }

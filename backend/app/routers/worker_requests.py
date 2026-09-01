@@ -15,6 +15,12 @@ def _build_request_response(request: models.BookingRequest, db: Session) -> Book
     customer = db.query(models.User).filter(models.User.id == request.customer_id).first()
     service = db.query(models.Service).filter(models.Service.id == booking.service_id).first() if booking and booking.service_id else None
 
+    package_name = None
+
+    if booking and booking.package_id:
+        pkg = db.query(models.Package).filter(models.Package.id == booking.package_id).first()
+        package_name = pkg.name if pkg else None
+
     return BookingRequestResponse(
         id=request.id,
         booking_id=request.booking_id,
@@ -30,6 +36,8 @@ def _build_request_response(request: models.BookingRequest, db: Session) -> Book
         address=booking.address if booking else None,
         description=booking.description if booking else None,
         amount=booking.amount if booking else None,
+        package_id=booking.package_id if booking else None,
+        package_name=package_name,
     )
 
 

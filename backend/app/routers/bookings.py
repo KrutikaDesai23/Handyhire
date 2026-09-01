@@ -51,6 +51,7 @@ def create_booking(
     worker = None
     service = None
     package = None
+    package_name = None
 
     worker_id = payload.worker_id
     service_id = payload.service_id
@@ -82,6 +83,7 @@ def create_booking(
                 detail="Multitasking package not found",
             )
 
+        package_name = package.name
 
         # Package owner is the worker who
         # will receive this booking request.
@@ -103,20 +105,17 @@ def create_booking(
                 detail="Package provider not found",
             )
 
-
         if worker.id == current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="You cannot book your own package",
             )
 
-
         # A multitasking package contains
         # multiple services, so one single
         # service_id must not represent it.
         service_id = None
         service = None
-
 
         # Never trust the frontend package price.
         # Use the actual price saved in database.
@@ -248,6 +247,7 @@ def create_booking(
             if service
             else None
         ),
+        package_name=package_name,
     )
 
 @router.get(
@@ -310,12 +310,23 @@ def list_customer_bookings(
                 .first()
             )
 
+        package_name = None
+
+        if booking.package_id:
+            pkg = (
+                db.query(models.Package)
+                .filter(models.Package.id == booking.package_id)
+                .first()
+            )
+            package_name = pkg.name if pkg else None
+
         response.append(
             BookingResponse(
                 id=booking.id,
                 customer_id=booking.customer_id,
                 worker_id=booking.worker_id,
                 service_id=booking.service_id,
+                package_id=booking.package_id,
                 booking_date=booking.booking_date,
                 booking_time=booking.booking_time,
                 address=booking.address,
@@ -337,6 +348,7 @@ def list_customer_bookings(
                     if service
                     else None
                 ),
+                package_name=package_name,
             )
         )
 
@@ -396,11 +408,22 @@ def get_customer_booking(
             .first()
         )
 
+    package_name = None
+
+    if booking.package_id:
+        pkg = (
+            db.query(models.Package)
+            .filter(models.Package.id == booking.package_id)
+            .first()
+        )
+        package_name = pkg.name if pkg else None
+
     return BookingResponse(
         id=booking.id,
         customer_id=booking.customer_id,
         worker_id=booking.worker_id,
         service_id=booking.service_id,
+        package_id=booking.package_id,
         booking_date=booking.booking_date,
         booking_time=booking.booking_time,
         address=booking.address,
@@ -422,4 +445,5 @@ def get_customer_booking(
             if service
             else None
         ),
+        package_name=package_name,
     )

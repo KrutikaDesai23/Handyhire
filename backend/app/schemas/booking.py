@@ -47,5 +47,6 @@ class BookingResponse(BaseModel):
     worker_name: Optional[str] = None
     service_name: Optional[str] = None
     customer_name: Optional[str] = None
+    package_name: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)

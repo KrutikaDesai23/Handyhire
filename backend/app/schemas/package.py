@@ -29,7 +29,7 @@ class PackageCreate(BaseModel):
     duration: Optional[str] = Field(None, max_length=100)
     location: Optional[str] = Field(None, max_length=255)
     availability: Optional[str] = Field(None, max_length=100)
-    status: str = Field("draft", min_length=1, max_length=20)
+    status: str = Field("published", min_length=1, max_length=20)
     service_ids: List[int] = []
     worker_ids: List[int] = []
 

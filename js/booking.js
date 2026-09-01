@@ -17,9 +17,10 @@
     };
 
     /**
-     * Pricing for the booking.
+     * Selected package details for the package-booking flow.
      */
-    const HOURLY_RATE = 250;
+    let selectedPackage = null;
+    const PACKAGE_HOURLY_RATE = 250;
 
     /**
      * Read the real backend worker ID from the URL query
@@ -89,8 +90,33 @@
     }
 
     /**
-     * Render the booking subject: either a whole team
-     * ("Booking: <Team Name>") or a single worker.
+     * Read the real backend package ID from the URL query
+     * param (?package_id=).
+     * @returns {string|null}
+     */
+    function readPackageId() {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const fromUrl = params.get('package_id');
+            if (fromUrl) return String(fromUrl).trim();
+        } catch (e) {
+            // Ignore URL errors.
+        }
+        return null;
+    }
+
+    /**
+     * True when the current view represents a multitasking
+     * package booking (set by multitasking-package.js).
+     * @returns {boolean}
+     */
+    function isPackageBooking() {
+        return Boolean(readPackageId());
+    }
+
+    /**
+     * Render the booking subject: a multitasking package,
+     * a whole team ("Booking: <Team>"), or a single worker.
      */
     function initWorkerHeader() {
         const avatar = document.getElementById('workerAvatar');
@@ -98,7 +124,16 @@
         const mode = document.getElementById('workerMode');
         const team = readSelectedTeam();
 
-        if (team && isTeamBooking()) {
+        if (isPackageBooking()) {
+            if (name) name.textContent = selectedPackage ? selectedPackage.name : 'Package';
+            if (mode) {
+                mode.textContent = 'Booking: Package';
+                mode.hidden = false;
+            }
+            if (avatar && selectedPackage) {
+                avatar.style.backgroundImage = buildAvatar(selectedPackage.name);
+            }
+        } else if (team && isTeamBooking()) {
             if (name) name.textContent = team;
             if (mode) {
                 mode.textContent = 'Booking: Team';
@@ -184,24 +219,34 @@
     /**
      * Read the currently selected hours, recompute the
      * total cost, and write it into the #totalCost element.
+     * For package bookings the total is the fixed package
+     * price; for direct-worker bookings it is hourly.
      */
     function updateTotal() {
         const select = document.getElementById('hoursSelect');
         const total = document.getElementById('totalCost');
-        if (!select || !total) return;
+        if (!total) return;
 
-        const hours = Math.max(1, Number(select.value) || 1);
-        total.textContent = formatRupees(hours * HOURLY_RATE);
+        if (isPackageBooking() && selectedPackage) {
+            total.textContent = formatRupees(selectedPackage.price);
+        } else if (select) {
+            const hours = Math.max(1, Number(select.value) || 1);
+            total.textContent = formatRupees(hours * PACKAGE_HOURLY_RATE);
+        }
     }
 
     /**
      * Wire up the hour dropdown so the total updates live.
+     * For package bookings the total is fixed and does not
+     * change with the hours selector.
      */
     function initTotalLiveUpdate() {
         const select = document.getElementById('hoursSelect');
         if (!select) return;
 
-        select.addEventListener('change', updateTotal);
+        if (!isPackageBooking()) {
+            select.addEventListener('change', updateTotal);
+        }
         // Run once so the initial value matches the markup.
         updateTotal();
     }
@@ -283,19 +328,32 @@
     /**
      * Build the exact POST /api/bookings body from the
      * existing form fields. Matches backend BookingCreate:
-     *   worker_id, service_id?, booking_date, booking_time,
-     *   address, description?, amount
+     *   worker_id, service_id?, package_id?, booking_date,
+     *   booking_time, address, description?, amount
+     * @param {string|null} workerId
+     * @param {string} dateValue
+     * @param {string} timeValue
+     * @param {string} addressValue
+     * @param {number} hours
      * @returns {Object}
      */
     function buildBookingPayload(workerId, dateValue, timeValue, addressValue, hours) {
-        return {
-            worker_id: Number(workerId),
+        var payload = {
             booking_date: dateValue,
             booking_time: timeValue,
             address: addressValue,
             description: null,
-            amount: hours * HOURLY_RATE,
+            amount: hours * PACKAGE_HOURLY_RATE,
         };
+
+        if (isPackageBooking() && selectedPackage) {
+            payload.package_id = Number(selectedPackage.id);
+            payload.amount = Number(selectedPackage.price);
+        } else if (workerId) {
+            payload.worker_id = Number(workerId);
+        }
+
+        return payload;
     }
 
     /**
@@ -310,6 +368,11 @@
         form.addEventListener('submit', function (event) {
             event.preventDefault();
             clearError();
+
+            if (isPackageBooking()) {
+                handlePackageBooking();
+                return;
+            }
 
             // Team bookings cannot be created by the current
             // backend (POST /api/bookings accepts a single
@@ -326,75 +389,193 @@
                 return;
             }
 
-            const dateInput = document.getElementById('scheduleDate');
-            const timeInput = document.getElementById('bookingTime');
-            const addressInput = document.getElementById('bookingAddress');
-            const select = document.getElementById('hoursSelect');
-
-            // Date is required - bail out (and let the browser
-            // surface its native validation message) if empty.
-            if (dateInput && !dateInput.value) {
-                dateInput.reportValidity();
-                return;
-            }
-            if (timeInput && !timeInput.value) {
-                timeInput.reportValidity();
-                return;
-            }
-            if (addressInput && !addressInput.value.trim()) {
-                addressInput.reportValidity();
-                return;
-            }
-
-            // Central role guard: customers only.
-            if (!(window.HandyHireAPI && window.HandyHireAPI.requireRole('customer'))) {
-                return;
-            }
-
-            const api = getApi();
-            if (!api) {
-                showError('Booking service is unavailable right now. Please try again later.');
-                return;
-            }
-
-            const hours = select ? Math.max(1, Number(select.value) || 1) : 1;
-            const payload = buildBookingPayload(
-                workerId,
-                dateInput.value,
-                (timeInput ? timeInput.value : '').slice(0, 10),
-                addressInput ? addressInput.value.trim() : '',
-                hours
-            );
-
-            const btn = document.getElementById('bookBtn');
-            if (btn) {
-                btn.disabled = true;
-                btn.textContent = 'Booking...';
-            }
-
-            api.apiFetch('/api/bookings', { method: 'POST', body: JSON.stringify(payload) })
-                .then(function (response) {
-                    if (response.status === 401) {
-                        redirectToLogin();
-                        throw new Error('auth');
-                    }
-                    if (!response.ok) {
-                        throw { status: response.status };
-                    }
-                    return response.json();
-                })
-                .then(function (booking) {
-                    persistBookingSuccess(booking, hours, payload);
-                    window.location.href = 'booking-success.html';
-                })
-                .catch(function (err) {
-                    showError(friendlyErrorFor(err && err.status));
-                    if (btn) {
-                        btn.disabled = false;
-                        btn.textContent = 'Book';
-                    }
-                });
+            submitWorkerBooking(workerId);
         });
+    }
+
+    /**
+     * Fetch package details from the backend for the
+     * selected package_id.
+     */
+    function fetchPackageDetails(packageId) {
+        return HandyHireAPI.apiFetch('/api/packages/' + encodeURIComponent(packageId))
+            .then(function (response) {
+                if (!response.ok) {
+                    throw new Error('Package not found (HTTP ' + response.status + ')');
+                }
+                return response.json();
+            });
+    }
+
+    /**
+     * Handle the package-booking submit flow.
+     */
+    function handlePackageBooking() {
+        var packageId = readPackageId();
+        if (!packageId) {
+            showError('No package selected. Please go back and choose a package to book.');
+            return;
+        }
+
+        if (!selectedPackage) {
+            fetchPackageDetails(packageId)
+                .then(function (pkg) {
+                    selectedPackage = pkg;
+                    initWorkerHeader();
+                    updateTotal();
+                    submitPackageBooking(packageId);
+                })
+                .catch(function (error) {
+                    showError('Unable to load package details. Please try again.');
+                });
+            return;
+        }
+
+        submitPackageBooking(packageId);
+    }
+
+    /**
+     * Submit a package booking to the backend.
+     * @param {string} packageId
+     */
+    function submitPackageBooking(packageId) {
+        const dateInput = document.getElementById('scheduleDate');
+        const timeInput = document.getElementById('bookingTime');
+        const addressInput = document.getElementById('bookingAddress');
+        const select = document.getElementById('hoursSelect');
+
+        if (dateInput && !dateInput.value) {
+            dateInput.reportValidity();
+            return;
+        }
+        if (timeInput && !timeInput.value) {
+            timeInput.reportValidity();
+            return;
+        }
+        if (addressInput && !addressInput.value.trim()) {
+            addressInput.reportValidity();
+            return;
+        }
+
+        if (!(window.HandyHireAPI && window.HandyHireAPI.requireRole('customer'))) {
+            return;
+        }
+
+        const api = getApi();
+        if (!api) {
+            showError('Booking service is unavailable right now. Please try again later.');
+            return;
+        }
+
+        const hours = select ? Math.max(1, Number(select.value) || 1) : 1;
+        const payload = buildBookingPayload(
+            null,
+            dateInput.value,
+            (timeInput ? timeInput.value : '').slice(0, 10),
+            addressInput ? addressInput.value.trim() : '',
+            hours
+        );
+
+        const btn = document.getElementById('bookBtn');
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'Booking...';
+        }
+
+        api.apiFetch('/api/bookings', { method: 'POST', body: JSON.stringify(payload) })
+            .then(function (response) {
+                if (response.status === 401) {
+                    redirectToLogin();
+                    throw new Error('auth');
+                }
+                if (!response.ok) {
+                    throw { status: response.status };
+                }
+                return response.json();
+            })
+            .then(function (booking) {
+                persistBookingSuccess(booking, hours, payload);
+                window.location.href = 'booking-success.html';
+            })
+            .catch(function (err) {
+                showError(friendlyErrorFor(err && err.status));
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = 'Book';
+                }
+            });
+    }
+
+    /**
+     * Submit a direct-worker booking to the backend.
+     * @param {string} workerId
+     */
+    function submitWorkerBooking(workerId) {
+        const dateInput = document.getElementById('scheduleDate');
+        const timeInput = document.getElementById('bookingTime');
+        const addressInput = document.getElementById('bookingAddress');
+        const select = document.getElementById('hoursSelect');
+
+        if (dateInput && !dateInput.value) {
+            dateInput.reportValidity();
+            return;
+        }
+        if (timeInput && !timeInput.value) {
+            timeInput.reportValidity();
+            return;
+        }
+        if (addressInput && !addressInput.value.trim()) {
+            addressInput.reportValidity();
+            return;
+        }
+
+        if (!(window.HandyHireAPI && window.HandyHireAPI.requireRole('customer'))) {
+            return;
+        }
+
+        const api = getApi();
+        if (!api) {
+            showError('Booking service is unavailable right now. Please try again later.');
+            return;
+        }
+
+        const hours = select ? Math.max(1, Number(select.value) || 1) : 1;
+        const payload = buildBookingPayload(
+            workerId,
+            dateInput.value,
+            (timeInput ? timeInput.value : '').slice(0, 10),
+            addressInput ? addressInput.value.trim() : '',
+            hours
+        );
+
+        const btn = document.getElementById('bookBtn');
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'Booking...';
+        }
+
+        api.apiFetch('/api/bookings', { method: 'POST', body: JSON.stringify(payload) })
+            .then(function (response) {
+                if (response.status === 401) {
+                    redirectToLogin();
+                    throw new Error('auth');
+                }
+                if (!response.ok) {
+                    throw { status: response.status };
+                }
+                return response.json();
+            })
+            .then(function (booking) {
+                persistBookingSuccess(booking, hours, payload);
+                window.location.href = 'booking-success.html';
+            })
+            .catch(function (err) {
+                showError(friendlyErrorFor(err && err.status));
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = 'Book';
+                }
+            });
     }
 
     /**
@@ -462,6 +643,21 @@
         initDateDefaults();
         initTotalLiveUpdate();
         initBookingSubmit();
+
+        if (isPackageBooking()) {
+            var packageId = readPackageId();
+            if (packageId) {
+                fetchPackageDetails(packageId)
+                    .then(function (pkg) {
+                        selectedPackage = pkg;
+                        initWorkerHeader();
+                        updateTotal();
+                    })
+                    .catch(function () {
+                        showError('Unable to load package details. Please go back and try again.');
+                    });
+            }
+        }
     }
 
     // Run after DOM is ready

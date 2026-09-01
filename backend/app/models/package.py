@@ -16,7 +16,7 @@ class Package(Base):
     duration = Column(String(100), nullable=True)
     location = Column(String(255), nullable=True)
     availability = Column(String(100), nullable=True)
-    status = Column(String(20), nullable=False, default="draft")
+    status = Column(String(20), nullable=False, default="published")
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

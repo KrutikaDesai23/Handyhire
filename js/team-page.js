@@ -398,6 +398,20 @@
     }
 
     /**
+      * Wire the Back button to the Team Package catalogue
+      * deterministically so it never reopens the Team
+      * details page via browser-history navigation.
+      */
+    function initBackButton() {
+        const back = document.getElementById('backLink');
+        if (!back) return;
+        back.addEventListener('click', function (event) {
+            event.preventDefault();
+            window.location.href = 'team-package.html';
+        });
+    }
+
+    /**
      * Initialize the Team page.
      */
     function init() {
@@ -411,6 +425,7 @@
         initMemberNavigation();
         initBookWholeTeam();
         initExpand();
+        initBackButton();
     }
 
     // Run after DOM is ready
