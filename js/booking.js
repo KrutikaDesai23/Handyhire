@@ -243,13 +243,20 @@
     function updateTotal() {
         const select = document.getElementById('hoursSelect');
         const total = document.getElementById('totalCost');
+        const help = document.getElementById('totalHelp');
         if (!total) return;
 
         if (isPackageBooking() && selectedPackage) {
             total.textContent = formatRupees(selectedPackage.price);
+            if (help) {
+                help.textContent = 'Fixed package price.';
+            }
         } else if (select) {
             const hours = Math.max(1, Number(select.value) || 1);
             total.textContent = formatRupees(hours * PACKAGE_HOURLY_RATE);
+            if (help) {
+                help.textContent = 'Auto-calculated at \u20B9250 / hour.';
+            }
         }
     }
 

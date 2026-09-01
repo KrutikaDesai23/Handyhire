@@ -125,10 +125,6 @@ def create_booking(
             status_code=status.HTTP_201_CREATED,
         )
 
-    worker = db.query(models.User).filter(models.User.id == payload.worker_id, models.User.role == "worker").first()
-    if not worker:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Worker not found")
-
     worker = None
     service = None
     package = None

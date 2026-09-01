@@ -28,8 +28,10 @@ class BookingCreate(BaseModel):
 
     @model_validator(mode="after")
     def validate_worker_or_team(self):
-        if not self.worker_id and not self.team_id:
-            raise ValueError("Either worker_id or team_id must be provided")
+        if not self.worker_id and not self.team_id and not self.package_id:
+            raise ValueError(
+                "Either worker_id, team_id, or package_id must be provided"
+            )
         return self
 
 
