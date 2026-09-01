@@ -464,6 +464,7 @@ function applyPackageDuration() {
         if (isPackageBooking() && selectedPackage) {
             payload.package_id = Number(selectedPackage.id);
             payload.amount = Number(selectedPackage.price) * hours;
+            payload.hours = hours;
         } else if (workerId) {
     payload.worker_id = Number(workerId);
     payload.amount = Number(selectedWorkerHourlyRate) * hours;

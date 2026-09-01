@@ -249,9 +249,6 @@ try {
 } catch (e) {}
 
 
-window.location.href =
-    'provider-team-member.html';
-
             const url = 'provider-job-hire.html?worker=' + encodeURIComponent(slug) + '&source=team';
             if (workerId) url += '&worker_id=' + encodeURIComponent(workerId);
 

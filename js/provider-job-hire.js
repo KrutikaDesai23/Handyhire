@@ -599,7 +599,26 @@
                 fetchWorkerReviews(workerId)
             ]);
             const worker = mapApiWorkerToUi(results[0], results[1]);
-            worker.__context = { source: readQueryParam('source'), member: readSelectedMember() };
+           const selectedMember = readSelectedMember();
+const source = readQueryParam('source');
+
+const isRealTeamMember =
+    source === 'team' &&
+    selectedMember &&
+    String(selectedMember.worker_id) === String(workerId);
+const currentWorkerId = readWorkerId();
+
+const isRealTeamContext =
+    source === 'team' &&
+    member &&
+    member.worker_id &&
+    currentWorkerId &&
+    String(member.worker_id) === String(currentWorkerId);
+
+worker.__context = {
+    source: isRealTeamContext ? 'team' : null,
+    member: isRealTeamContext ? member : null,
+};
             renderAll(worker);
         } catch (e) {
             showError('Unable to load this professional. Please try again later.');

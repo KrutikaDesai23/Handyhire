@@ -7,7 +7,7 @@ from fastapi import (
     Query,
     status,
 )
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app import models
 from app.auth.dependencies import (
@@ -60,17 +60,8 @@ def _build_customer_booking_response(
     db: Session,
     current_customer_id: int,
 ) -> BookingResponse:
-    customer = (
-        db.query(models.User)
-        .filter(models.User.id == booking.customer_id)
-        .first()
-    )
-
-    worker = (
-        db.query(models.User)
-        .filter(models.User.id == booking.worker_id)
-        .first()
-    )
+    customer = booking.customer
+    worker = booking.worker
 
     service = None
 
@@ -102,16 +93,10 @@ def _build_customer_booking_response(
                     db,
                 )
 
-    has_review = False
-
-    if booking.customer_id == current_customer_id:
-        existing_review = (
-            db.query(models.Review)
-            .filter(models.Review.booking_id == booking.id)
-            .first()
-        )
-        has_review = existing_review is not None
-
+    has_review = (
+        booking.customer_id == current_customer_id
+        and booking.review is not None
+    )
     return BookingResponse(
         id=booking.id,
         customer_id=booking.customer_id,
@@ -139,7 +124,11 @@ def _build_customer_booking_response(
             if service
             else None
         ),
-       customer_name=current_user.full_name,
+       customer_name=(
+    customer.full_name
+    if customer
+    else None
+),
         package_name=package_name,
         package_type=package_type,
         team_workers=team_workers,
@@ -153,27 +142,10 @@ def _build_booking_response(
     *,
     current_customer_id: Optional[int] = None,
 ) -> BookingResponse:
-    customer = (
-        db.query(models.User)
-        .filter(models.User.id == booking.customer_id)
-        .first()
-    )
+    customer = booking.customer
+    worker = booking.worker
 
-    worker = (
-        db.query(models.User)
-        .filter(models.User.id == booking.worker_id)
-        .first()
-    )
-
-    service = None
-
-    if booking.service_id:
-        service = (
-            db.query(models.Service)
-            .filter(models.Service.id == booking.service_id)
-            .first()
-        )
-
+    service = booking.service
     package_name = None
     package_type = None
     team_workers = []
@@ -236,7 +208,11 @@ def _build_booking_response(
             if service
             else None
         ),
-        customer_name=current_user.full_name,
+       customer_name=(
+    customer.full_name
+    if customer
+    else None
+),
         package_name=package_name,
         package_type=package_type,
         team_workers=team_workers,
@@ -553,12 +529,18 @@ def list_customer_bookings(
     db: Session = Depends(get_db),
 ):
     query = (
-        db.query(models.Booking)
-        .filter(
-            models.Booking.customer_id ==
-            current_user.id
-        )
+    db.query(models.Booking)
+    .options(
+        selectinload(models.Booking.customer),
+        selectinload(models.Booking.worker),
+        selectinload(models.Booking.service),
+        selectinload(models.Booking.review),
     )
+    .filter(
+        models.Booking.customer_id ==
+        current_user.id
+    )
+)
 
     if status_filter:
         query = query.filter(

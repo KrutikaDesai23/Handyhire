@@ -611,7 +611,10 @@ ul {
     outline: 3px solid rgba(104, 134, 92, 0.45);
     outline-offset: 3px;
 }
-
+.back-link[hidden],
+.back-to-team-link[hidden] {
+    display: none !important;
+}
 /* =========================================================
    RESPONSIVE BREAKPOINTS
    ========================================================= */
