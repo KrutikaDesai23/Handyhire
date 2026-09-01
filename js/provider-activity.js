@@ -401,11 +401,14 @@
             packageId:
                 packageId,
 
-            packageName:
-                packageName,
+ packageName:
+    packageName,
 
-            statusKey:
-                statusKey,
+packageType:
+    packageType,
+
+statusKey:
+    statusKey,
 
             status:
                 status[0],
@@ -458,9 +461,18 @@
         const currentWorkerId = getCurrentWorkerId();
         const isLead = currentWorkerId && String(booking.worker_id) === currentWorkerId;
 
-        if (!isLead && booking.bookingType === 'package') {
-            return '<div class="booking-readonly-notice">Read-only team booking</div>';
-        }
+ if (!isLead && booking.bookingType === 'package') {
+    const noticeText =
+        booking.packageType === 'multitasking'
+            ? 'Assigned package booking'
+            : 'Assigned team booking';
+
+    return (
+        '<div class="booking-readonly-notice">' +
+        noticeText +
+        '</div>'
+    );
+}
 
         const actions =
             ACTIONS[

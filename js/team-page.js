@@ -163,7 +163,12 @@
                 `<span class="stars" aria-hidden="true">${buildStars(TEAM.rating || 0)}</span>` +
                 `<span class="rating-value">${Number(TEAM.rating || 0).toFixed(1)}</span>`;
         }
-        if (priceEl) priceEl.textContent = '\u20B9' + Number(TEAM.price || 0).toLocaleString();
+        if (priceEl) {
+    priceEl.textContent =
+        '\u20B9' +
+        Number(TEAM.price || 0).toLocaleString() +
+        ' / hour';
+}
         if (durationEl) durationEl.textContent = TEAM.duration || '--';
         if (locationEl) locationEl.textContent = TEAM.location || '--';
         if (availabilityEl) availabilityEl.textContent = TEAM.availability || '--';

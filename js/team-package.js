@@ -140,7 +140,7 @@
                         </ul>
                         <div class="package-price-row">
                             <span class="package-price-label">${escapeHtml(pkg.duration || 'Team package')}${pkg.location ? ' &middot; ' + escapeHtml(pkg.location) : ''}</span>
-                            <span class="package-price-value">${formatPrice(pkg.price)}</span>
+                            <span class="package-price-value">${formatPrice(pkg.price)} / hour</span>
                         </div>
                         <button type="button"
                                 class="package-book-cta"

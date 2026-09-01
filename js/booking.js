@@ -19,8 +19,8 @@
     /**
      * Selected package details for the package-booking flow.
      */
-    let selectedPackage = null;
-    const PACKAGE_HOURLY_RATE = 250;
+let selectedPackage = null;
+let selectedWorkerHourlyRate = null;
 
     /**
      * Read the real backend worker ID from the URL query
@@ -58,7 +58,30 @@
         }
         return WORKER.name;
     }
+function fetchWorkerDetails(workerId) {
+    const api = getApi();
 
+    if (!api) {
+        return Promise.reject(
+            new Error('Booking service unavailable')
+        );
+    }
+
+    return api
+        .apiFetch(
+            '/api/workers/' +
+            encodeURIComponent(String(workerId))
+        )
+        .then(function (response) {
+            if (!response.ok) {
+                throw new Error(
+                    'Unable to load worker'
+                );
+            }
+
+            return response.json();
+        });
+}
     /**
      * True when the current view represents a package
      * booking (multitasking or team) determined by the
@@ -265,23 +288,41 @@ function updateTotal() {
         return;
     }
 
-    if (select) {
-        const hours = Math.max(
-            1,
-            Number(select.value) || 1
-        );
+if (select) {
+    const hours = Math.max(
+        1,
+        Number(select.value) || 1
+    );
 
-        total.textContent = formatRupees(
-            hours * PACKAGE_HOURLY_RATE
-        );
+    if (
+        !Number.isFinite(
+            Number(selectedWorkerHourlyRate)
+        ) ||
+        Number(selectedWorkerHourlyRate) <= 0
+    ) {
+        total.textContent = '\u2014';
 
         if (priceHelp) {
             priceHelp.textContent =
-                'Auto-calculated at \u20B9' +
-                PACKAGE_HOURLY_RATE +
-                ' / hour.';
+                'Loading worker price...';
         }
+
+        return;
     }
+
+    const rate =
+        Number(selectedWorkerHourlyRate);
+
+    total.textContent =
+        formatRupees(rate * hours);
+
+    if (priceHelp) {
+        priceHelp.textContent =
+            'Auto-calculated at \u20B9' +
+            rate.toLocaleString('en-IN') +
+            ' / hour.';
+    }
+}
 }
 function applyPackageDuration() {
     if (!isPackageBooking() || !selectedPackage) {
@@ -413,21 +454,20 @@ function applyPackageDuration() {
      */
     function buildBookingPayload(workerId, dateValue, timeValue, addressValue, hours) {
         var payload = {
-            booking_date: dateValue,
-            booking_time: timeValue,
-            address: addressValue,
-            description: null,
-            amount: hours * PACKAGE_HOURLY_RATE,
-            hours: hours,
+    booking_date: dateValue,
+    booking_time: timeValue,
+    address: addressValue,
+    description: null,
+    amount: 1,
         };
 
         if (isPackageBooking() && selectedPackage) {
             payload.package_id = Number(selectedPackage.id);
             payload.amount = Number(selectedPackage.price) * hours;
         } else if (workerId) {
-            payload.worker_id = Number(workerId);
-        }
-
+    payload.worker_id = Number(workerId);
+    payload.amount = Number(selectedWorkerHourlyRate) * hours;
+}
         return payload;
     }
 
@@ -745,6 +785,35 @@ updateTotal();
                     });
             }
         }
+        else {
+    var workerId = readWorkerId();
+
+    if (workerId) {
+        fetchWorkerDetails(workerId)
+            .then(function (worker) {
+                selectedWorkerHourlyRate = Number(worker.price);
+
+                if (worker.full_name) {
+                    try {
+                        sessionStorage.setItem(
+                            'handyhire.selectedWorker',
+                            worker.full_name
+                        );
+                    } catch (e) {
+                        // Ignore storage errors.
+                    }
+                }
+
+                initWorkerHeader();
+                updateTotal();
+            })
+            .catch(function () {
+                showError(
+                    'Unable to load worker price. Please go back and try again.'
+                );
+            });
+    }
+}
     }
 
     // Run after DOM is ready

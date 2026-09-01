@@ -238,9 +238,10 @@ function openPackageBooking(pkg) {
                     '</div>' +
 
 
-                    '<div class="package-price">' +
-                        formatPrice(pkg.price) +
-                    '</div>' +
+                   '<div class="package-price">' +
+    formatPrice(pkg.price) +
+    ' / hour' +
+'</div>' +
 
                 '</div>' +
 

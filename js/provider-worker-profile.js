@@ -53,7 +53,7 @@
     function setText(id, value) {
         const el = document.getElementById(id);
         if (!el) return;
-        el.textContent = (value == null || value === '') ? 'â€”' : value;
+        el.textContent = (value == null || value === '') ? '—' : value;
     }
 
     /**
@@ -198,9 +198,9 @@
             ? dashboard.review_count
             : null;
 
-        setText('statJobs', completed != null ? String(completed) : 'â€”');
-        setText('statRating', rating != null ? rating : 'â€”');
-        setText('statReviews', reviews != null ? String(reviews) : 'â€”');
+        setText('statJobs', completed != null ? String(completed) : '—');
+        setText('statRating', rating != null ? rating : '—');
+        setText('statReviews', reviews != null ? String(reviews) : '—');
         setText('statExperience', profile.experience);
     }
 

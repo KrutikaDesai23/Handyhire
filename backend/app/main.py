@@ -31,13 +31,14 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# CORS: allow the local frontend (Live Server on port 5500) to call this
-# backend on port 8000. Scoped to localhost origins only.
+# Allow local frontend servers on ports 5500 and 5501.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://127.0.0.1:5500",
         "http://localhost:5500",
+        "http://127.0.0.1:5501",
+        "http://localhost:5501",
     ],
     allow_credentials=True,
     allow_methods=["*"],

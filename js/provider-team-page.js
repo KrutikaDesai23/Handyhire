@@ -280,25 +280,43 @@ window.location.href =
     /**
      * Wire up the BOOK WHOLE TEAM CTA.
      */
-    function initBookWholeTeam() {
-        const btn = document.getElementById('bookWholeTeamBtn');
-        if (!btn) return;
+/**
+ * Wire up the BOOK WHOLE TEAM CTA.
+ */
+function initBookWholeTeam() {
+    const btn = document.getElementById('bookWholeTeamBtn');
+    if (!btn) return;
 
-        // Team booking is not implemented in the backend. Never send
-        // providers to the demo provider-booking.html page; surface an
-        // honest inline message instead using the existing design.
-        btn.addEventListener('click', function () {
-            let note = document.getElementById('teamBookingNote');
-            if (!note) {
-                note = document.createElement('p');
-                note.id = 'teamBookingNote';
-                note.className = 'team-book-note';
-                note.setAttribute('role', 'status');
-                btn.insertAdjacentElement('afterend', note);
-            }
-            note.textContent = 'Team booking is not available yet.';
-        });
-    }
+    btn.addEventListener('click', function () {
+
+        // Team Package booking uses the existing package booking flow.
+        if (
+            TEAM &&
+            TEAM.is_package &&
+            TEAM.id
+        ) {
+            window.location.href =
+                'booking.html?package_id=' +
+                encodeURIComponent(String(TEAM.id)) +
+                '&booking_mode=team';
+
+            return;
+        }
+
+        // Normal Team booking is still not implemented.
+        let note = document.getElementById('teamBookingNote');
+
+        if (!note) {
+            note = document.createElement('p');
+            note.id = 'teamBookingNote';
+            note.className = 'team-book-note';
+            note.setAttribute('role', 'status');
+            btn.insertAdjacentElement('afterend', note);
+        }
+
+        note.textContent = 'Team booking is not available yet.';
+    });
+}
 
     /**
      * Wire up the expand/collapse arrow.
