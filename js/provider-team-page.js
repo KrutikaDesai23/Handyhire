@@ -248,10 +248,6 @@ try {
 
 } catch (e) {}
 
-
-window.location.href =
-    'provider-team-member.html';
-
             const url = 'provider-job-hire.html?worker=' + encodeURIComponent(slug) + '&source=team';
             if (workerId) url += '&worker_id=' + encodeURIComponent(workerId);
 
@@ -284,19 +280,25 @@ window.location.href =
         const btn = document.getElementById('bookWholeTeamBtn');
         if (!btn) return;
 
-        // Team booking is not implemented in the backend. Never send
-        // providers to the demo provider-booking.html page; surface an
-        // honest inline message instead using the existing design.
         btn.addEventListener('click', function () {
-            let note = document.getElementById('teamBookingNote');
-            if (!note) {
-                note = document.createElement('p');
-                note.id = 'teamBookingNote';
-                note.className = 'team-book-note';
-                note.setAttribute('role', 'status');
-                btn.insertAdjacentElement('afterend', note);
-            }
-            note.textContent = 'Team booking is not available yet.';
+            if (!TEAM || !TEAM.id) return;
+
+            try {
+                sessionStorage.setItem(
+                    'handyhire.provider.bookingBackPage',
+                    window.location.href
+                );
+
+                sessionStorage.setItem(
+                    'handyhire.provider.previousPage',
+                    'provider-team-page.html'
+                );
+            } catch (e) {}
+
+            window.location.href =
+                'provider-booking.html?package_id=' +
+                encodeURIComponent(String(TEAM.id)) +
+                '&booking_mode=team';
         });
     }
 

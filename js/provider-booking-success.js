@@ -117,7 +117,11 @@
 
         setText(
             'successSubtitle',
-            'The worker will review your request.'
+            booking.package_type === 'team'
+                ? 'Your team package booking request was sent.'
+                : booking.package_type === 'multitasking'
+                    ? 'Your multitasking package booking request was sent.'
+                    : 'The worker will review your request.'
         );
 
         setText(
@@ -128,8 +132,13 @@
 
         setText(
             'successWorker',
-            'Worker: ' +
-                booking.worker
+            booking.package_id
+                ? 'Package: ' +
+                    (booking.package_name ||
+                    booking.worker ||
+                    'Team Package')
+                : 'Worker: ' +
+                    booking.worker
         );
 
         setText(
@@ -137,7 +146,10 @@
             'Schedule: ' +
                 formatDate(booking.date) +
                 ' at ' +
-                formatTime(booking.time)
+                formatTime(booking.time) +
+                (booking.package_id && booking.hours
+                    ? ' (' + booking.hours + ' hr)'
+                    : '')
         );
 
         setText(

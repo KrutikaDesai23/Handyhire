@@ -106,6 +106,11 @@ function openPackageBooking(pkg) {
         );
 
         sessionStorage.setItem(
+            'handyhire.provider.bookingBackPage',
+            window.location.href
+        );
+
+        sessionStorage.setItem(
             'handyhire.provider.previousPage',
             'provider-multitasking-package.html'
         );

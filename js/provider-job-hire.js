@@ -443,7 +443,7 @@
                 );
 
                 sessionStorage.setItem(
-                    'handyhire.provider.previousPage',
+                    'handyhire.provider.bookingBackPage',
                     window.location.href
                 );
 

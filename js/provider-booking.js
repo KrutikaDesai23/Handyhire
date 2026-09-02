@@ -4,7 +4,9 @@
     const DEFAULT_HOURLY_RATE = 250;
 
     let selectedWorker = null;
+    let selectedPackage = null;
     let hourlyRate = DEFAULT_HOURLY_RATE;
+    let packagePrice = 0;
 
     function requireProviderAuth() {
         const api = window.HandyHireAPI;
@@ -50,6 +52,21 @@
         } catch (error) {
             return null;
         }
+    }
+
+    function readPackageId() {
+        const fromUrl =
+            readQueryParam('package_id');
+
+        if (fromUrl && fromUrl.trim()) {
+            return fromUrl.trim();
+        }
+
+        return null;
+    }
+
+    function readBookingMode() {
+        return readQueryParam('booking_mode') || null;
     }
 
     function readStoredWorker() {
@@ -318,6 +335,62 @@
         renderWorker(selectedWorker);
     }
 
+    function renderPackage(pkg) {
+        const avatar =
+            document.getElementById(
+                'workerAvatar'
+            );
+
+        const name =
+            document.getElementById(
+                'workerName'
+            );
+
+        const mode =
+            document.getElementById(
+                'workerMode'
+            );
+
+        const rateHelp =
+            document.getElementById(
+                'rateHelp'
+            );
+
+        if (name) {
+            name.textContent = pkg.name || 'Team Package';
+        }
+
+        if (mode) {
+            mode.textContent =
+                pkg.package_type === 'team'
+                    ? 'Team Package'
+                    : 'Multitasking Package';
+
+            mode.hidden = false;
+        }
+
+        if (avatar) {
+            avatar.style.backgroundImage =
+                buildAvatar(pkg.name || 'Team');
+        }
+
+        packagePrice =
+            Number(pkg.price) > 0
+                ? Number(pkg.price)
+                : 0;
+
+        hourlyRate = packagePrice;
+
+        if (rateHelp) {
+            rateHelp.textContent =
+                'Package rate: ' +
+                formatRupees(packagePrice) +
+                ' (total = rate × hours).';
+        }
+
+        updateTotal();
+    }
+
     function initDateAndTimeDefaults() {
         const dateInput =
             document.getElementById(
@@ -355,22 +428,34 @@
             }
         }
 
-        if (
-            timeInput &&
-            !timeInput.value
-        ) {
-            const nextHour =
-                new Date(
-                    now.getTime() +
-                    60 * 60 * 1000
-                );
 
-            timeInput.value =
-                String(
-                    nextHour.getHours()
-                ).padStart(2, '0') +
-                ':00';
+    }
+
+    async function loadPackage() {
+        const packageId = readPackageId();
+
+        if (!packageId) {
+            throw new Error(
+                'No package selected. Please return and select a package.'
+            );
         }
+
+        const response =
+            await window.HandyHireAPI.apiFetch(
+                '/api/packages/' +
+                    encodeURIComponent(
+                        packageId
+                    )
+            );
+
+        if (!response.ok) {
+            throw new Error(
+                'Unable to load the selected package.'
+            );
+        }
+
+        selectedPackage = await response.json();
+        renderPackage(selectedPackage);
     }
 
     function initAddressDefault() {
@@ -423,6 +508,9 @@
     }
 
     function getTotal() {
+        if (selectedPackage) {
+            return getHours() * packagePrice;
+        }
         return getHours() * hourlyRate;
     }
 
@@ -465,19 +553,34 @@
         if (!back) return;
 
         try {
-            const previousPage =
+            const bookingBackPage =
                 sessionStorage.getItem(
-                    'handyhire.provider.previousPage'
+                    'handyhire.provider.bookingBackPage'
                 );
 
             if (
-                previousPage &&
-                previousPage.trim()
+                bookingBackPage &&
+                bookingBackPage.trim()
             ) {
                 back.setAttribute(
                     'href',
-                    previousPage.trim()
+                    bookingBackPage.trim()
                 );
+            } else {
+                const previousPage =
+                    sessionStorage.getItem(
+                        'handyhire.provider.previousPage'
+                    );
+
+                if (
+                    previousPage &&
+                    previousPage.trim()
+                ) {
+                    back.setAttribute(
+                        'href',
+                        previousPage.trim()
+                    );
+                }
             }
         } catch (error) {
             // Keep HTML fallback.
@@ -531,11 +634,17 @@
                 booking.worker_id,
 
             worker:
-                booking.worker_name ||
-                selectedWorker.name,
+                selectedPackage
+                    ? (selectedPackage.name || 'Team Package')
+                    : (booking.worker_name ||
+                        selectedWorker.name),
 
             profession:
-                selectedWorker.profession,
+                selectedPackage
+                    ? (selectedPackage.package_type === 'team'
+                        ? 'Team Package'
+                        : 'Multitasking Package')
+                    : selectedWorker.profession,
 
             date:
                 booking.booking_date,
@@ -553,7 +662,22 @@
                 Number(booking.amount),
 
             status:
-                booking.status
+                booking.status,
+
+            package_id:
+                selectedPackage
+                    ? selectedPackage.id
+                    : null,
+
+            package_name:
+                selectedPackage
+                    ? selectedPackage.name
+                    : null,
+
+            package_type:
+                selectedPackage
+                    ? selectedPackage.package_type
+                    : null
         };
 
         try {
@@ -594,8 +718,20 @@
                 }
 
                 if (
-                    !selectedWorker ||
-                    !selectedWorker.id
+                    selectedPackage &&
+                    !selectedPackage.id
+                ) {
+                    showFormError(
+                        'The selected package could not be loaded.'
+                    );
+
+                    return;
+                }
+
+                if (
+                    !selectedPackage &&
+                    (!selectedWorker ||
+                    !selectedWorker.id)
                 ) {
                     showFormError(
                         'The selected worker could not be loaded.'
@@ -656,10 +792,19 @@
                         : timeInput.value;
 
                 const payload = {
+                    package_id:
+                        selectedPackage
+                            ? Number(
+                                selectedPackage.id
+                            )
+                            : null,
+
                     worker_id:
-                        Number(
-                            selectedWorker.id
-                        ),
+                        selectedPackage
+                            ? null
+                            : Number(
+                                selectedWorker.id
+                            ),
 
                     service_id:
                         null,
@@ -763,7 +908,13 @@
         initBookingSubmit();
 
         try {
-            await loadWorker();
+            const mode = readBookingMode();
+
+            if (mode === 'team' || readPackageId()) {
+                await loadPackage();
+            } else {
+                await loadWorker();
+            }
         } catch (error) {
             showFormError(error.message);
 

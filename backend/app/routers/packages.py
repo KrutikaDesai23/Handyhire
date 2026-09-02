@@ -4,8 +4,8 @@ from sqlalchemy import or_
 from typing import Optional
 
 from app.database.connection import get_db
-from app.models import Package, PackageService, Service
-from app.schemas import PackageSummary, ServiceSummary
+from app.models import Package, PackageService, PackageWorker, Service
+from app.schemas import PackageSummary, PackageWorkerSummary, ServiceSummary
 
 router = APIRouter(prefix="/api/packages", tags=["packages"])
 
@@ -87,6 +87,16 @@ def get_package(package_id: int, db: Session = Depends(get_db)):
         .filter(PackageService.package_id == package.id)
         .all()
     )
+
+    workers = (
+        db.query(models.User)
+        .join(
+            models.PackageWorker,
+            models.PackageWorker.worker_id == models.User.id,
+        )
+        .filter(models.PackageWorker.package_id == package.id)
+        .all()
+    )
     return PackageSummary(
         id=package.id,
         name=package.name,
@@ -106,5 +116,17 @@ def get_package(package_id: int, db: Session = Depends(get_db)):
                 base_price=s.base_price,
             )
             for s in services
+        ],
+        workers=[
+            PackageWorkerSummary(
+                worker_id=worker.id,
+                full_name=worker.full_name,
+                profession=(
+                    worker.worker_profile.profession
+                    if worker.worker_profile
+                    else None
+                ),
+            )
+            for worker in workers
         ],
     )

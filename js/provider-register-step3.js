@@ -720,6 +720,55 @@
         return tokenData;
     }
 
+    async function uploadPhotoAfterRegistration() {
+        const file =
+            uploadPhotoInput.files &&
+            uploadPhotoInput.files[0];
+
+        if (!file) {
+            return Promise.resolve();
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const token =
+            localStorage.getItem(
+                'handyhire.auth.token'
+            );
+
+        return fetch(
+            'http://127.0.0.1:8000/api/worker/profile-image',
+            {
+                method: 'POST',
+                headers: token
+                    ? {
+                        'Authorization':
+                            'Bearer ' + token
+                    }
+                    : {},
+                body: formData,
+            }
+        ).then(function (response) {
+            if (response.ok) {
+                return response.json();
+            }
+
+            return response.json().then(function (err) {
+                throw new Error(
+                    (err && err.detail) ||
+                    'Photo upload failed. You can update it later from your profile.'
+                );
+            }).catch(function () {
+                throw new Error(
+                    'Photo upload failed. You can update it later from your profile.'
+                );
+            });
+        }).catch(function (err) {
+            throw err;
+        });
+    }
+
     async function submitRegistration() {
         const formError =
             document.getElementById(
@@ -736,6 +785,18 @@
             }
 
             await registerWorker();
+
+            if (uploadPhotoInput.files && uploadPhotoInput.files[0]) {
+                formError.textContent = 'Uploading photo...';
+
+                try {
+                    await uploadPhotoAfterRegistration();
+                } catch (photoError) {
+                    formError.textContent =
+                        (photoError && photoError.message) ||
+                        'Photo upload failed. You can update it later from your profile.';
+                }
+            }
 
             window.location.href =
                 SUCCESS_PAGE;

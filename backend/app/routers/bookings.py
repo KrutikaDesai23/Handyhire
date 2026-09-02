@@ -146,8 +146,9 @@ def create_booking(
             .filter(
                 models.Package.id ==
                 payload.package_id,
-                models.Package.package_type ==
-                "multitasking",
+                models.Package.package_type.in_(
+                    ["multitasking", "team"]
+                ),
                 models.Package.status ==
                 "published",
             )
@@ -157,7 +158,7 @@ def create_booking(
         if not package:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Multitasking package not found",
+                detail="Package not found or not published",
             )
 
         package_name = package.name

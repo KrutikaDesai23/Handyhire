@@ -294,6 +294,31 @@
     }
 
     /**
+     * Upload a new profile image and return the saved image URL.
+     */
+    function uploadProfileImage(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const token = localStorage.getItem('handyhire.auth.token');
+
+        return fetch('http://127.0.0.1:8000/api/worker/profile-image', {
+            method: 'POST',
+            headers: token ? { 'Authorization': 'Bearer ' + token } : {},
+            body: formData,
+        }).then(function (response) {
+            if (response.ok) {
+                return response.json();
+            }
+            return response.json().then(function (err) {
+                throw new Error((err && err.detail) || 'Failed to upload profile photo');
+            }).catch(function () {
+                throw new Error('Failed to upload profile photo');
+            });
+        });
+    }
+
+    /**
      * Persist profile edits via PUT /api/worker/profile.
      * @param {Event} event
      */
@@ -326,54 +351,100 @@
             return;
         }
 
-        const payload = {
-            full_name: val('editFullName'),
-            email: val('editEmail'),
-            mobile_number: val('editMobile'),
-            profession: val('editProfession'),
-            location: val('editLocation'),
-            address: val('editAddress'),
-            city: val('editCity'),
-            experience: val('editExperience'),
-            qualification: val('editQualification'),
-            bio: val('editBio'),
-            availability: val('editAvailability'),
-            price: price,
+        const photoInput = document.getElementById('editProfileImage');
+        const photoFile = photoInput && photoInput.files && photoInput.files[0] ? photoInput.files[0] : null;
+
+        const saveTextProfile = function (profileImageValue) {
+            const payload = {
+                full_name: val('editFullName'),
+                email: val('editEmail'),
+                mobile_number: val('editMobile'),
+                profession: val('editProfession'),
+                location: val('editLocation'),
+                address: val('editAddress'),
+                city: val('editCity'),
+                experience: val('editExperience'),
+                qualification: val('editQualification'),
+                bio: val('editBio'),
+                availability: val('editAvailability'),
+                price: price,
+                profile_image: profileImageValue,
+            };
+
+            return api.apiFetch('/api/worker/profile', {
+                method: 'PUT',
+                body: JSON.stringify(payload),
+            }).then(function (response) {
+                if (response.status === 401 || response.status === 403) {
+                    api.clearAuth();
+                    window.location.href = 'login.html';
+                    return;
+                }
+                if (!response.ok) {
+                    return response.json().then(function (err) {
+                        throw new Error(err && err.detail ? err.detail : 'Failed to save profile');
+                    }).catch(function () {
+                        throw new Error('Failed to save profile');
+                    });
+                }
+                return response.json();
+            });
         };
 
-        api.apiFetch('/api/worker/profile', {
-            method: 'PUT',
-            body: JSON.stringify(payload),
-        }).then(function (response) {
-            if (response.status === 401 || response.status === 403) {
-                api.clearAuth();
-                window.location.href = 'login.html';
-                return;
-            }
-            if (!response.ok) {
-                return response.json().then(function (err) {
-                    throw new Error(err && err.detail ? err.detail : 'Failed to save profile');
-                }).catch(function () {
-                    throw new Error('Failed to save profile');
-                });
-            }
-            return response.json();
-        }).then(function (updated) {
-            if (!updated) return;
-            currentProfile = updated;
-            populateHero(currentProfile);
-            populateInfo(currentProfile);
-            renderServices(servicesForProfession(currentProfile.profession));
-            fillEditForm(currentProfile);
-            closeEdit();
-        }).catch(function (err) {
-            showEditError(err && err.message ? err.message : 'Failed to save profile');
-        }).finally(function () {
+        const onPhotoUploadError = function (photoError) {
+            showEditError(
+                (photoError && photoError.message) ||
+                'Failed to upload photo. Text changes were not saved.'
+            );
             if (btn) {
                 btn.disabled = false;
                 btn.textContent = 'Save Changes';
             }
-        });
+        };
+
+        if (photoFile) {
+            uploadProfileImage(photoFile)
+                .then(function (result) {
+                    const imageUrl = result && result.profile_image ? result.profile_image : null;
+                    if (imageUrl && currentProfile) {
+                        currentProfile.profile_image = imageUrl;
+                        populateHero(currentProfile);
+                    }
+                    return saveTextProfile(imageUrl);
+                })
+                .then(function (updated) {
+                    if (!updated) return;
+                    currentProfile = updated;
+                    populateHero(currentProfile);
+                    populateInfo(currentProfile);
+                    renderServices(servicesForProfession(currentProfile.profession));
+                    fillEditForm(currentProfile);
+                    closeEdit();
+                })
+                .catch(function (err) {
+                    onPhotoUploadError(err);
+                });
+        } else {
+            saveTextProfile(currentProfile ? currentProfile.profile_image : null)
+                .then(function (updated) {
+                    if (!updated) return;
+                    currentProfile = updated;
+                    populateHero(currentProfile);
+                    populateInfo(currentProfile);
+                    renderServices(servicesForProfession(currentProfile.profession));
+                    fillEditForm(currentProfile);
+                    closeEdit();
+                })
+                .catch(function (err) {
+                    showEditError(err && err.message ? err.message : 'Failed to save profile');
+                })
+                .finally(function () {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.textContent = 'Save Changes';
+                    }
+                });
+        }
     }
 
     /**
@@ -384,6 +455,9 @@
         if (form) form.hidden = false;
         const btn = document.getElementById('editProfileBtn');
         if (btn) btn.hidden = true;
+
+        const photoInput = document.getElementById('editProfileImage');
+        if (photoInput) photoInput.value = '';
     }
 
     /**
