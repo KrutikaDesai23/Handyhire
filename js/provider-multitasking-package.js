@@ -379,7 +379,14 @@ function openPackageBooking(pkg) {
         if (list) list.innerHTML = '';
         if (empty) empty.hidden = true;
 
-        return api.apiFetch('/api/packages?package_type=multitasking').then(function (response) {
+        var currentUser = api.getCurrentUser ? api.getCurrentUser() : null;
+        var excludeOwnerId = currentUser && currentUser.id ? currentUser.id : null;
+        var exploreUrl = '/api/packages?package_type=multitasking';
+        if (excludeOwnerId !== null) {
+            exploreUrl += '&exclude_owner_id=' + encodeURIComponent(excludeOwnerId);
+        }
+
+        return api.apiFetch(exploreUrl).then(function (response) {
             if (!response.ok) throw new Error('Failed to load explore packages');
             return response.json();
         }).then(function (data) {

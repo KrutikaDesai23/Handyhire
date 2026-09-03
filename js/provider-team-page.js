@@ -341,134 +341,259 @@ const requestedPackageId =
         params.get('package_id')
     ) || null;
 
+        if (requestedPackageId) {
+            showMessage('Loading team...');
 
-/*
- * TEAM PACKAGE MODE
- *
- * A Team Package is NOT a Team object.
- * It contains individually selected workers.
- */
-if (
-    selectedPackage &&
-    (
-        !requestedPackageId ||
-        Number(selectedPackage.id) ===
-            requestedPackageId
-    )
-) {
-    showMessage('Loading team...');
-
-    const packageWorkers =
-        Array.isArray(
-            selectedPackage.workers
-        )
-            ? selectedPackage.workers
-            : (
-                Array.isArray(
-                    selectedPackage.team_members
-                )
-                    ? selectedPackage.team_members
-                    : []
-            );
-
-
-    const workerProfiles =
-        await Promise.all(
-            packageWorkers.map(
-                function (worker) {
-
-                    const workerId =
-                        Number(
-                            worker.worker_id ||
-                            worker.id
-                        );
-
-                    if (!workerId) {
-                        return Promise.resolve(null);
-                    }
-
-                    return window.HandyHireAPI
-                        .apiFetch(
-                            '/api/workers/' +
+            try {
+                const resp =
+                    await window.HandyHireAPI.apiFetch(
+                        '/api/packages/' +
                             encodeURIComponent(
-                                String(workerId)
+                                String(requestedPackageId)
                             )
-                        )
-                        .then(function (response) {
+                    );
 
-                            return response.ok
-                                ? response.json()
-                                : null;
-                        })
-                        .catch(function () {
-                            return null;
-                        });
+                if (resp.status === 401) {
+                    window.HandyHireAPI.clearAuth();
+                    window.location.href = 'login.html';
+                    return;
                 }
-            )
-        );
+                if (!resp.ok) {
+                    showMessage('Unable to load team package. Please try again.');
+                    return;
+                }
+
+                const selectedPackage =
+                    await resp.json();
+
+                const packageWorkers =
+                    Array.isArray(
+                        selectedPackage.workers
+                    )
+                        ? selectedPackage.workers
+                        : [];
 
 
-    const members =
-        packageWorkers.map(
-            function (worker, index) {
+                const workerProfiles =
+                    await Promise.all(
+                        packageWorkers.map(
+                            function (worker) {
 
-                const profile =
-                    workerProfiles[index];
+                                const workerId =
+                                    Number(
+                                        worker.worker_id ||
+                                        worker.id
+                                    );
 
-                return {
-                    worker_id:
-                        Number(
-                            worker.worker_id ||
-                            worker.id
-                        ),
+                                if (!workerId) {
+                                    return Promise.resolve(null);
+                                }
 
-                    full_name:
-                        (
-                            profile &&
-                            profile.full_name
-                        ) ||
-                        worker.full_name ||
-                        worker.name ||
-                        'Worker',
+                                return window.HandyHireAPI
+                                    .apiFetch(
+                                        '/api/workers/' +
+                                            encodeURIComponent(
+                                                String(workerId)
+                                            )
+                                    )
+                                    .then(function (response) {
 
-                    profession:
-                        (
-                            profile &&
-                            profile.profession
-                        ) ||
-                        worker.profession ||
-                        'Team member',
+                                        return response.ok
+                                            ? response.json()
+                                            : null;
+                                    })
+                                    .catch(function () {
+                                        return null;
+                                    });
+                            }
+                        )
+                    );
 
-                    profile_image:
-                        (
-                            profile &&
-                            profile.profile_image
-                        ) ||
-                        worker.profile_image ||
-                        null
+
+                const members =
+                    packageWorkers.map(
+                        function (worker, index) {
+
+                            const profile =
+                                workerProfiles[index];
+
+                            return {
+                                worker_id:
+                                    Number(
+                                        worker.worker_id ||
+                                        worker.id
+                                    ),
+
+                                full_name:
+                                    (
+                                        profile &&
+                                        profile.full_name
+                                    ) ||
+                                    worker.full_name ||
+                                    worker.name ||
+                                    'Worker',
+
+                                profession:
+                                    (
+                                        profile &&
+                                        profile.profession
+                                    ) ||
+                                    worker.profession ||
+                                    'Team member',
+
+                                profile_image:
+                                    (
+                                        profile &&
+                                        profile.profile_image
+                                    ) ||
+                                    worker.profile_image ||
+                                    null
+                            };
+                        }
+                    );
+
+
+                TEAM = {
+                    id: selectedPackage.id,
+                    name:
+                        selectedPackage.name ||
+                        'Team Package',
+                    members: members,
+                    is_package: true
                 };
+
+
+                renderTeamHeader(TEAM);
+                renderMembers(TEAM.members);
+                initMemberNavigation();
+                initBookWholeTeam();
+                initExpand();
+
+                return;
+            } catch (e) {
+                showMessage('Network error. Please check your connection and try again.');
+                return;
             }
-        );
+        }
+
+        if (
+            selectedPackage &&
+            Number(selectedPackage.id) ===
+                requestedPackageId
+        ) {
+            showMessage('Loading team...');
+
+            const packageWorkers =
+                Array.isArray(
+                    selectedPackage.workers
+                )
+                    ? selectedPackage.workers
+                    : (
+                        Array.isArray(
+                            selectedPackage.team_members
+                        )
+                            ? selectedPackage.team_members
+                            : []
+                      );
 
 
-    TEAM = {
-        id: selectedPackage.id,
-        name:
-            selectedPackage.name ||
-            'Team Package',
-        members: members,
-        is_package: true
-    };
+            const workerProfiles =
+                await Promise.all(
+                    packageWorkers.map(
+                        function (worker) {
+
+                            const workerId =
+                                Number(
+                                    worker.worker_id ||
+                                    worker.id
+                                );
+
+                            if (!workerId) {
+                                return Promise.resolve(null);
+                            }
+
+                            return window.HandyHireAPI
+                                .apiFetch(
+                                    '/api/workers/' +
+                                        encodeURIComponent(
+                                            String(workerId)
+                                        )
+                                )
+                                .then(function (response) {
+
+                                    return response.ok
+                                        ? response.json()
+                                        : null;
+                                })
+                                .catch(function () {
+                                    return null;
+                                });
+                        }
+                    )
+                );
 
 
-    renderTeamHeader(TEAM);
-    renderMembers(TEAM.members);
-    initMemberNavigation();
-    initBookWholeTeam();
-    initExpand();
+            const members =
+                packageWorkers.map(
+                    function (worker, index) {
 
-    return;
-}
+                        const profile =
+                            workerProfiles[index];
+
+                        return {
+                            worker_id:
+                                Number(
+                                    worker.worker_id ||
+                                    worker.id
+                                ),
+
+                            full_name:
+                                (
+                                    profile &&
+                                    profile.full_name
+                                ) ||
+                                worker.full_name ||
+                                worker.name ||
+                                'Worker',
+
+                            profession:
+                                (
+                                    profile &&
+                                    profile.profession
+                                ) ||
+                                worker.profession ||
+                                'Team member',
+
+                            profile_image:
+                                (
+                                    profile &&
+                                    profile.profile_image
+                                ) ||
+                                worker.profile_image ||
+                                null
+                        };
+                    }
+                );
+
+
+            TEAM = {
+                id: selectedPackage.id,
+                name:
+                    selectedPackage.name ||
+                    'Team Package',
+                members: members,
+                is_package: true
+            };
+
+
+            renderTeamHeader(TEAM);
+            renderMembers(TEAM.members);
+            initMemberNavigation();
+            initBookWholeTeam();
+            initExpand();
+
+            return;
+        }
         const teamId = readTeamId();
         if (!teamId) {
             showMessage('Select a team to view its details.');

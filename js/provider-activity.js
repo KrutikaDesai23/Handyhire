@@ -341,6 +341,7 @@
 
         const packageId = booking.package_id || null;
         const packageName = booking.package_name || null;
+        const packageType = booking.package_type || null;
         const isPackage = Boolean(packageId);
         const bookingType = isPackage ? 'package' : 'individual';
 
@@ -357,8 +358,10 @@
             name:
                 mode === 'sent'
                     ? (
-                        booking.worker_name ||
-                        '--'
+                        isPackage
+                            ? (packageName || '--')
+                            : (booking.worker_name ||
+                                '--')
                     )
                     : (
                         booking.customer_name ||
@@ -388,6 +391,9 @@
 
             packageName:
                 packageName,
+
+            package_type:
+                packageType,
 
             statusKey:
                 statusKey,
@@ -487,7 +493,13 @@
                 : '';
 
         const typeLabel = booking.bookingType === 'package'
-            ? 'MULTITASKING PACKAGE'
+            ? (
+                booking.package_type === 'team'
+                    ? 'TEAM PACKAGE'
+                    : booking.package_type === 'multitasking'
+                        ? 'MULTITASKING PACKAGE'
+                        : 'PACKAGE BOOKING'
+            )
             : 'INDIVIDUAL BOOKING';
 
         const typeBadge =

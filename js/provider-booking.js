@@ -826,7 +826,11 @@
                         ),
 
                     amount:
-                        getTotal()
+                        getTotal(),
+
+                    ...(selectedPackage
+                        ? { hours: hours }
+                        : {})
                 };
 
                 if (bookButton) {

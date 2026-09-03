@@ -197,7 +197,7 @@ def create_booking(
 
         # Never trust the frontend package price.
         # Use the actual price saved in database.
-        booking_amount = package.price
+        booking_amount = package.price * (payload.hours or 1)
 
 
     # =====================================================

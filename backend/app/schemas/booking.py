@@ -25,6 +25,7 @@ class BookingCreate(BaseModel):
 
     description: Optional[str] = None
     amount: int = Field(..., gt=0)
+    hours: Optional[int] = Field(None, ge=1)
 
     @model_validator(mode="after")
     def validate_worker_or_team(self):
@@ -57,6 +58,7 @@ class BookingResponse(BaseModel):
     service_name: Optional[str] = None
     customer_name: Optional[str] = None
     package_name: Optional[str] = None
+    package_type: Optional[str] = None
     team_name: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)

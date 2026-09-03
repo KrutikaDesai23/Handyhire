@@ -5,6 +5,7 @@ from typing import Optional
 
 from app.database.connection import get_db
 from app.models import Package, PackageService, PackageWorker, Service
+import app.models as models
 from app.schemas import PackageSummary, PackageWorkerSummary, ServiceSummary
 
 router = APIRouter(prefix="/api/packages", tags=["packages"])
@@ -15,11 +16,15 @@ def list_packages(
     package_type: Optional[str] = Query(None),
     search: Optional[str] = Query(None),
     category: Optional[str] = Query(None),
+    exclude_owner_id: Optional[int] = Query(None),
     db: Session = Depends(get_db),
 ):
     query = db.query(Package).filter(Package.status == "published")
     if package_type:
         query = query.filter(Package.package_type == package_type)
+
+    if exclude_owner_id is not None:
+        query = query.filter(Package.owner_id != exclude_owner_id)
 
     if search:
         query = query.filter(

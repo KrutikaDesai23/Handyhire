@@ -58,6 +58,7 @@ def _build_booking_response(
         )
 
     package_name = None
+    package_type = None
 
     if booking.package_id:
         pkg = (
@@ -66,12 +67,15 @@ def _build_booking_response(
             .first()
         )
         package_name = pkg.name if pkg else None
+        package_type = pkg.package_type if pkg else None
 
     return BookingResponse(
         id=booking.id,
         customer_id=booking.customer_id,
         worker_id=booking.worker_id,
         service_id=booking.service_id,
+        package_id=booking.package_id,
+        package_type=package_type,
         booking_date=booking.booking_date,
         booking_time=booking.booking_time,
         address=booking.address,
