@@ -116,6 +116,30 @@
                     <span class="form-error" id="skillsError" role="alert" aria-live="polite"></span>
                 </div>
 
+                <!-- Experience Dropdown -->
+                <div class="form-group">
+                    <label for="experience" class="form-label">Experience</label>
+                    <div class="select-wrapper">
+                        <select
+                            id="experience"
+                            name="experience"
+                            class="form-input form-select"
+                            required
+                            aria-required="true"
+                            aria-describedby="experienceError"
+                        >
+                            <option value="" disabled selected>Select experience</option>
+                            <option value="Less than 1 year">Less than 1 year</option>
+                            <option value="1–2 years">1–2 years</option>
+                            <option value="2–5 years">2–5 years</option>
+                            <option value="5–10 years">5–10 years</option>
+                            <option value="10+ years">10+ years</option>
+                        </select>
+                        <span class="select-arrow" aria-hidden="true">&#9662;</span>
+                    </div>
+                    <span class="form-error" id="experienceError" role="alert" aria-live="polite"></span>
+                </div>
+
                 <!-- Next Button -->
                 <button type="submit" class="next-btn" aria-label="Continue to step 2">
                     Next &rarr;

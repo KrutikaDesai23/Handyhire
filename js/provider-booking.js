@@ -428,6 +428,18 @@
             }
         }
 
+        if (timeInput) {
+            timeInput.value = '';
+        }
+
+        const hoursSelect =
+            document.getElementById(
+                'hoursSelect'
+            );
+
+        if (hoursSelect) {
+            hoursSelect.value = '';
+        }
 
     }
 
@@ -499,12 +511,21 @@
                 'hoursSelect'
             );
 
-        return select
-            ? Math.max(
-                1,
-                Number(select.value) || 1
-            )
-            : 1;
+        if (!select) {
+            return null;
+        }
+
+        const value =
+            Number(select.value);
+
+        if (
+            !value ||
+            String(select.value).trim() === ''
+        ) {
+            return null;
+        }
+
+        return Math.max(1, value);
     }
 
     function getTotal() {
@@ -520,11 +541,17 @@
                 'totalCost'
             );
 
+        const hours = getHours();
+
         if (total) {
-            total.textContent =
-                formatRupees(
-                    getTotal()
-                );
+            if (hours === null) {
+                total.textContent = '\u2014';
+            } else {
+                total.textContent =
+                    formatRupees(
+                        getTotal()
+                    );
+            }
         }
     }
 
@@ -761,6 +788,14 @@
                     );
 
                 const hours = getHours();
+
+                if (hours === null) {
+                    showFormError(
+                        'Please select the number of hours.'
+                    );
+
+                    return;
+                }
 
                 const descriptionParts = [
                     'Duration: ' +

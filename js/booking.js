@@ -252,10 +252,18 @@
                 help.textContent = 'Fixed package price.';
             }
         } else if (select) {
-            const hours = Math.max(1, Number(select.value) || 1);
-            total.textContent = formatRupees(hours * PACKAGE_HOURLY_RATE);
-            if (help) {
-                help.textContent = 'Auto-calculated at \u20B9250 / hour.';
+            const rawValue = String(select.value || '').trim();
+            if (!rawValue) {
+                total.textContent = '\u2014';
+                if (help) {
+                    help.textContent = 'Select hours to see the estimated total.';
+                }
+            } else {
+                const hours = Math.max(1, Number(rawValue) || 1);
+                total.textContent = formatRupees(hours * PACKAGE_HOURLY_RATE);
+                if (help) {
+                    help.textContent = 'Auto-calculated at \u20B9250 / hour.';
+                }
             }
         }
     }
@@ -480,6 +488,11 @@
             return;
         }
 
+        if (select && !select.value) {
+            select.reportValidity();
+            return;
+        }
+
         if (!(window.HandyHireAPI && window.HandyHireAPI.requireRole('customer'))) {
             return;
         }
@@ -549,6 +562,11 @@
         }
         if (addressInput && !addressInput.value.trim()) {
             addressInput.reportValidity();
+            return;
+        }
+
+        if (select && !select.value) {
+            select.reportValidity();
             return;
         }
 
@@ -665,6 +683,17 @@
         initBackButton();
         initWorkerHeader();
         initDateDefaults();
+
+        const timeInput = document.getElementById('bookingTime');
+        if (timeInput) {
+            timeInput.value = '';
+        }
+
+        const hoursSelect = document.getElementById('hoursSelect');
+        if (hoursSelect) {
+            hoursSelect.value = '';
+        }
+
         initTotalLiveUpdate();
         initBookingSubmit();
 

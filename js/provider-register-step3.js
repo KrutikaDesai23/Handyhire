@@ -635,7 +635,7 @@
                 '',
 
             experience:
-                null,
+                profile.experience || null,
 
             qualification:
                 profile.qualification,

@@ -10,8 +10,10 @@
     const fullNameInput = document.getElementById('fullName');
     const ageInput = document.getElementById('age');
     const qualificationInput = document.getElementById('qualification');
+
     const skillsInput = document.getElementById('skills');
 
+    const experienceInput = document.getElementById('experience');
     function setFieldError(input, message) {
         const describedBy = input.getAttribute('aria-describedby') || '';
         const errorEl = describedBy
@@ -101,6 +103,19 @@
         return true;
     }
 
+    function validateExperience() {
+        if (!experienceInput.value) {
+            setFieldError(
+                experienceInput,
+                'Please select your experience.'
+            );
+            return false;
+        }
+
+        setFieldError(experienceInput, '');
+        return true;
+    }
+
     function saveFormData() {
         try {
             const existing = sessionStorage.getItem(PROFILE_KEY);
@@ -110,6 +125,7 @@
             profile.age = ageInput.value.trim();
             profile.qualification = qualificationInput.value;
             profile.skills = skillsInput.value;
+            profile.experience = experienceInput.value;
 
             sessionStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
         } catch (error) {
@@ -128,6 +144,7 @@
             ageInput.value = profile.age || '';
             qualificationInput.value = profile.qualification || '';
             skillsInput.value = profile.skills || '';
+            experienceInput.value = profile.experience || '';
         } catch (error) {
             console.error('Could not restore Step 1 details.', error);
         }
@@ -192,6 +209,12 @@
             validateSkills();
         });
 
+        experienceInput.addEventListener('change', function () {
+            if (experienceInput.classList.contains('input-error')) {
+                validateExperience();
+            }
+        });
+
         form.addEventListener('submit', function (event) {
             event.preventDefault();
 
@@ -199,12 +222,14 @@
             const validAge = validateAge();
             const validQualification = validateQualification();
             const validSkill = validateSkills();
+            const validExperience = validateExperience();
 
             if (
                 validName &&
                 validAge &&
                 validQualification &&
-                validSkill
+                validSkill &&
+                validExperience
             ) {
                 saveFormData();
                 window.location.href = NEXT_PAGE;
