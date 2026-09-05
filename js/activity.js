@@ -34,8 +34,8 @@
     };
 
     const ACTION_STATUS = {
-        confirm_completion: 'completed',
-        reject_completion: 'accepted'
+        confirm_completion: 'confirm-completion',
+        reject_completion: 'reject-completion'
     };
 
     let currentBookings = [];
