@@ -16,10 +16,12 @@ def _build_request_response(request: models.BookingRequest, db: Session) -> Book
     service = db.query(models.Service).filter(models.Service.id == booking.service_id).first() if booking and booking.service_id else None
 
     package_name = None
+    package_type = None
 
     if booking and booking.package_id:
         pkg = db.query(models.Package).filter(models.Package.id == booking.package_id).first()
         package_name = pkg.name if pkg else None
+        package_type = pkg.package_type if pkg else None
 
     return BookingRequestResponse(
         id=request.id,
@@ -38,6 +40,7 @@ def _build_request_response(request: models.BookingRequest, db: Session) -> Book
         amount=booking.amount if booking else None,
         package_id=booking.package_id if booking else None,
         package_name=package_name,
+        package_type=package_type,
     )
 
 
@@ -86,7 +89,30 @@ def accept_worker_request(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Booking not found")
 
     request.status = "accepted"
-    booking.status = "accepted"
+
+    booking_workers = (
+        db.query(models.BookingWorker)
+        .filter(models.BookingWorker.booking_id == booking.id)
+        .all()
+    )
+
+    if booking_workers:
+        for bw in booking_workers:
+            if bw.worker_id == current_user.id:
+                bw.status = "accepted"
+                break
+
+        all_accepted = (
+            db.query(models.BookingWorker)
+            .filter(models.BookingWorker.booking_id == booking.id)
+            .filter(models.BookingWorker.status != "accepted")
+            .first()
+            is None
+        )
+        if all_accepted:
+            booking.status = "accepted"
+    else:
+        booking.status = "accepted"
 
     db.add(request)
     db.add(booking)
@@ -118,6 +144,19 @@ def reject_worker_request(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Booking cannot be rejected in current status")
 
     request.status = "rejected"
+
+    booking_workers = (
+        db.query(models.BookingWorker)
+        .filter(models.BookingWorker.booking_id == booking.id)
+        .all()
+    )
+
+    if booking_workers:
+        for bw in booking_workers:
+            if bw.worker_id == current_user.id:
+                bw.status = "rejected"
+                break
+
     booking.status = "rejected"
 
     db.add(request)

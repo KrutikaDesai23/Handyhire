@@ -129,6 +129,7 @@ def create_booking(
     service = None
     package = None
     package_name = None
+    team_package_workers = []
 
     worker_id = payload.worker_id
     service_id = payload.service_id
@@ -198,6 +199,27 @@ def create_booking(
         # Never trust the frontend package price.
         # Use the actual price saved in database.
         booking_amount = package.price * (payload.hours or 1)
+
+        team_package_workers = []
+
+        if package.package_type == "team":
+            team_package_workers = (
+                db.query(models.PackageWorker)
+                .filter(models.PackageWorker.package_id == package.id)
+                .all()
+            )
+
+            if not team_package_workers:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="This team package has no members selected",
+                )
+
+            if any(pw.worker_id == current_user.id for pw in team_package_workers):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="You cannot book a team package that you are part of.",
+                )
 
 
     # =====================================================
@@ -279,19 +301,37 @@ def create_booking(
     # CREATE REQUEST FOR PROVIDER
     # =====================================================
 
-    booking_request = models.BookingRequest(
-        booking_id=booking.id,
-        worker_id=worker_id,
-        customer_id=current_user.id,
-        status="pending",
-    )
+    if team_package_workers:
+        for pw in team_package_workers:
+            if pw.worker_id == package.owner_id:
+                continue
 
-    db.add(booking_request)
+            bw = models.BookingWorker(
+                booking_id=booking.id,
+                worker_id=pw.worker_id,
+                status="pending",
+            )
+            db.add(bw)
+
+            br = models.BookingRequest(
+                booking_id=booking.id,
+                worker_id=pw.worker_id,
+                customer_id=current_user.id,
+                status="pending",
+            )
+            db.add(br)
+    else:
+        booking_request = models.BookingRequest(
+            booking_id=booking.id,
+            worker_id=worker_id,
+            customer_id=current_user.id,
+            status="pending",
+        )
+        db.add(booking_request)
 
     db.commit()
 
     db.refresh(booking)
-    db.refresh(booking_request)
 
 
     # =====================================================

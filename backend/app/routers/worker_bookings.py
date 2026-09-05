@@ -7,6 +7,7 @@ from fastapi import (
     Query,
     status,
 )
+from sqlalchemy import not_, exists
 from sqlalchemy.orm import Session
 
 from app import models
@@ -120,25 +121,47 @@ def list_worker_bookings(
     ),
     db: Session = Depends(get_db),
 ):
-    query = (
-        db.query(models.Booking)
-        .filter(
-            models.Booking.worker_id ==
-            current_user.id
-        )
+    direct = db.query(models.Booking).filter(
+        models.Booking.worker_id == current_user.id
     )
+
+    owner_only_team_exists = (
+        db.query(models.BookingWorker.booking_id)
+        .filter(models.BookingWorker.booking_id == models.Booking.id)
+        .filter(models.BookingWorker.worker_id == current_user.id)
+        .exists()
+    )
+
+    team_package_owner_only = (
+        db.query(models.Package)
+        .filter(models.Package.id == models.Booking.package_id)
+        .filter(models.Package.package_type == "team")
+        .exists()
+    )
+
+    direct = direct.filter(
+        not_(team_package_owner_only & ~owner_only_team_exists)
+    )
+
+    participant = (
+        db.query(models.Booking)
+        .join(
+            models.BookingWorker,
+            models.BookingWorker.booking_id == models.Booking.id
+        )
+        .filter(models.BookingWorker.worker_id == current_user.id)
+    )
+
+    query = direct.union(participant)
 
     if booking_status:
         query = query.filter(
-            models.Booking.status ==
-            booking_status
+            models.Booking.status == booking_status
         )
 
     bookings = (
         query
-        .order_by(
-            models.Booking.created_at.desc()
-        )
+        .order_by(models.Booking.created_at.desc())
         .all()
     )
 
@@ -217,10 +240,23 @@ def get_worker_booking(
         .first()
     )
 
-    if (
-        not booking or
-        booking.worker_id != current_user.id
-    ):
+    if not booking:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Booking not found",
+        )
+
+    is_participant = (
+        db.query(models.BookingWorker)
+        .filter(
+            models.BookingWorker.booking_id == booking_id,
+            models.BookingWorker.worker_id == current_user.id,
+        )
+        .first()
+        is not None
+    )
+
+    if booking.worker_id != current_user.id and not is_participant:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Booking not found",
@@ -241,6 +277,12 @@ VALID_STATUS_TRANSITIONS = {
         "completion_requested",
         "cancelled",
     ],
+}
+
+PARTICIPANT_STATUS_TRANSITIONS = {
+    "pending": ["accepted"],
+    "accepted": ["completion_requested"],
+    "completion_requested": ["completed"],
 }
 
 
@@ -265,34 +307,92 @@ def update_worker_booking_status(
         .first()
     )
 
-    if (
-        not booking or
-        booking.worker_id != current_user.id
-    ):
+    if not booking:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Booking not found",
         )
 
-    allowed = (
-        VALID_STATUS_TRANSITIONS.get(
-            booking.status,
-            [],
+    is_participant = (
+        db.query(models.BookingWorker)
+        .filter(
+            models.BookingWorker.booking_id == booking_id,
+            models.BookingWorker.worker_id == current_user.id,
         )
+        .first()
+        is not None
     )
 
-    if new_status not in allowed:
+    if booking.worker_id != current_user.id and not is_participant:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                f"Invalid status transition from "
-                f"{booking.status} to {new_status}"
-            ),
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Booking not found",
         )
 
-    booking.status = new_status
+    if is_participant:
+        bw = (
+            db.query(models.BookingWorker)
+            .filter(
+                models.BookingWorker.booking_id == booking_id,
+                models.BookingWorker.worker_id == current_user.id,
+            )
+            .first()
+        )
+
+        allowed = (
+            PARTICIPANT_STATUS_TRANSITIONS.get(
+                bw.status,
+                [],
+            )
+        )
+
+        if new_status not in allowed:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"Invalid status transition from "
+                    f"{bw.status} to {new_status}"
+                ),
+            )
+
+        bw.status = new_status
+
+        if new_status == "completion_requested":
+            all_done = (
+                db.query(models.BookingWorker)
+                .filter(models.BookingWorker.booking_id == booking_id)
+                .filter(
+                    models.BookingWorker.status.notin_(
+                        ["completion_requested", "completed"]
+                    )
+                )
+                .first()
+                is None
+            )
+
+            if all_done:
+                booking.status = "completion_requested"
+    else:
+        allowed = (
+            VALID_STATUS_TRANSITIONS.get(
+                booking.status,
+                [],
+            )
+        )
+
+        if new_status not in allowed:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"Invalid status transition from "
+                    f"{booking.status} to {new_status}"
+                ),
+            )
+
+        booking.status = new_status
 
     db.add(booking)
+    db.add(bw if is_participant else None)
     db.commit()
     db.refresh(booking)
 

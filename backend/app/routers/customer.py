@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import not_
 
 from app import models
 from app.auth.dependencies import get_current_customer
@@ -114,6 +115,9 @@ def confirm_booking_completion(
             detail="Booking is not awaiting completion confirmation",
         )
     booking.status = "completed"
+    db.query(models.BookingWorker).filter(
+        models.BookingWorker.booking_id == booking_id
+    ).update({"status": "completed"}, synchronize_session=False)
     db.add(booking)
     db.commit()
     db.refresh(booking)
@@ -133,6 +137,10 @@ def reject_booking_completion(
             detail="Booking is not awaiting completion confirmation",
         )
     booking.status = "accepted"
+    db.query(models.BookingWorker).filter(
+        models.BookingWorker.booking_id == booking_id,
+        models.BookingWorker.status == "completion_requested",
+    ).update({"status": "accepted"}, synchronize_session=False)
     db.add(booking)
     db.commit()
     db.refresh(booking)

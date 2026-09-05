@@ -27,5 +27,6 @@ class Booking(Base):
     worker = relationship("User", back_populates="worker_bookings", foreign_keys="Booking.worker_id")
     service = relationship("Service", back_populates="bookings")
     team = relationship("Team", backref="bookings")
-    request = relationship("BookingRequest", back_populates="booking", uselist=False)
+    requests = relationship("BookingRequest", back_populates="booking", cascade="all, delete-orphan")
+    booking_workers = relationship("BookingWorker", back_populates="booking", cascade="all, delete-orphan")
     review = relationship("Review", backref="booking", uselist=False)

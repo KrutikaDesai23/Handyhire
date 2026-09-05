@@ -17,6 +17,6 @@ class BookingRequest(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
-    booking = relationship("Booking", back_populates="request")
+    booking = relationship("Booking", back_populates="requests")
     customer = relationship("User", back_populates="customer_booking_requests", foreign_keys="BookingRequest.customer_id")
     worker = relationship("User", back_populates="worker_booking_requests", foreign_keys="BookingRequest.worker_id")

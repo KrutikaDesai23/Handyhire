@@ -17,6 +17,7 @@ def list_packages(
     search: Optional[str] = Query(None),
     category: Optional[str] = Query(None),
     exclude_owner_id: Optional[int] = Query(None),
+    exclude_member_id: Optional[int] = Query(None),
     db: Session = Depends(get_db),
 ):
     query = db.query(Package).filter(Package.status == "published")
@@ -25,6 +26,14 @@ def list_packages(
 
     if exclude_owner_id is not None:
         query = query.filter(Package.owner_id != exclude_owner_id)
+
+    if exclude_member_id is not None:
+        query = query.filter(
+            Package.id.notin_(
+                db.query(PackageWorker.package_id)
+                .filter(PackageWorker.worker_id == exclude_member_id)
+            )
+        )
 
     if search:
         query = query.filter(

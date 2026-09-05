@@ -16,6 +16,7 @@ from app.models import (
     Service,
     Booking,
     BookingRequest,
+    BookingWorker,
     Team,
     TeamMember,
     Package,

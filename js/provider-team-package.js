@@ -410,9 +410,18 @@ function openTeamPackage(pkg) {
     if (empty) empty.hidden = true;
 
 
+    var currentUser = api.getCurrentUser ? api.getCurrentUser() : null;
+    var excludeOwnerId = currentUser && currentUser.id ? currentUser.id : null;
+    var excludeMemberId = excludeOwnerId;
+
+    var exploreParams =
+        '?package_type=team' +
+        (excludeOwnerId ? '&exclude_owner_id=' + encodeURIComponent(String(excludeOwnerId)) : '') +
+        (excludeMemberId ? '&exclude_member_id=' + encodeURIComponent(String(excludeMemberId)) : '');
+
     var exploreRequest =
         api.apiFetch(
-            '/api/packages?package_type=team'
+            '/api/packages' + exploreParams
         )
         .then(function (response) {
 

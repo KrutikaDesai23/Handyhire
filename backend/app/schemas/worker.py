@@ -73,6 +73,7 @@ class BookingRequestResponse(BaseModel):
     amount: Optional[int] = None
     package_id: Optional[int] = None
     package_name: Optional[str] = None
+    package_type: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 

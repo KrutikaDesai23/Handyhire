@@ -275,9 +275,22 @@ def list_worker_packages(
     package_type: Optional[str] = Query(None),
     db: Session = Depends(get_db),
 ):
-    query = db.query(models.Package).filter(
-        models.Package.owner_id == current_user.id
-    )
+    query = db.query(models.Package)
+
+    if package_type == "team":
+        query = query.filter(
+            or_(
+                models.Package.owner_id == current_user.id,
+                models.Package.id.in_(
+                    db.query(models.PackageWorker.package_id)
+                    .filter(models.PackageWorker.worker_id == current_user.id)
+                ),
+            )
+        )
+    else:
+        query = query.filter(
+            models.Package.owner_id == current_user.id
+        )
 
     if package_type:
         _validate_package_type(package_type)
