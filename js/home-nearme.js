@@ -263,11 +263,50 @@
             return;
         }
 
-        api()
-            .then((workers) => {
-                renderWorkers(container, workers);
+        var fetchUserPromise = null;
+
+        if (
+            window.HandyHireAPI &&
+            typeof window.HandyHireAPI.fetchCurrentUser ===
+                'function'
+        ) {
+            fetchUserPromise =
+                window.HandyHireAPI.fetchCurrentUser();
+        } else {
+            fetchUserPromise = Promise.resolve(null);
+        }
+
+        fetchUserPromise
+            .then(function (user) {
+                var city = '';
+
+                if (user && user.city) {
+                    city = String(user.city).trim();
+                }
+
+                if (!city) {
+                    container.innerHTML = `
+                        <p class="empty-state" style="grid-column: 1 / -1; text-align: center; color: var(--color-text-muted); padding: 32px 0;">
+                            Add your city to your profile to see professionals near you.
+                        </p>
+                    `;
+                    return null;
+                }
+
+                return api({ location: city });
             })
-            .catch(() => {
+            .then(function (workers) {
+                if (
+                    container &&
+                    Array.isArray(workers)
+                ) {
+                    renderWorkers(
+                        container,
+                        workers
+                    );
+                }
+            })
+            .catch(function () {
                 container.innerHTML = `
                     <p class="empty-state" style="grid-column: 1 / -1; text-align: center; color: var(--color-text-muted); padding: 32px 0;">
                         Unable to load professionals right now. Please try again later.
