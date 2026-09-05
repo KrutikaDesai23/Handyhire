@@ -80,7 +80,7 @@ def seed():
             qualification="Certified Electrician",
             location="Test City",
             price=500,
-            availability="Weekdays",
+            availability="pre-booking",
             profile_image=None,
         )
         session.add(worker_profile_1)
@@ -106,7 +106,7 @@ def seed():
             qualification="Certified Plumber",
             location="Test City",
             price=450,
-            availability="Weekends",
+            availability="on-spot",
             profile_image=None,
         )
         session.add(worker_profile_2)

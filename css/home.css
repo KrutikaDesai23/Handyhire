@@ -198,12 +198,12 @@ body {
    HERO BANNER
    ========================================================= */
 .hero-banner {
-    padding: 16px 16px 8px;
+    padding: 16px 16px 12px;
 }
 
 .hero-image {
     width: 100%;
-    height: 170px;
+    height: 210px;
     border-radius: var(--radius-card);
     background:
         linear-gradient(135deg, rgba(104, 134, 92, 0.85), rgba(86, 111, 75, 0.85)),
@@ -230,6 +230,53 @@ body {
 .hero-image::after {
     content: 'HandyHire \2022 Trusted Professionals';
     opacity: 0.9;
+}
+
+.hero-search {
+    position: absolute;
+    left: 50%;
+    bottom: 20px;
+    transform: translateX(-50%);
+    width: calc(100% - 32px);
+    max-width: 700px;
+}
+
+.hero-search .search-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.hero-search .search-icon {
+    position: absolute;
+    left: 14px;
+    font-size: 16px;
+    color: var(--color-text-muted);
+    pointer-events: none;
+}
+
+.hero-search .search-input {
+    width: 100%;
+    padding: 12px 14px 12px 42px;
+    font-size: 15px;
+    font-family: inherit;
+    border: none;
+    border-radius: 999px;
+    background-color: rgba(255, 255, 255, 0.95);
+    color: var(--color-text);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    transition: box-shadow var(--transition), background-color var(--transition);
+}
+
+.hero-search .search-input::placeholder {
+    color: var(--color-text-muted);
+}
+
+.hero-search .search-input:focus {
+    outline: none;
+    background-color: #ffffff;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
 }
 
 /* =========================================================

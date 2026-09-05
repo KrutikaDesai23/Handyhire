@@ -263,7 +263,17 @@
 
         api()
             .then((workers) => {
-                renderWorkers(container, workers);
+                const filtered = workers.filter(function (worker) {
+                    const raw = worker.raw || worker;
+                    const availability = String(raw.availability || '')
+                        .toLowerCase()
+                        .trim();
+                    return (
+                        availability === 'on-spot' ||
+                        availability === 'both'
+                    );
+                });
+                renderWorkers(container, filtered);
             })
             .catch(() => {
                 container.innerHTML = `

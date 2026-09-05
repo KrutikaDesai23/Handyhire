@@ -244,6 +244,13 @@
     }
 
     /**
+     * All workers currently loaded on this page. Used by the
+     * live search filter so we do not re-query the backend
+     * on every keystroke.
+     */
+    let currentWorkers = [];
+
+    /**
      * Load workers from the backend and render them into the
      * grid. Shows a loading state, then renders real data or a
      * friendly error/empty message using the existing styling.
@@ -270,7 +277,8 @@
 
         api()
             .then((workers) => {
-                renderWorkers(container, workers);
+                currentWorkers = Array.isArray(workers) ? workers : [];
+                applySearch();
             })
             .catch(() => {
                 container.innerHTML = `
@@ -279,6 +287,57 @@
                     </p>
                 `;
             });
+    }
+
+    /**
+     * Build a lowercase text token for search matching.
+     * @param {string} value
+     * @returns {string}
+     */
+    function searchToken(value) {
+        return String(value == null ? '' : value).toLowerCase();
+    }
+
+    /**
+     * Filter the already-loaded worker list by the current
+     * search query and render the matching subset.
+     */
+    function applySearch() {
+        const container = document.getElementById('serviceGrid');
+        if (!container) return;
+
+        const input = document.getElementById('workerSearch');
+        const query = input ? searchToken(input.value) : '';
+
+        const workers = currentWorkers.filter(function (worker) {
+            if (!query) return true;
+            const raw = worker.raw || worker;
+            const name = searchToken(raw.full_name || raw.name);
+            const profession = searchToken(raw.profession);
+            const location = searchToken(raw.location);
+            const availability = searchToken(raw.availability);
+            return (
+                name.indexOf(query) !== -1 ||
+                profession.indexOf(query) !== -1 ||
+                location.indexOf(query) !== -1 ||
+                availability.indexOf(query) !== -1
+            );
+        });
+
+        renderWorkers(container, workers);
+    }
+
+    /**
+     * Wire up the search input so the worker grid filters
+     * live as the customer types.
+     */
+    function initSearch() {
+        const input = document.getElementById('workerSearch');
+        if (!input) return;
+
+        input.addEventListener('input', function () {
+            applySearch();
+        });
     }
 
     /**
@@ -296,6 +355,7 @@
         initWorkerCards();
         initPackageTiles();
         initTopNav();
+        initSearch();
     }
 
     // Run after DOM is ready

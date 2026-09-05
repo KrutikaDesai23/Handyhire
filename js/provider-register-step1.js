@@ -118,14 +118,18 @@
 
     function saveFormData() {
         try {
-            const existing = sessionStorage.getItem(PROFILE_KEY);
-            const profile = existing ? JSON.parse(existing) : {};
+            const existing = JSON.parse(
+                sessionStorage.getItem(PROFILE_KEY) || '{}'
+            );
 
-            profile.fullName = fullNameInput.value.trim();
-            profile.age = ageInput.value.trim();
-            profile.qualification = qualificationInput.value;
-            profile.skills = skillsInput.value;
-            profile.experience = experienceInput.value;
+            const profile = {
+                ...existing,
+                fullName: fullNameInput.value.trim(),
+                age: ageInput.value.trim(),
+                qualification: qualificationInput.value,
+                skills: skillsInput.value,
+                experience: experienceInput.value
+            };
 
             sessionStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
         } catch (error) {

@@ -647,7 +647,8 @@
                 Number(profile.price),
 
             availability:
-                '',
+                profile.bookingPreference ||
+                null,
 
             profile_image:
                 null

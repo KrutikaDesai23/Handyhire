@@ -18,6 +18,12 @@
     let TEAM = null;
 
     /**
+     * True when the current view represents a team package
+     * loaded from /api/packages rather than legacy /api/teams.
+     */
+    let IS_PACKAGE_MODE = false;
+
+    /**
      * Number of members shown before the arrow button is
      * needed; the rest are tagged as "extra" and revealed
      * on expand.
@@ -25,11 +31,16 @@
     const VISIBLE_BY_DEFAULT = 3;
 
     /**
-     * Read the selected team ID from sessionStorage.
+     * Read the selected team/package ID from URL or sessionStorage.
      * Falls back to the team name for backward compatibility.
      * @returns {string|null}
      */
     function readSelectedTeamId() {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const packageId = params.get('package_id');
+            if (packageId) return packageId;
+        } catch (e) {}
         try {
             const id = sessionStorage.getItem('handyhire.selectedTeamId');
             if (id) return id;
@@ -42,16 +53,33 @@
     }
 
     /**
-     * Persist the selected team so subsequent pages
+     * Read package_id from the current URL query params.
+     * @returns {string|null}
+     */
+    function readPackageIdFromUrl() {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const packageId = params.get('package_id');
+            if (packageId) return String(packageId).trim();
+        } catch (e) {}
+        return null;
+    }
+
+    /**
+     * Persist the selected team/package so subsequent pages
      * (booking.html, team-member.html) can read it.
      * @param {string} teamName
      * @param {number|string|null} teamId
+     * @param {number|string|null} packageId
      */
-    function persistSelectedTeam(teamName, teamId) {
+    function persistSelectedTeam(teamName, teamId, packageId) {
         try {
             sessionStorage.setItem('handyhire.selectedTeam', teamName);
             if (teamId != null) {
                 sessionStorage.setItem('handyhire.selectedTeamId', String(teamId));
+            }
+            if (packageId != null) {
+                sessionStorage.setItem('handyhire.selectedPackageId', String(packageId));
             }
         } catch (e) {
             // Ignore.
@@ -290,15 +318,23 @@
         btn.addEventListener('click', function () {
             try {
                 sessionStorage.setItem('handyhire.selectedTeam', TEAM.name);
-                if (TEAM.id != null) {
+                if (IS_PACKAGE_MODE) {
+                    sessionStorage.setItem('handyhire.selectedPackageId', String(TEAM.id));
+                    sessionStorage.removeItem('handyhire.selectedTeamId');
+                } else if (TEAM.id != null) {
                     sessionStorage.setItem('handyhire.selectedTeamId', String(TEAM.id));
+                    sessionStorage.removeItem('handyhire.selectedPackageId');
                 }
                 sessionStorage.setItem('handyhire.bookingMode', 'team');
                 sessionStorage.setItem('handyhire.customer.previousPage', 'team-page.html');
             } catch (e) {
                 // Ignore.
             }
-            window.location.href = 'booking.html';
+            if (IS_PACKAGE_MODE && TEAM.id) {
+                window.location.href = 'booking.html?package_id=' + encodeURIComponent(String(TEAM.id));
+            } else {
+                window.location.href = 'booking.html';
+            }
         });
     }
 
@@ -360,7 +396,8 @@
      */
     async function loadTeam() {
         const teamId = readSelectedTeamId();
-        if (!teamId) {
+        const packageId = readPackageIdFromUrl();
+        if (!teamId && !packageId) {
             showMessage('No team selected. Please select a team first.');
             return;
         }
@@ -373,44 +410,86 @@
         }
 
         try {
-            const resp = await window.HandyHireAPI.apiFetch('/api/teams/' + encodeURIComponent(String(teamId)));
+            let team;
+            if (packageId) {
+                IS_PACKAGE_MODE = true;
+                const resp = await window.HandyHireAPI.apiFetch('/api/packages/' + encodeURIComponent(String(packageId)));
 
-            if (resp.status === 401) {
-                window.HandyHireAPI.clearAuth();
-                window.location.href = 'login.html';
-                return;
-            }
-            if (resp.status === 403) {
-                showMessage('You do not have access to this team.');
-                return;
-            }
-            if (resp.status === 404) {
-                showMessage('Team not found.');
-                return;
-            }
-            if (!resp.ok) {
-                showMessage('Unable to load team. Please try again.');
-                return;
+                if (resp.status === 401) {
+                    window.HandyHireAPI.clearAuth();
+                    window.location.href = 'login.html';
+                    return;
+                }
+                if (resp.status === 403) {
+                    showMessage('You do not have access to this package.');
+                    return;
+                }
+                if (resp.status === 404) {
+                    showMessage('Team package not found.');
+                    return;
+                }
+                if (!resp.ok) {
+                    showMessage('Unable to load team package. Please try again.');
+                    return;
+                }
+
+                team = await resp.json();
+            } else {
+                IS_PACKAGE_MODE = false;
+                const resp = await window.HandyHireAPI.apiFetch('/api/teams/' + encodeURIComponent(String(teamId)));
+
+                if (resp.status === 401) {
+                    window.HandyHireAPI.clearAuth();
+                    window.location.href = 'login.html';
+                    return;
+                }
+                if (resp.status === 403) {
+                    showMessage('You do not have access to this team.');
+                    return;
+                }
+                if (resp.status === 404) {
+                    showMessage('Team not found.');
+                    return;
+                }
+                if (!resp.ok) {
+                    showMessage('Unable to load team. Please try again.');
+                    return;
+                }
+
+                team = await resp.json();
             }
 
-            const team = await resp.json();
-
-            TEAM = {
-                id: team.id,
-                name: team.name || '',
-                category: team.category || '',
-                description: team.description || '',
-                members: (team.members || []).map(function (m) {
+            const members = IS_PACKAGE_MODE
+                ? (team.workers || []).map(function (w) {
+                    return {
+                        worker_id: w.worker_id,
+                        full_name: w.full_name,
+                        profession: w.profession,
+                        role: w.profession,
+                    };
+                })
+                : (team.members || []).map(function (m) {
                     return {
                         worker_id: m.worker_id,
                         full_name: m.full_name,
                         profession: m.profession,
                         role: m.role,
                     };
-                }),
+                });
+
+            TEAM = {
+                id: team.id,
+                name: team.name || '',
+                category: team.category || '',
+                description: team.description || '',
+                members: members,
             };
 
-            persistSelectedTeam(TEAM.name, TEAM.id);
+            if (IS_PACKAGE_MODE) {
+                persistSelectedTeam(TEAM.name, null, TEAM.id);
+            } else {
+                persistSelectedTeam(TEAM.name, TEAM.id, null);
+            }
 
             renderTeamHeader(TEAM);
             renderMembers();

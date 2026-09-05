@@ -19,19 +19,24 @@
      * Map a backend team object to the shape consumed by the
      * existing card renderer.
      */
-    function mapTeamToCard(team) {
-        const memberNames = (team.members || [])
-            .map(function (m) { return m.full_name || m.profession || 'Team member'; });
+    function mapTeamToCard(pkg) {
+        const workers = Array.isArray(pkg.workers) ? pkg.workers : [];
+        const memberNames = workers
+            .map(function (w) { return w.full_name || w.profession || 'Team member'; });
+
+        const services = Array.isArray(pkg.services) ? pkg.services : [];
+        const category = services.length ? services[0].category : '';
 
         return {
-            id: team.id,
-            name: team.name || '',
-            category: team.category || '',
-            description: team.description || '',
+            id: pkg.id,
+            name: pkg.name || '',
+            category: category,
+            description: pkg.description || '',
             members: memberNames,
             size: memberNames.length,
             rating: null,
-            priceLabel: null,
+            priceLabel: pkg.price != null ? '\u20B9' + Number(pkg.price).toLocaleString('en-IN') : null,
+            packageId: pkg.id,
         };
     }
 
@@ -143,7 +148,7 @@
             <li>
                 <article class="package-card" tabindex="0"
                          data-name="${escapeHtml(pkg.name)}"
-                         data-team-id="${escapeHtml(String(pkg.id))}"
+                         data-team-id="${escapeHtml(String(pkg.id))}" data-package-id="${escapeHtml(String(pkg.packageId || pkg.id))}"
                          aria-label="${escapeHtml(pkg.name)} team package, ${labelSummary}">
                     <div class="package-avatar" style="background-image: ${buildAvatar(pkg.name)}" aria-hidden="true"></div>
                     <div class="package-text">
@@ -267,13 +272,17 @@
     function initCardNavigation(container) {
         if (!container) return;
 
-        function navigate(teamName, teamId) {
+        function navigate(teamName, teamId, packageId) {
             if (!teamName) return;
             persistSelectedTeam(teamName, teamId);
             try {
                 sessionStorage.setItem('handyhire.customer.previousPage', 'team-package.html');
             } catch (e) {}
-            window.location.href = 'team-page.html';
+            if (packageId) {
+                window.location.href = 'team-page.html?package_id=' + encodeURIComponent(String(packageId));
+            } else {
+                window.location.href = 'team-page.html';
+            }
         }
 
         container.addEventListener('click', function (event) {
@@ -283,13 +292,16 @@
                 const name = cta.getAttribute('data-target-team')
                     || resolveTeamName(cta, container);
                 const card = cta.closest('.package-card');
-                const teamId = card ? card.getAttribute('data-team-id') : null;
-                navigate(name, teamId);
+                const packageId = card ? card.getAttribute('data-package-id') : null;
+                const teamId = packageId ? null : (card ? card.getAttribute('data-team-id') : null);
+                navigate(name, teamId, packageId);
                 return;
             }
             const card = event.target.closest('.package-card');
             if (!card || !container.contains(card)) return;
-            navigate(card.getAttribute('data-name'), card.getAttribute('data-team-id'));
+            const packageId = card.getAttribute('data-package-id');
+            const teamId = packageId ? null : card.getAttribute('data-team-id');
+            navigate(card.getAttribute('data-name'), teamId, packageId);
         });
 
         container.addEventListener('keydown', function (event) {
@@ -301,14 +313,17 @@
                 const name = cta.getAttribute('data-target-team')
                     || resolveTeamName(cta, container);
                 const card = cta.closest('.package-card');
-                const teamId = card ? card.getAttribute('data-team-id') : null;
-                navigate(name, teamId);
+                const packageId = card ? card.getAttribute('data-package-id') : null;
+                const teamId = packageId ? null : (card ? card.getAttribute('data-team-id') : null);
+                navigate(name, teamId, packageId);
                 return;
             }
             const card = event.target.closest('.package-card');
             if (!card || !container.contains(card)) return;
             event.preventDefault();
-            navigate(card.getAttribute('data-name'), card.getAttribute('data-team-id'));
+            const packageId = card.getAttribute('data-package-id');
+            const teamId = packageId ? null : card.getAttribute('data-team-id');
+            navigate(card.getAttribute('data-name'), teamId, packageId);
         });
     }
 
@@ -335,21 +350,21 @@
         if (!list) return;
 
         if (emptyState) {
-            emptyState.textContent = 'Loading teams...';
+            emptyState.textContent = 'Loading packages...';
             emptyState.hidden = false;
         }
         list.innerHTML = '';
 
         if (!(window.HandyHireAPI && typeof window.HandyHireAPI.apiFetch === 'function')) {
             if (emptyState) {
-                emptyState.textContent = 'Unable to load teams. Please try again.';
+                emptyState.textContent = 'Unable to load packages. Please try again.';
                 emptyState.hidden = false;
             }
             return;
         }
 
         try {
-            const resp = await window.HandyHireAPI.apiFetch('/api/teams');
+            const resp = await window.HandyHireAPI.apiFetch('/api/packages?package_type=team');
 
             if (!resp.ok) {
                 throw new Error('API returned ' + resp.status);
@@ -360,7 +375,7 @@
 
             if (!allTeams.length) {
                 if (emptyState) {
-                    emptyState.textContent = 'No teams available.';
+                    emptyState.textContent = 'No team packages available.';
                     emptyState.hidden = false;
                 }
                 return;
@@ -370,7 +385,7 @@
             renderList(allTeams, list, emptyState);
         } catch (e) {
             if (emptyState) {
-                emptyState.textContent = 'Unable to load teams. Please try again.';
+                emptyState.textContent = 'Unable to load packages. Please try again.';
                 emptyState.hidden = false;
             }
         }
