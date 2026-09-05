@@ -9,6 +9,7 @@ from fastapi import (
     status,
 )
 from fastapi.responses import JSONResponse
+from sqlalchemy import exists
 from sqlalchemy.orm import Session
 
 from app import models
@@ -51,6 +52,57 @@ def _build_booking_response(booking, db, team_name=None):
     )
 
 
+def _worker_has_exact_slot_conflict(
+    db,
+    worker_id,
+    booking_date,
+    booking_time,
+    exclude_booking_id=None,
+):
+    active_statuses = [
+        "pending",
+        "accepted",
+        "completion_requested",
+    ]
+
+    direct = db.query(models.Booking).filter(
+        models.Booking.worker_id == worker_id,
+        models.Booking.booking_date == booking_date,
+        models.Booking.booking_time == booking_time,
+        models.Booking.status.in_(active_statuses),
+    )
+
+    team_owner_subq = db.query(models.Package).filter(
+        models.Package.id == models.Booking.package_id,
+        models.Package.package_type == "team",
+        models.Package.owner_id == worker_id,
+    ).exists()
+    direct = direct.filter(~team_owner_subq)
+
+    if exclude_booking_id is not None:
+        direct = direct.filter(models.Booking.id != exclude_booking_id)
+
+    if direct.first():
+        return True
+
+    bw = db.query(models.BookingWorker).filter(
+        models.BookingWorker.worker_id == worker_id,
+        models.BookingWorker.status.in_(active_statuses),
+    ).join(
+        models.Booking,
+        models.BookingWorker.booking_id == models.Booking.id,
+    ).filter(
+        models.Booking.booking_date == booking_date,
+        models.Booking.booking_time == booking_time,
+        models.Booking.status.in_(active_statuses),
+    )
+
+    if exclude_booking_id is not None:
+        bw = bw.filter(models.Booking.id != exclude_booking_id)
+
+    return bw.first() is not None
+
+
 @router.post(
     "",
     response_model=BookingResponse,
@@ -85,6 +137,18 @@ def create_booking(
             service = db.query(models.Service).filter(models.Service.id == payload.service_id).first()
             if not service:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Service not found")
+
+        for member in members:
+            if _worker_has_exact_slot_conflict(
+                db,
+                member.worker_id,
+                payload.booking_date,
+                payload.booking_time,
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="One or more selected workers are already booked for the selected date and time.",
+                )
 
         created_bookings = []
         for member in members:
@@ -200,6 +264,17 @@ def create_booking(
         # Use the actual price saved in database.
         booking_amount = package.price * (payload.hours or 1)
 
+        if _worker_has_exact_slot_conflict(
+            db,
+            worker_id,
+            payload.booking_date,
+            payload.booking_time,
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="This worker is already booked for the selected date and time.",
+            )
+
         team_package_workers = []
 
         if package.package_type == "team":
@@ -220,6 +295,18 @@ def create_booking(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="You cannot book a team package that you are part of.",
                 )
+
+            for pw in team_package_workers:
+                if _worker_has_exact_slot_conflict(
+                    db,
+                    pw.worker_id,
+                    payload.booking_date,
+                    payload.booking_time,
+                ):
+                    raise HTTPException(
+                        status_code=status.HTTP_409_CONFLICT,
+                        detail="One or more selected workers are already booked for the selected date and time.",
+                    )
 
 
     # =====================================================
@@ -257,6 +344,16 @@ def create_booking(
                 detail="You cannot book yourself",
             )
 
+        if _worker_has_exact_slot_conflict(
+            db,
+            worker_id,
+            payload.booking_date,
+            payload.booking_time,
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="This worker is already booked for the selected date and time.",
+            )
 
         if service_id is not None:
 
