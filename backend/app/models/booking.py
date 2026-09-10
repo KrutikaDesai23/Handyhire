@@ -29,4 +29,5 @@ class Booking(Base):
     team = relationship("Team", backref="bookings")
     requests = relationship("BookingRequest", back_populates="booking", cascade="all, delete-orphan")
     booking_workers = relationship("BookingWorker", back_populates="booking", cascade="all, delete-orphan")
+    photos = relationship("BookingPhoto", back_populates="booking", cascade="all, delete-orphan")
     review = relationship("Review", backref="booking", uselist=False)

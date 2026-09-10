@@ -136,11 +136,11 @@ def reject_booking_completion(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Booking is not awaiting completion confirmation",
         )
-    booking.status = "accepted"
+    booking.status = "in_progress"
     db.query(models.BookingWorker).filter(
         models.BookingWorker.booking_id == booking_id,
         models.BookingWorker.status == "completion_requested",
-    ).update({"status": "accepted"}, synchronize_session=False)
+    ).update({"status": "in_progress"}, synchronize_session=False)
     db.add(booking)
     db.commit()
     db.refresh(booking)

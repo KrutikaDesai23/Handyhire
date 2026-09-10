@@ -9,6 +9,7 @@
         { key: 'pending', label: 'Requested' },
         { key: 'accepted', label: 'Accepted' },
         { key: 'confirmed', label: 'Accepted' },
+        { key: 'in_progress', label: 'In Progress' },
         { key: 'completion_requested', label: 'Completion Requested' },
         { key: 'completed', label: 'Completed' },
     ];
@@ -89,6 +90,7 @@
             pending: 'detail-status--pending',
             accepted: 'detail-status--accepted',
             confirmed: 'detail-status--confirmed',
+            in_progress: 'detail-status--in-progress',
             rejected: 'detail-status--rejected',
             cancelled: 'detail-status--cancelled',
             completed: 'detail-status--completed',
@@ -194,8 +196,15 @@
 
         section.hidden = false;
         list.innerHTML = members.map(function (member) {
-            const leaderTag = member.is_leader ? ' <span style="font-size:11px;font-weight:700;color:var(--color-primary);">(Leader)</span>' : '';
-            return '<li>' + escapeHtml(member.full_name) + leaderTag + ' <span style="color:var(--color-text-muted);font-weight:500;">- ' + escapeHtml(member.status) + '</span></li>';
+            const leaderTag = member.is_leader ? ' <span style="font-size:11px;font-weight:700;color:var(--color-primary);">&#10003; Team Leader</span>' : '';
+            const profession = member.profession
+                ? '<span class="member-profession">' + escapeHtml(member.profession) + '</span>'
+                : '';
+            return '<li class="team-member-item">' +
+                '<span class="team-member-name">' + escapeHtml(member.full_name) + leaderTag + '</span>' +
+                profession +
+                ' <span style="color:var(--color-text-muted);font-weight:500;">- ' + escapeHtml(member.status) + '</span>' +
+                '</li>';
         }).join('');
     }
 
@@ -307,8 +316,71 @@
             renderTeamMembers([]);
         }
 
+        renderStatusActions(data.status, mode);
         renderContactCard(data, mode);
         showDetails();
+    }
+
+    function renderStatusActions(status, mode) {
+        const actionsEl = document.getElementById('statusActions');
+        if (!actionsEl) return;
+
+        if (mode !== 'received') {
+            actionsEl.hidden = true;
+            return;
+        }
+
+        const key = String(status || '').toLowerCase();
+        let html = '';
+
+        if (key === 'accepted' || key === 'confirmed') {
+            html = '<button type="button" class="status-action-btn status-action-btn--start" data-status-action="in_progress">Start Job</button>';
+        } else if (key === 'in_progress') {
+            html = '<button type="button" class="status-action-btn status-action-btn--complete" data-status-action="completion_requested">Request Completion</button>';
+        }
+
+        actionsEl.hidden = !html;
+        actionsEl.innerHTML = html;
+    }
+
+    function initStatusActions() {
+        const actionsEl = document.getElementById('statusActions');
+        if (!actionsEl) return;
+
+        actionsEl.addEventListener('click', function (event) {
+            const btn = event.target.closest('[data-status-action]');
+            if (!btn || !actionsEl.contains(btn)) return;
+
+            const params = getQueryParams();
+            if (!params.bookingId) return;
+
+            const api = getApi();
+            if (!api) return;
+
+            const newStatus = btn.getAttribute('data-status-action');
+            const endpoint = '/api/worker/bookings/' + encodeURIComponent(String(params.bookingId)) + '/status?new_status=' + encodeURIComponent(newStatus);
+
+            btn.disabled = true;
+            btn.textContent += '...';
+
+            api.apiFetch(endpoint, { method: 'PUT' }).then(function (response) {
+                if (response.status === 401) {
+                    redirectToLogin();
+                    return;
+                }
+                if (!response.ok) {
+                    btn.disabled = false;
+                    btn.textContent = newStatus === 'in_progress' ? 'Start Job' : 'Request Completion';
+                    showError('Unable to update booking status. Please try again.');
+                    return;
+                }
+                loadBooking();
+            }).catch(function () {
+                btn.disabled = false;
+                btn.textContent = newStatus === 'in_progress' ? 'Start Job' : 'Request Completion';
+                showError('Unable to connect to HandyHire. Please try again.');
+            });
+        });
     }
 
     async function loadBooking() {
@@ -359,6 +431,7 @@
 
     function init() {
         if (!(window.HandyHireAPI && window.HandyHireAPI.requireRole('worker'))) return;
+        initStatusActions();
         loadBooking();
     }
 

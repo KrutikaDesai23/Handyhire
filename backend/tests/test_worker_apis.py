@@ -274,13 +274,22 @@ def test_worker_booking_status_update(client, worker, customer, db):
     db.refresh(booking)
 
     token = security.create_access_token({"sub": str(worker.id), "role": worker.role})
+
+    # accepted -> in_progress
     response = client.put(
-        f"/api/worker/bookings/{booking.id}/status?new_status=completed",
+        f"/api/worker/bookings/{booking.id}/status?new_status=in_progress",
         headers={"Authorization": f"Bearer {token}"},
     )
     assert response.status_code == 200
-    data = response.json()
-    assert data["status"] == "completed"
+    assert response.json()["status"] == "in_progress"
+
+    # in_progress -> completion_requested
+    response = client.put(
+        f"/api/worker/bookings/{booking.id}/status?new_status=completion_requested",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == 200
+    assert response.json()["status"] == "completion_requested"
 
 
 def test_worker_invalid_booking_status_transition(client, worker, customer, db):

@@ -77,8 +77,19 @@ class BookingServiceSummary(BaseModel):
 class BookingParticipantResponse(BaseModel):
     worker_id: int
     full_name: str
+    profession: Optional[str] = None
     status: str
     is_leader: bool = False
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class BookingPhotoResponse(BaseModel):
+    id: int
+    booking_id: int
+    photo_type: str
+    image_url: str
+    created_at: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -90,5 +101,7 @@ class BookingDetailResponse(BookingResponse):
     customer_image: Optional[str] = None
     package_services: List[BookingServiceSummary] = []
     team_members: List[BookingParticipantResponse] = []
+    before_photos: List[BookingPhotoResponse] = []
+    after_photos: List[BookingPhotoResponse] = []
 
     model_config = ConfigDict(from_attributes=True)

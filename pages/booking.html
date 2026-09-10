@@ -97,6 +97,27 @@
                 <p class="form-help" id="totalHelp">Auto-calculated at &#8377;250 / hour.</p>
             </div>
 
+            <div class="form-row form-row--photos">
+                <span class="form-label">Job Photos <span class="form-label-optional">(Optional)</span></span>
+                <p class="form-help">Add photos of the job so the professional can understand the work required.</p>
+                <div class="photo-upload" id="photoUpload">
+                    <label class="photo-upload-trigger" for="beforePhotoInput">
+                        <span class="photo-upload-icon" aria-hidden="true">&#128247;</span>
+                        <span class="photo-upload-text">Add Before Photos</span>
+                    </label>
+                    <input
+                        type="file"
+                        id="beforePhotoInput"
+                        class="photo-upload-input"
+                        accept="image/jpeg,image/png,image/webp"
+                        multiple
+                        hidden
+                    />
+                    <div class="photo-preview-grid" id="beforePhotoPreview" hidden></div>
+                    <p class="photo-upload-error" id="photoUploadError" role="alert" hidden></p>
+                </div>
+            </div>
+
             <p class="booking-error" id="bookingError" role="alert" hidden
                    style="display: none; margin: 0 0 14px; padding: 10px 14px; font-size: 13px; line-height: 1.4; color: #c0392b; background: #fdf0ef; border: 1px solid #f2c1bc; border-radius: 10px;"></p>
 

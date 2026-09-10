@@ -314,6 +314,7 @@ a {
 
 .booking-status--confirmed { background-color: var(--color-status-confirmed); }
 .booking-status--pending   { background-color: var(--color-status-pending); }
+.booking-status--in-progress { background-color: #3b82f6; }
 .booking-status--cancelled { background-color: var(--color-status-cancelled); }
 .booking-status--completed { background-color: var(--color-status-completed); }
 

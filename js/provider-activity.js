@@ -43,6 +43,11 @@
             'booking-status--confirmed'
         ],
 
+        in_progress: [
+            'In Progress',
+            'booking-status--in-progress'
+        ],
+
         rejected: [
             'Rejected',
             'booking-status--cancelled'
@@ -85,14 +90,22 @@
 
         accepted: [
             [
-                'request_completion',
-                'Request Completion',
-                'booking-action-btn--complete'
+                'start_job',
+                'Start Job',
+                'booking-action-btn--accept'
             ],
             [
                 'cancel',
                 'Cancel',
                 'booking-action-btn--cancel'
+            ]
+        ],
+
+        in_progress: [
+            [
+                'request_completion',
+                'Request Completion',
+                'booking-action-btn--complete'
             ]
         ]
     };
@@ -100,6 +113,7 @@
     const ACTION_STATUS = {
         accept: 'accepted',
         reject: 'rejected',
+        start_job: 'in_progress',
         request_completion: 'completion_requested',
         cancel: 'cancelled'
     };

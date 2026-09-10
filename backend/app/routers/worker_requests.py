@@ -10,6 +10,73 @@ from app.schemas import BookingRequestResponse
 router = APIRouter(prefix="/api/worker", tags=["worker"])
 
 
+def _load_before_photos(booking_id, db):
+    rows = (
+        db.query(models.BookingPhoto)
+        .filter(
+            models.BookingPhoto.booking_id == booking_id,
+            models.BookingPhoto.photo_type == "before",
+        )
+        .order_by(models.BookingPhoto.created_at.asc())
+        .all()
+    )
+    return [
+        {
+            "id": row.id,
+            "booking_id": row.booking_id,
+            "photo_type": row.photo_type,
+            "image_url": row.image_url,
+            "created_at": row.created_at.isoformat() if row.created_at else None,
+        }
+        for row in rows
+    ]
+
+
+def _load_team_members(booking, db):
+    """Return the team members for a team package booking.
+
+    Each member includes worker_id, full_name, profession, status,
+    and is_leader. Returns an empty list for non-team bookings.
+    """
+    if not booking or not booking.package_id:
+        return []
+
+    pkg = db.query(models.Package).filter(models.Package.id == booking.package_id).first()
+    if not pkg or pkg.package_type != "team":
+        return []
+
+    bw_rows = (
+        db.query(models.BookingWorker)
+        .filter(models.BookingWorker.booking_id == booking.id)
+        .all()
+    )
+
+    members = []
+    for bw in bw_rows:
+        member_user = db.query(models.User).filter(models.User.id == bw.worker_id).first()
+        pw = (
+            db.query(models.PackageWorker)
+            .filter(
+                models.PackageWorker.package_id == booking.package_id,
+                models.PackageWorker.worker_id == bw.worker_id,
+            )
+            .first()
+        )
+        members.append({
+            "worker_id": bw.worker_id,
+            "full_name": member_user.full_name if member_user else "--",
+            "profession": (
+                member_user.worker_profile.profession
+                if member_user and member_user.worker_profile
+                else None
+            ),
+            "status": bw.status,
+            "is_leader": pw.is_leader if pw else False,
+        })
+
+    return members
+
+
 def _build_request_response(request: models.BookingRequest, db: Session) -> BookingRequestResponse:
     booking = db.query(models.Booking).filter(models.Booking.id == request.booking_id).first()
     customer = db.query(models.User).filter(models.User.id == request.customer_id).first()
@@ -22,6 +89,9 @@ def _build_request_response(request: models.BookingRequest, db: Session) -> Book
         pkg = db.query(models.Package).filter(models.Package.id == booking.package_id).first()
         package_name = pkg.name if pkg else None
         package_type = pkg.package_type if pkg else None
+
+    before_photos = _load_before_photos(request.booking_id, db) if booking else []
+    team_members = _load_team_members(booking, db) if booking else []
 
     return BookingRequestResponse(
         id=request.id,
@@ -41,6 +111,8 @@ def _build_request_response(request: models.BookingRequest, db: Session) -> Book
         package_id=booking.package_id if booking else None,
         package_name=package_name,
         package_type=package_type,
+        before_photos=before_photos,
+        team_members=team_members,
     )
 
 

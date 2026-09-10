@@ -9,6 +9,7 @@
         { key: 'pending', label: 'Requested' },
         { key: 'accepted', label: 'Accepted' },
         { key: 'confirmed', label: 'Accepted' },
+        { key: 'in_progress', label: 'In Progress' },
         { key: 'completion_requested', label: 'Completion Requested' },
         { key: 'completed', label: 'Completed' },
     ];
@@ -86,6 +87,7 @@
             pending: 'detail-status--pending',
             accepted: 'detail-status--accepted',
             confirmed: 'detail-status--confirmed',
+            in_progress: 'detail-status--in-progress',
             rejected: 'detail-status--rejected',
             cancelled: 'detail-status--cancelled',
             completed: 'detail-status--completed',
@@ -179,9 +181,118 @@
 
         section.hidden = false;
         list.innerHTML = members.map(function (member) {
-            const leaderTag = member.is_leader ? ' <span style="font-size:11px;font-weight:700;color:var(--color-primary);">(Leader)</span>' : '';
-            return '<li>' + escapeHtml(member.full_name) + leaderTag + ' <span style="color:var(--color-text-muted);font-weight:500;">- ' + escapeHtml(member.status) + '</span></li>';
+            const leaderTag = member.is_leader ? ' <span style="font-size:11px;font-weight:700;color:var(--color-primary);">&#10003; Team Leader</span>' : '';
+            const profession = member.profession
+                ? '<span class="member-profession">' + escapeHtml(member.profession) + '</span>'
+                : '';
+            return '<li class="team-member-item">' +
+                '<span class="team-member-name">' + escapeHtml(member.full_name) + leaderTag + '</span>' +
+                profession +
+                ' <span style="color:var(--color-text-muted);font-weight:500;">- ' + escapeHtml(member.status) + '</span>' +
+                '</li>';
         }).join('');
+    }
+
+    function renderPhotoGrid(containerId, photos) {
+        const grid = document.getElementById(containerId);
+        if (!grid) return;
+        if (!photos || !photos.length) {
+            grid.innerHTML = '';
+            return;
+        }
+        grid.innerHTML = photos.map(function (photo) {
+            return '<div class="photo-grid-item"><img src="' + escapeHtml(photo.image_url) + '" alt="Job photo" loading="lazy" /></div>';
+        }).join('');
+    }
+
+    function renderJobPhotos(data) {
+        const section = document.getElementById('jobPhotosSection');
+        if (!section) return;
+
+        const before = data.before_photos || [];
+        const after = data.after_photos || [];
+
+        const beforeBlock = document.getElementById('beforePhotosBlock');
+        const afterBlock = document.getElementById('afterPhotosBlock');
+
+        if (beforeBlock) {
+            beforeBlock.hidden = !before.length;
+            renderPhotoGrid('beforePhotosGrid', before);
+        }
+        if (afterBlock) {
+            afterBlock.hidden = !after.length;
+            renderPhotoGrid('afterPhotosGrid', after);
+        }
+
+        const hasAny = before.length || after.length;
+        section.hidden = !hasAny;
+
+        const addAfter = document.getElementById('addAfterPhotos');
+        if (addAfter) {
+            const canAddAfter = ['accepted', 'confirmed', 'completion_requested', 'completed'].includes(String(data.status || '').toLowerCase());
+            addAfter.hidden = !canAddAfter;
+        }
+    }
+
+    function initAfterPhotoUpload() {
+        const input = document.getElementById('afterPhotoInput');
+        const errorEl = document.getElementById('afterPhotoError');
+        if (!input) return;
+
+        const MAX_BYTES = 5 * 1024 * 1024;
+        const ALLOWED = ['image/jpeg', 'image/png', 'image/webp'];
+
+        function showError(message) {
+            if (errorEl) {
+                errorEl.textContent = message;
+                errorEl.hidden = false;
+            }
+        }
+
+        input.addEventListener('change', function () {
+            if (errorEl) errorEl.hidden = true;
+            const files = input.files;
+            if (!files || !files.length) return;
+
+            const bookingId = getBookingId();
+            if (!bookingId) return;
+
+            const api = getApi();
+            if (!api) return;
+
+            const uploads = Array.prototype.map.call(files, function (file) {
+                if (!ALLOWED.includes(file.type)) {
+                    showError('Only JPG, PNG, and WEBP images are allowed.');
+                    return Promise.resolve(null);
+                }
+                if (file.size > MAX_BYTES) {
+                    showError('Each photo must be 5 MB or smaller.');
+                    return Promise.resolve(null);
+                }
+                const formData = new FormData();
+                formData.append('photo_type', 'after');
+                formData.append('file', file, file.name);
+                return api.apiFetch('/api/bookings/' + encodeURIComponent(String(bookingId)) + '/photos', {
+                    method: 'POST',
+                    body: formData,
+                }).then(function (response) {
+                    if (response.status === 401) {
+                        redirectToLogin();
+                        return null;
+                    }
+                    if (!response.ok) {
+                        showError('Some photos could not be uploaded. Please try again.');
+                        return null;
+                    }
+                    return response.json();
+                });
+            });
+
+            Promise.all(uploads).then(function () {
+                input.value = '';
+                loadBooking();
+            });
+        });
     }
 
     function renderBooking(data) {
@@ -230,6 +341,7 @@
         renderStatusTimeline(data.status);
         renderPackageServices(data.package_services);
         renderTeamMembers(data.team_members);
+        renderJobPhotos(data);
 
         const activeStatuses = ['accepted', 'confirmed', 'completion_requested'];
         const hasPhone = activeStatuses.includes(String(data.status || '').toLowerCase());
@@ -282,7 +394,64 @@
         const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(data.address || '');
         mapsBtn.href = mapsUrl;
 
+        renderCompletionActions(data.status);
+
         showDetails();
+    }
+
+    function renderCompletionActions(status) {
+        const actionsEl = document.getElementById('completionActions');
+        if (!actionsEl) return;
+
+        const isAwaiting = String(status || '').toLowerCase() === 'completion_requested';
+        actionsEl.hidden = !isAwaiting;
+        if (!isAwaiting) return;
+
+        actionsEl.innerHTML =
+            '<button type="button" class="completion-action-btn completion-action-btn--confirm" data-completion-action="confirm">Confirm Completion</button>' +
+            '<button type="button" class="completion-action-btn completion-action-btn--reject" data-completion-action="reject">Work Not Completed</button>';
+    }
+
+    function initCompletionActions() {
+        const actionsEl = document.getElementById('completionActions');
+        if (!actionsEl) return;
+
+        actionsEl.addEventListener('click', function (event) {
+            const btn = event.target.closest('[data-completion-action]');
+            if (!btn || !actionsEl.contains(btn)) return;
+
+            const bookingId = getBookingId();
+            if (!bookingId) return;
+
+            const api = getApi();
+            if (!api) return;
+
+            const action = btn.getAttribute('data-completion-action');
+            const endpoint = action === 'confirm'
+                ? '/api/bookings/' + encodeURIComponent(String(bookingId)) + '/confirm-completion'
+                : '/api/bookings/' + encodeURIComponent(String(bookingId)) + '/reject-completion';
+
+            btn.disabled = true;
+            btn.textContent += '...';
+
+            api.apiFetch(endpoint, { method: 'PUT' }).then(function (response) {
+                if (response.status === 401) {
+                    redirectToLogin();
+                    return;
+                }
+                if (!response.ok) {
+                    btn.disabled = false;
+                    btn.textContent = action === 'confirm' ? 'Confirm Completion' : 'Work Not Completed';
+                    showError('Unable to update booking status. Please try again.');
+                    return;
+                }
+                loadBooking();
+            }).catch(function () {
+                btn.disabled = false;
+                btn.textContent = action === 'confirm' ? 'Confirm Completion' : 'Work Not Completed';
+                showError('Unable to connect to HandyHire. Please try again.');
+            });
+        });
     }
 
     async function loadBooking() {
@@ -327,6 +496,8 @@
 
     function init() {
         if (!(window.HandyHireAPI && window.HandyHireAPI.requireRole('customer'))) return;
+        initAfterPhotoUpload();
+        initCompletionActions();
         loadBooking();
     }
 

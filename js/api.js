@@ -16,9 +16,11 @@
     function apiFetch(path, options) {
         options = options || {};
         var token = localStorage.getItem(STORAGE_KEYS.TOKEN);
-        var headers = {
-            'Content-Type': 'application/json',
-        };
+        var isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
+        var headers = {};
+        if (!isFormData) {
+            headers['Content-Type'] = 'application/json';
+        }
         if (options.headers) {
             Object.keys(options.headers).forEach(function (key) {
                 headers[key] = options.headers[key];

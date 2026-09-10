@@ -111,6 +111,58 @@ def _build_booking_response(
     )
 
 
+def _load_booking_photos(booking_id, db):
+    rows = (
+        db.query(models.BookingPhoto)
+        .filter(models.BookingPhoto.booking_id == booking_id)
+        .order_by(models.BookingPhoto.created_at.asc())
+        .all()
+    )
+    before = []
+    after = []
+    for row in rows:
+        item = {
+            "id": row.id,
+            "booking_id": row.booking_id,
+            "photo_type": row.photo_type,
+            "image_url": row.image_url,
+            "created_at": row.created_at.isoformat() if row.created_at else None,
+        }
+        if row.photo_type == "after":
+            after.append(item)
+        else:
+            before.append(item)
+    return before, after
+
+
+def _resolve_team_leader(booking, db):
+    """Resolve the actual team leader for a team package booking.
+
+    Returns the leader User (or None). Falls back to the booking's
+    primary worker (package owner) only if no leader is marked.
+    """
+    if not booking.package_id:
+        return None
+
+    pkg = db.query(models.Package).filter(models.Package.id == booking.package_id).first()
+    if not pkg or pkg.package_type != "team":
+        return None
+
+    leader_pw = (
+        db.query(models.PackageWorker)
+        .filter(
+            models.PackageWorker.package_id == booking.package_id,
+            models.PackageWorker.is_leader.is_(True),
+        )
+        .first()
+    )
+
+    if leader_pw:
+        return db.query(models.User).filter(models.User.id == leader_pw.worker_id).first()
+
+    return None
+
+
 def _build_worker_booking_detail_response(
     booking: models.Booking,
     db: Session,
@@ -196,12 +248,25 @@ def _build_worker_booking_detail_response(
             team_members.append({
                 "worker_id": bw.worker_id,
                 "full_name": member_user.full_name if member_user else "--",
+                "profession": (
+                    member_user.worker_profile.profession
+                    if member_user and member_user.worker_profile
+                    else None
+                ),
                 "status": bw.status,
                 "is_leader": pw.is_leader if pw else False,
             })
 
     active_statuses = {"accepted", "confirmed", "completion_requested"}
     include_phones = booking.status in active_statuses
+
+    before_photos, after_photos = _load_booking_photos(booking.id, db)
+
+    contact_worker = worker
+    if package_type == "team":
+        leader = _resolve_team_leader(booking, db)
+        if leader:
+            contact_worker = leader
 
     return BookingDetailResponse(
         id=booking.id,
@@ -222,8 +287,8 @@ def _build_worker_booking_detail_response(
             else None
         ),
         worker_name=(
-            worker.full_name
-            if worker
+            contact_worker.full_name
+            if contact_worker
             else None
         ),
         service_name=(
@@ -239,12 +304,14 @@ def _build_worker_booking_detail_response(
         package_name=package_name,
         package_type=package_type,
         team_name=team_name,
-        worker_phone=worker.mobile_number if include_phones and worker else None,
+        worker_phone=contact_worker.mobile_number if include_phones and contact_worker else None,
         customer_phone=customer.mobile_number if include_phones and customer else None,
-        worker_image=worker.worker_profile.profile_image if worker and worker.worker_profile else None,
+        worker_image=contact_worker.worker_profile.profile_image if contact_worker and contact_worker.worker_profile else None,
         customer_image=customer.worker_profile.profile_image if customer and customer.worker_profile else None,
         package_services=package_services,
         team_members=team_members,
+        before_photos=before_photos,
+        after_photos=after_photos,
     )
 
 
@@ -453,15 +520,18 @@ VALID_STATUS_TRANSITIONS = {
         "rejected",
     ],
     "accepted": [
-        "completion_requested",
+        "in_progress",
         "cancelled",
+    ],
+    "in_progress": [
+        "completion_requested",
     ],
 }
 
 PARTICIPANT_STATUS_TRANSITIONS = {
     "pending": ["accepted"],
-    "accepted": ["completion_requested"],
-    "completion_requested": ["completed"],
+    "accepted": ["in_progress"],
+    "in_progress": ["completion_requested"],
 }
 
 
@@ -535,6 +605,23 @@ def update_worker_booking_status(
             )
 
         bw.status = new_status
+        db.flush()
+
+        if new_status == "in_progress":
+            all_started = (
+                db.query(models.BookingWorker)
+                .filter(models.BookingWorker.booking_id == booking_id)
+                .filter(
+                    models.BookingWorker.status.notin_(
+                        ["in_progress", "completion_requested", "completed"]
+                    )
+                )
+                .first()
+                is None
+            )
+
+            if all_started:
+                booking.status = "in_progress"
 
         if new_status == "completion_requested":
             all_done = (
@@ -571,7 +658,8 @@ def update_worker_booking_status(
         booking.status = new_status
 
     db.add(booking)
-    db.add(bw if is_participant else None)
+    if is_participant and bw is not None:
+        db.add(bw)
     db.commit()
     db.refresh(booking)
 

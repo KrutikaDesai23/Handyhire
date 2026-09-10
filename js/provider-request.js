@@ -160,6 +160,8 @@ function toUiStatus(backendStatus) {
             location: req.address || '--',
             price: formatPrice(req.amount),
             description: req.description || req.message || '--',
+            beforePhotos: Array.isArray(req.before_photos) ? req.before_photos : [],
+            teamMembers: Array.isArray(req.team_members) ? req.team_members : [],
         };
     }
 
@@ -331,6 +333,30 @@ function toUiStatus(backendStatus) {
               "<div><dt>Service</dt><dd>" + escapeHtml(request.service) + "</dd></div>"
             : "<div><dt>Service</dt><dd>" + escapeHtml(request.service) + "</dd></div>";
 
+        const photosHtml = (request.beforePhotos && request.beforePhotos.length)
+            ? "<div class='rq-modal-photos'>" +
+                  "<h4 class='rq-modal-photos-title'>Job Photos (Before)</h4>" +
+                  "<div class='rq-modal-photos-grid'>" +
+                      request.beforePhotos.map(function (photo) {
+                          return "<div class='rq-modal-photo'><img src='" + escapeHtml(photo.image_url) + "' alt='Customer job photo' loading='lazy' /></div>";
+                      }).join('') +
+                  "</div>" +
+              "</div>"
+            : "";
+
+        const teamHtml = (request.teamMembers && request.teamMembers.length)
+            ? "<div class='rq-modal-team'>" +
+                  "<h4 class='rq-modal-team-title'>Team</h4>" +
+                  "<ul class='rq-modal-team-list'>" +
+                      request.teamMembers.map(function (member) {
+                          const leaderTag = member.is_leader ? ' <span class="rq-modal-team-leader">Team Leader</span>' : '';
+                          const profession = member.profession ? ' &mdash; ' + escapeHtml(member.profession) : '';
+                          return "<li>" + escapeHtml(member.full_name) + profession + leaderTag + "</li>";
+                      }).join('') +
+                  "</ul>" +
+              "</div>"
+            : "";
+
         return (
             "<div class='rq-modal' id='rqModal' role='dialog' aria-modal='true' aria-labelledby='rqModalTitle'>" +
                 "<div class='rq-modal-backdrop' data-action='close-modal'></div>" +
@@ -354,6 +380,8 @@ function toUiStatus(backendStatus) {
                         "<div><dt>Request #</dt><dd>" + escapeHtml(request.id) + "</dd></div>" +
                     "</dl>" +
                     "<p class='rq-modal-desc'>" + escapeHtml(request.description) + "</p>" +
+                    teamHtml +
+                    photosHtml +
                 "</div>" +
             "</div>"
         );

@@ -7,6 +7,9 @@ from fastapi import (
     HTTPException,
     Query,
     status,
+    UploadFile,
+    File,
+    Form,
 )
 from fastapi.responses import JSONResponse
 from sqlalchemy import exists
@@ -22,6 +25,7 @@ from app.schemas import (
     BookingCreate,
     BookingResponse,
     BookingDetailResponse,
+    BookingPhotoResponse,
 )
 
 
@@ -51,6 +55,58 @@ def _build_booking_response(booking, db, team_name=None):
         service_name=service.name if service else None,
         team_name=team_name,
     )
+
+
+def _load_booking_photos(booking_id, db):
+    rows = (
+        db.query(models.BookingPhoto)
+        .filter(models.BookingPhoto.booking_id == booking_id)
+        .order_by(models.BookingPhoto.created_at.asc())
+        .all()
+    )
+    before = []
+    after = []
+    for row in rows:
+        item = {
+            "id": row.id,
+            "booking_id": row.booking_id,
+            "photo_type": row.photo_type,
+            "image_url": row.image_url,
+            "created_at": row.created_at.isoformat() if row.created_at else None,
+        }
+        if row.photo_type == "after":
+            after.append(item)
+        else:
+            before.append(item)
+    return before, after
+
+
+def _resolve_team_leader(booking, db):
+    """Resolve the actual team leader for a team package booking.
+
+    Returns the leader User (or None). Falls back to the booking's
+    primary worker (package owner) only if no leader is marked.
+    """
+    if not booking.package_id:
+        return None
+
+    pkg = db.query(models.Package).filter(models.Package.id == booking.package_id).first()
+    if not pkg or pkg.package_type != "team":
+        return None
+
+    leader_pw = (
+        db.query(models.PackageWorker)
+        .filter(
+            models.PackageWorker.package_id == booking.package_id,
+            models.PackageWorker.is_leader.is_(True),
+        )
+        .first()
+    )
+
+    if leader_pw:
+        return db.query(models.User).filter(models.User.id == leader_pw.worker_id).first()
+
+    return None
 
 
 def _build_customer_booking_detail_response(booking, db):
@@ -106,12 +162,25 @@ def _build_customer_booking_detail_response(booking, db):
             team_members.append({
                 "worker_id": bw.worker_id,
                 "full_name": member_user.full_name if member_user else "--",
+                "profession": (
+                    member_user.worker_profile.profession
+                    if member_user and member_user.worker_profile
+                    else None
+                ),
                 "status": bw.status,
                 "is_leader": pw.is_leader if pw else False,
             })
 
     active_statuses = {"accepted", "confirmed", "completion_requested"}
     include_phones = booking.status in active_statuses
+
+    before_photos, after_photos = _load_booking_photos(booking.id, db)
+
+    contact_worker = worker
+    if package_type == "team":
+        leader = _resolve_team_leader(booking, db)
+        if leader:
+            contact_worker = leader
 
     return BookingDetailResponse(
         id=booking.id,
@@ -127,18 +196,20 @@ def _build_customer_booking_detail_response(booking, db):
         amount=booking.amount,
         status=booking.status,
         created_at=booking.created_at.isoformat() if booking.created_at else None,
-        worker_name=worker.full_name if worker else None,
+        worker_name=contact_worker.full_name if contact_worker else None,
         service_name=service.name if service else None,
         customer_name=customer.full_name if customer else None,
         package_name=package_name,
         package_type=package_type,
         team_name=team_name,
-        worker_phone=worker.mobile_number if include_phones and worker else None,
+        worker_phone=contact_worker.mobile_number if include_phones and contact_worker else None,
         customer_phone=customer.mobile_number if include_phones and customer else None,
-        worker_image=worker.worker_profile.profile_image if worker and worker.worker_profile else None,
+        worker_image=contact_worker.worker_profile.profile_image if contact_worker and contact_worker.worker_profile else None,
         customer_image=customer.worker_profile.profile_image if customer and customer.worker_profile else None,
         package_services=package_services,
         team_members=team_members,
+        before_photos=before_photos,
+        after_photos=after_photos,
     )
 
 
@@ -695,3 +766,119 @@ def get_customer_booking(
         )
 
     return _build_customer_booking_detail_response(booking, db)
+
+
+@router.post(
+    "/{booking_id}/photos",
+    response_model=BookingPhotoResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def upload_booking_photo(
+    booking_id: int,
+    photo_type: str = Form("before"),
+    file: UploadFile = File(...),
+    current_user: models.User = Depends(get_current_customer),
+    db: Session = Depends(get_db),
+):
+    booking = (
+        db.query(models.Booking)
+        .filter(models.Booking.id == booking_id)
+        .first()
+    )
+
+    if not booking:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Booking not found",
+        )
+
+    if booking.customer_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Booking not found",
+        )
+
+    photo_type = (photo_type or "before").strip().lower()
+    if photo_type not in {"before", "after"}:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="photo_type must be 'before' or 'after'.",
+        )
+
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail="Only image files are allowed.",
+        )
+
+    allowed = {"image/jpeg", "image/png", "image/webp"}
+    if file.content_type not in allowed:
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail="Allowed image types: JPG, PNG, WEBP.",
+        )
+
+    max_bytes = 5 * 1024 * 1024
+
+    try:
+        file.file.seek(0, 2)
+        size = file.file.tell()
+        file.file.seek(0)
+    except Exception:
+        size = None
+
+    if size is not None and size > max_bytes:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="Maximum image size is 5 MB.",
+        )
+
+    import os
+    import uuid
+
+    ext_map = {
+        "image/jpeg": ".jpg",
+        "image/png": ".png",
+        "image/webp": ".webp",
+    }
+    suffix = ext_map.get(file.content_type, ".bin")
+
+    filename = (
+        "booking-"
+        + str(booking.id)
+        + "-"
+        + str(uuid.uuid4().hex)
+        + suffix
+    )
+
+    upload_dir = os.path.join(
+        os.path.dirname(__file__),
+        "..",
+        "..",
+        "uploads",
+        "booking-photos",
+    )
+    upload_dir = os.path.abspath(upload_dir)
+    os.makedirs(upload_dir, exist_ok=True)
+
+    destination = os.path.join(upload_dir, filename)
+
+    with open(destination, "wb") as buffer:
+        buffer.write(file.file.read())
+
+    photo = models.BookingPhoto(
+        booking_id=booking.id,
+        photo_type=photo_type,
+        image_url="http://127.0.0.1:8000/static/booking-photos/" + filename,
+    )
+    db.add(photo)
+    db.commit()
+    db.refresh(photo)
+
+    return BookingPhotoResponse(
+        id=photo.id,
+        booking_id=photo.booking_id,
+        photo_type=photo.photo_type,
+        image_url=photo.image_url,
+        created_at=photo.created_at.isoformat() if photo.created_at else None,
+    )

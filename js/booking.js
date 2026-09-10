@@ -23,6 +23,14 @@
     const PACKAGE_HOURLY_RATE = 250;
 
     /**
+     * Customer-selected BEFORE job photos (File objects) to
+     * upload after the booking is created. Optional.
+     */
+    let selectedBeforePhotos = [];
+    const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
+    const ALLOWED_PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+    /**
      * Read the real backend worker ID from the URL query
      * param (?worker_id=) first, then sessionStorage.
      * @returns {string|null}
@@ -424,6 +432,147 @@
         });
     }
 
+    /* ---------------------------------------------------------
+       JOB PHOTO UPLOAD (optional BEFORE photos)
+       --------------------------------------------------------- */
+
+    function showPhotoError(message) {
+        const el = document.getElementById('photoUploadError');
+        if (!el) return;
+        el.textContent = message;
+        el.hidden = false;
+    }
+
+    function clearPhotoError() {
+        const el = document.getElementById('photoUploadError');
+        if (el) {
+            el.hidden = true;
+            el.textContent = '';
+        }
+    }
+
+    function renderPhotoPreviews() {
+        const grid = document.getElementById('beforePhotoPreview');
+        if (!grid) return;
+
+        if (!selectedBeforePhotos.length) {
+            grid.hidden = true;
+            grid.innerHTML = '';
+            return;
+        }
+
+        grid.hidden = false;
+        grid.innerHTML = selectedBeforePhotos.map(function (file, index) {
+            const url = URL.createObjectURL(file);
+            return (
+                "<div class='photo-preview-item' data-index='" + index + "'>" +
+                    "<img src='" + url + "' alt='Before job photo preview' />" +
+                    "<button type='button' class='photo-preview-remove' data-remove-index='" + index + "' aria-label='Remove photo'>&times;</button>" +
+                "</div>"
+            );
+        }).join('');
+    }
+
+    function handlePhotoSelection(files) {
+        clearPhotoError();
+        if (!files || !files.length) return;
+
+        var added = 0;
+        for (var i = 0; i < files.length; i++) {
+            var file = files[i];
+            if (!ALLOWED_PHOTO_TYPES.includes(file.type)) {
+                showPhotoError('Only JPG, PNG, and WEBP images are allowed.');
+                continue;
+            }
+            if (file.size > MAX_PHOTO_BYTES) {
+                showPhotoError('Each photo must be 5 MB or smaller.');
+                continue;
+            }
+            selectedBeforePhotos.push(file);
+            added++;
+        }
+
+        if (added) {
+            renderPhotoPreviews();
+        }
+    }
+
+    function initPhotoUpload() {
+        const input = document.getElementById('beforePhotoInput');
+        const grid = document.getElementById('beforePhotoPreview');
+        if (!input) return;
+
+        input.addEventListener('change', function () {
+            handlePhotoSelection(input.files);
+            input.value = '';
+        });
+
+        if (grid) {
+            grid.addEventListener('click', function (event) {
+                const btn = event.target.closest('[data-remove-index]');
+                if (!btn) return;
+                const index = parseInt(btn.getAttribute('data-remove-index'), 10);
+                if (Number.isFinite(index) && index >= 0 && index < selectedBeforePhotos.length) {
+                    selectedBeforePhotos.splice(index, 1);
+                    renderPhotoPreviews();
+                }
+            });
+        }
+    }
+
+    function uploadBookingPhotos(bookingId) {
+        if (!selectedBeforePhotos.length) {
+            return Promise.resolve([]);
+        }
+
+        const api = getApi();
+        if (!api) {
+            return Promise.reject(new Error('no-api'));
+        }
+
+        const uploads = selectedBeforePhotos.map(function (file) {
+            const formData = new FormData();
+            formData.append('photo_type', 'before');
+            formData.append('file', file, file.name);
+
+            return api.apiFetch('/api/bookings/' + encodeURIComponent(String(bookingId)) + '/photos', {
+                method: 'POST',
+                body: formData,
+            }).then(function (response) {
+                if (response.status === 401) {
+                    throw new Error('auth');
+                }
+                if (!response.ok) {
+                    throw new Error('upload-failed');
+                }
+                return response.json();
+            });
+        });
+
+        return Promise.all(uploads);
+    }
+
+    function finishBookingFlow(booking, hours, payload, btn) {
+        persistBookingSuccess(booking, hours, payload);
+
+        if (!selectedBeforePhotos.length) {
+            window.location.href = 'booking-success.html';
+            return;
+        }
+
+        uploadBookingPhotos(booking.id)
+            .then(function () {
+                window.location.href = 'booking-success.html';
+            })
+            .catch(function () {
+                showError('Your booking was created, but some job photos could not be uploaded. You can add them later from the booking details page.');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = 'Book';
+                }
+            });
+    }
+
     /**
      * Fetch package details from the backend for the
      * selected package_id.
@@ -530,8 +679,7 @@
                 return response.json();
             })
             .then(function (booking) {
-                persistBookingSuccess(booking, hours, payload);
-                window.location.href = 'booking-success.html';
+                finishBookingFlow(booking, hours, payload, btn);
             })
             .catch(function (err) {
                 showError(friendlyErrorFor(err && err.status));
@@ -607,8 +755,7 @@
                 return response.json();
             })
             .then(function (booking) {
-                persistBookingSuccess(booking, hours, payload);
-                window.location.href = 'booking-success.html';
+                finishBookingFlow(booking, hours, payload, btn);
             })
             .catch(function (err) {
                 showError(friendlyErrorFor(err && err.status));
@@ -696,6 +843,7 @@
 
         initTotalLiveUpdate();
         initBookingSubmit();
+        initPhotoUpload();
 
         if (isPackageBooking()) {
             var packageId = readPackageId();

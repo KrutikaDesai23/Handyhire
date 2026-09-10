@@ -74,6 +74,8 @@ class BookingRequestResponse(BaseModel):
     package_id: Optional[int] = None
     package_name: Optional[str] = None
     package_type: Optional[str] = None
+    before_photos: list[dict] = []
+    team_members: list[dict] = []
 
     model_config = ConfigDict(from_attributes=True)
 

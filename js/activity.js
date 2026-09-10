@@ -20,6 +20,7 @@
         pending:   { label: 'Pending',   css: 'booking-status--pending' },
         accepted:  { label: 'Accepted',  css: 'booking-status--confirmed' },
         confirmed: { label: 'Confirmed', css: 'booking-status--confirmed' },
+        in_progress: { label: 'In Progress', css: 'booking-status--in-progress' },
         rejected:  { label: 'Rejected',  css: 'booking-status--cancelled' },
         cancelled: { label: 'Cancelled', css: 'booking-status--cancelled' },
         completed: { label: 'Completed', css: 'booking-status--completed' },

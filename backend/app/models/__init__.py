@@ -2,6 +2,7 @@ from app.models.user import User
 from app.models.worker_profile import WorkerProfile
 from app.models.service import Service
 from app.models.booking import Booking
+from app.models.booking_photo import BookingPhoto
 from app.models.booking_request import BookingRequest
 from app.models.booking_worker import BookingWorker
 from app.models.team import Team
@@ -17,6 +18,7 @@ __all__ = [
     "WorkerProfile",
     "Service",
     "Booking",
+    "BookingPhoto",
     "BookingRequest",
     "BookingWorker",
     "Team",

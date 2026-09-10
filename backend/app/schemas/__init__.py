@@ -10,6 +10,7 @@ from app.schemas.booking import (
     BookingResponse,
     BookingDetailResponse,
     BookingParticipantResponse,
+    BookingPhotoResponse,
     BookingServiceSummary,
 )
 from app.schemas.customer import CustomerProfileResponse, CustomerProfileUpdate
@@ -35,6 +36,7 @@ __all__ = [
     "BookingResponse",
     "BookingDetailResponse",
     "BookingParticipantResponse",
+    "BookingPhotoResponse",
     "BookingServiceSummary",
     "CustomerProfileResponse",
     "CustomerProfileUpdate",

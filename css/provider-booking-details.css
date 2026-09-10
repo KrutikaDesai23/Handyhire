@@ -193,6 +193,11 @@ a {
     color: var(--color-status-text);
 }
 
+.detail-status--in-progress {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
 .detail-status--completed {
     background-color: var(--color-status-completed-bg);
     color: var(--color-status-completed-text);
@@ -231,6 +236,33 @@ a {
     text-transform: uppercase;
     letter-spacing: 0.6px;
     margin-bottom: 10px;
+}
+
+/* =========================================================
+   TEAM MEMBERS
+   ========================================================= */
+.team-member-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.team-member-item:last-child {
+    border-bottom: none;
+}
+
+.team-member-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.member-profession {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-text-muted);
 }
 
 /* =========================================================
@@ -500,6 +532,51 @@ a {
 
 .timeline-item.is-completed::before {
     background-color: var(--color-primary);
+}
+
+/* =========================================================
+   STATUS ACTIONS
+   ========================================================= */
+.status-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.status-action-btn {
+    width: 100%;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color var(--transition), opacity var(--transition);
+}
+
+.status-action-btn:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.status-action-btn--start {
+    background-color: var(--color-primary);
+    color: #ffffff;
+}
+
+.status-action-btn--start:hover:not(:disabled) {
+    background-color: var(--color-primary-dark);
+}
+
+.status-action-btn--complete {
+    background-color: #ffffff;
+    color: var(--color-primary-dark);
+    border: 1.5px solid var(--color-primary);
+}
+
+.status-action-btn--complete:hover:not(:disabled) {
+    background-color: rgba(104, 134, 92, 0.1);
 }
 
 /* =========================================================
