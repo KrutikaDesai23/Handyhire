@@ -62,3 +62,33 @@ class BookingResponse(BaseModel):
     team_name: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class BookingServiceSummary(BaseModel):
+    id: int
+    name: str
+    description: Optional[str] = None
+    category: str
+    base_price: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class BookingParticipantResponse(BaseModel):
+    worker_id: int
+    full_name: str
+    status: str
+    is_leader: bool = False
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class BookingDetailResponse(BookingResponse):
+    worker_phone: Optional[str] = None
+    customer_phone: Optional[str] = None
+    worker_image: Optional[str] = None
+    customer_image: Optional[str] = None
+    package_services: List[BookingServiceSummary] = []
+    team_members: List[BookingParticipantResponse] = []
+
+    model_config = ConfigDict(from_attributes=True)

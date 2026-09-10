@@ -185,7 +185,7 @@
             : '';
 
         return `
-            <article class="booking-card" tabindex="0"
+            <article class="booking-card" tabindex="0" role="button"
                      data-booking-id="${escapeHtml(b.id)}"
                      aria-label="Booking ${escapeHtml(b.id)} with ${escapeHtml(b.name)}, ${escapeHtml(b.occupation)}, ${escapeHtml(b.status)} on ${escapeHtml(b.date)} at ${escapeHtml(b.time)}">
                 <div class="booking-top">
@@ -617,6 +617,43 @@
         });
     }
 
+    // ===================== CARD NAVIGATION =====================
+
+    function openCustomerBookingDetails(bookingId) {
+        window.location.href = 'booking-details.html?booking_id=' + encodeURIComponent(String(bookingId));
+    }
+
+    function initCardNavigation() {
+        const feed = document.getElementById('activityFeed');
+        if (!feed) return;
+
+        feed.addEventListener('click', function (e) {
+            const card = e.target.closest('.booking-card');
+            if (!card) return;
+
+            if (e.target.closest('button')) return;
+            if (e.target.closest('a')) return;
+
+            const bookingId = card.dataset.bookingId;
+            if (bookingId) {
+                openCustomerBookingDetails(bookingId);
+            }
+        });
+
+        feed.addEventListener('keydown', function (e) {
+            const card = e.target.closest('.booking-card');
+            if (!card) return;
+
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                const bookingId = card.dataset.bookingId;
+                if (bookingId) {
+                    openCustomerBookingDetails(bookingId);
+                }
+            }
+        });
+    }
+
     // ===================== INIT =====================
 
     function init() {
@@ -631,6 +668,7 @@
         initReviewModal();
         initReviewButtons();
         initCustomerActions();
+        initCardNavigation();
         initSearch();
         loadBookings(feed, emptyState);
     }

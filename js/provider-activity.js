@@ -510,6 +510,8 @@
         return `
             <article
                 class="booking-card"
+                tabindex="0"
+                role="button"
                 data-booking-id="${escapeHtml(booking.id)}"
             >
                 <p class="booking-direction">
@@ -968,6 +970,88 @@
         loadBookings();
     }
 
+    function openProviderBookingDetails(bookingId, mode) {
+        window.location.href =
+            'provider-booking-details.html?booking_id=' +
+            encodeURIComponent(String(bookingId)) +
+            '&mode=' +
+            encodeURIComponent(mode);
+    }
+
+    function initCardNavigation() {
+        const feed =
+            document.getElementById(
+                'activityFeed'
+            );
+
+        if (!feed) {
+            return;
+        }
+
+        feed.addEventListener(
+            'click',
+            function (event) {
+                const card =
+                    event.target.closest(
+                        '.booking-card'
+                    );
+
+                if (!card) {
+                    return;
+                }
+
+                if (event.target.closest('button')) {
+                    return;
+                }
+
+                if (event.target.closest('a')) {
+                    return;
+                }
+
+                const bookingId =
+                    card.dataset.bookingId;
+
+                if (bookingId) {
+                    openProviderBookingDetails(
+                        bookingId,
+                        activeMode
+                    );
+                }
+            }
+        );
+
+        feed.addEventListener(
+            'keydown',
+            function (event) {
+                const card =
+                    event.target.closest(
+                        '.booking-card'
+                    );
+
+                if (!card) {
+                    return;
+                }
+
+                if (
+                    event.key === 'Enter' ||
+                    event.key === ' '
+                ) {
+                    event.preventDefault();
+
+                    const bookingId =
+                        card.dataset.bookingId;
+
+                    if (bookingId) {
+                        openProviderBookingDetails(
+                            bookingId,
+                            activeMode
+                        );
+                    }
+                }
+            }
+        );
+    }
+
     function init() {
         const api =
             window.HandyHireAPI;
@@ -1063,6 +1147,7 @@
             );
         }
 
+        initCardNavigation();
         loadBookings();
     }
 

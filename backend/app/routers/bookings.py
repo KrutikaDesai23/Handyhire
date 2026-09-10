@@ -21,6 +21,7 @@ from app.database.connection import get_db
 from app.schemas import (
     BookingCreate,
     BookingResponse,
+    BookingDetailResponse,
 )
 
 
@@ -49,6 +50,95 @@ def _build_booking_response(booking, db, team_name=None):
         worker_name=worker.full_name if worker else None,
         service_name=service.name if service else None,
         team_name=team_name,
+    )
+
+
+def _build_customer_booking_detail_response(booking, db):
+    customer = db.query(models.User).filter(models.User.id == booking.customer_id).first()
+    worker = db.query(models.User).filter(models.User.id == booking.worker_id).first()
+    service = None
+    if booking.service_id:
+        service = db.query(models.Service).filter(models.Service.id == booking.service_id).first()
+    package_name = None
+    package_type = None
+    team_name = None
+    package_services = []
+    team_members = []
+
+    if booking.package_id:
+        pkg = db.query(models.Package).filter(models.Package.id == booking.package_id).first()
+        package_name = pkg.name if pkg else None
+        package_type = pkg.package_type if pkg else None
+        if pkg:
+            team_name = None
+            pkg_services = (
+                db.query(models.PackageService)
+                .filter(models.PackageService.package_id == pkg.id)
+                .all()
+            )
+            for ps in pkg_services:
+                svc = db.query(models.Service).filter(models.Service.id == ps.service_id).first()
+                if svc:
+                    package_services.append({
+                        "id": svc.id,
+                        "name": svc.name,
+                        "description": svc.description,
+                        "category": svc.category,
+                        "base_price": svc.base_price,
+                    })
+
+    if package_type == "team":
+        bw_rows = (
+            db.query(models.BookingWorker)
+            .filter(models.BookingWorker.booking_id == booking.id)
+            .all()
+        )
+        for bw in bw_rows:
+            member_user = db.query(models.User).filter(models.User.id == bw.worker_id).first()
+            pw = (
+                db.query(models.PackageWorker)
+                .filter(
+                    models.PackageWorker.package_id == booking.package_id,
+                    models.PackageWorker.worker_id == bw.worker_id,
+                )
+                .first()
+            )
+            team_members.append({
+                "worker_id": bw.worker_id,
+                "full_name": member_user.full_name if member_user else "--",
+                "status": bw.status,
+                "is_leader": pw.is_leader if pw else False,
+            })
+
+    active_statuses = {"accepted", "confirmed", "completion_requested"}
+    include_phones = booking.status in active_statuses
+
+    return BookingDetailResponse(
+        id=booking.id,
+        customer_id=booking.customer_id,
+        worker_id=booking.worker_id,
+        team_id=booking.team_id,
+        service_id=booking.service_id,
+        package_id=booking.package_id,
+        booking_date=booking.booking_date,
+        booking_time=booking.booking_time,
+        address=booking.address,
+        description=booking.description,
+        amount=booking.amount,
+        status=booking.status,
+        created_at=booking.created_at.isoformat() if booking.created_at else None,
+        worker_name=worker.full_name if worker else None,
+        service_name=service.name if service else None,
+        customer_name=customer.full_name if customer else None,
+        package_name=package_name,
+        package_type=package_type,
+        team_name=team_name,
+        worker_phone=worker.mobile_number if include_phones and worker else None,
+        customer_phone=customer.mobile_number if include_phones and customer else None,
+        worker_image=worker.worker_profile.profile_image if worker and worker.worker_profile else None,
+        customer_image=customer.worker_profile.profile_image if customer and customer.worker_profile else None,
+        package_services=package_services,
+        team_members=team_members,
     )
 
 
@@ -574,7 +664,7 @@ def list_customer_bookings(
 
 @router.get(
     "/customer/bookings/{booking_id}",
-    response_model=BookingResponse,
+    response_model=BookingDetailResponse,
 )
 def get_customer_booking(
     booking_id: int,
@@ -604,64 +694,4 @@ def get_customer_booking(
             detail="Booking not found",
         )
 
-    worker = (
-        db.query(models.User)
-        .filter(
-            models.User.id ==
-            booking.worker_id
-        )
-        .first()
-    )
-
-    service = None
-
-    if booking.service_id:
-        service = (
-            db.query(models.Service)
-            .filter(
-                models.Service.id ==
-                booking.service_id
-            )
-            .first()
-        )
-
-    package_name = None
-
-    if booking.package_id:
-        pkg = (
-            db.query(models.Package)
-            .filter(models.Package.id == booking.package_id)
-            .first()
-        )
-        package_name = pkg.name if pkg else None
-
-    return BookingResponse(
-        id=booking.id,
-        customer_id=booking.customer_id,
-        worker_id=booking.worker_id,
-        team_id=booking.team_id,
-        service_id=booking.service_id,
-        package_id=booking.package_id,
-        booking_date=booking.booking_date,
-        booking_time=booking.booking_time,
-        address=booking.address,
-        description=booking.description,
-        amount=booking.amount,
-        status=booking.status,
-        created_at=(
-            booking.created_at.isoformat()
-            if booking.created_at
-            else None
-        ),
-        worker_name=(
-            worker.full_name
-            if worker
-            else None
-        ),
-        service_name=(
-            service.name
-            if service
-            else None
-        ),
-        package_name=package_name,
-    )
+    return _build_customer_booking_detail_response(booking, db)
