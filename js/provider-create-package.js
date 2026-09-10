@@ -18,6 +18,7 @@
 
     let selectedServiceIds = [];
     let selectedWorkerIds = [];
+    let selectedLeaderWorkerId = null;
 
     let isEditMode = false;
     let packageType = 'multitasking';
@@ -468,6 +469,19 @@ function redirectToPackagePage() {
                     ? ' • ' + escapeHtml(worker.profession)
                     : '';
 
+                const isLeader =
+                    selectedLeaderWorkerId !== null &&
+                    Number(selectedLeaderWorkerId) ===
+                        Number(workerId);
+
+                const leaderButton = isLeader
+                    ? '<button type="button" class="worker-chip-leader is-leader" data-worker-id="' +
+                      worker.id +
+                      '" aria-label="Remove leader">✓ Leader</button>'
+                    : '<button type="button" class="worker-chip-leader" data-worker-id="' +
+                      worker.id +
+                      '" aria-label="Set as leader">Set as leader</button>';
+
                 return (
                     '<div class="worker-selected-chip">' +
 
@@ -475,6 +489,8 @@ function redirectToPackagePage() {
                             escapeHtml(worker.full_name) +
                             profession +
                         '</span>' +
+
+                        leaderButton +
 
                         '<button ' +
                             'type="button" ' +
@@ -536,6 +552,13 @@ function redirectToPackagePage() {
                 return Number(id) !== Number(workerId);
             });
 
+        if (
+            selectedLeaderWorkerId !== null &&
+            Number(selectedLeaderWorkerId) === Number(workerId)
+        ) {
+            selectedLeaderWorkerId = null;
+        }
+
         renderSelectedWorkers();
     }
 
@@ -584,6 +607,22 @@ function redirectToPackagePage() {
             showFieldError(
                 'teamError',
                 'Please select at least 2 workers.'
+            );
+
+            valid = false;
+        }
+
+        /*
+         * TEAM PACKAGE:
+         * Must have exactly one leader.
+         */
+        if (
+            payload.package_type === 'team' &&
+            selectedLeaderWorkerId === null
+        ) {
+            showFieldError(
+                'teamError',
+                'Select a team leader.'
             );
 
             valid = false;
@@ -687,7 +726,12 @@ function redirectToPackagePage() {
             worker_ids:
                 packageType === 'team'
                     ? selectedWorkerIds.slice()
-                    : []
+                    : [],
+
+            leader_worker_id:
+                packageType === 'team'
+                    ? selectedLeaderWorkerId
+                    : null
         };
     }
 
@@ -944,6 +988,19 @@ function redirectToPackagePage() {
                         }
                     });
 
+                    const existingLeader =
+                        data.workers.find(function (worker) {
+                            return worker.is_leader === true;
+                        });
+
+                    selectedLeaderWorkerId =
+                        existingLeader
+                            ? Number(
+                                existingLeader.worker_id ||
+                                existingLeader.id
+                            )
+                            : null;
+
                     renderSelectedWorkers();
                 }
 
@@ -1132,22 +1189,54 @@ function redirectToPackagePage() {
             selectedChips.addEventListener(
                 'click',
                 function (event) {
-                    const button =
+                    const removeButton =
                         event.target.closest(
                             '.worker-chip-remove'
                         );
 
-                    if (!button) return;
+                    if (removeButton) {
+                        const workerId =
+                            Number(
+                                removeButton.getAttribute(
+                                    'data-worker-id'
+                                )
+                            );
 
-                    const workerId =
-                        Number(
-                            button.getAttribute(
-                                'data-worker-id'
-                            )
+                        if (workerId) {
+                            removeWorker(workerId);
+                        }
+
+                        return;
+                    }
+
+                    const leaderButton =
+                        event.target.closest(
+                            '.worker-chip-leader'
                         );
 
-                    if (workerId) {
-                        removeWorker(workerId);
+                    if (leaderButton) {
+                        const workerId =
+                            Number(
+                                leaderButton.getAttribute(
+                                    'data-worker-id'
+                                )
+                            );
+
+                        if (!workerId) return;
+
+                        if (
+                            selectedLeaderWorkerId !== null &&
+                            Number(selectedLeaderWorkerId) ===
+                                workerId
+                        ) {
+                            selectedLeaderWorkerId = null;
+                        } else {
+                            selectedLeaderWorkerId = workerId;
+                        }
+
+                        showFieldError('teamError', '');
+
+                        renderSelectedWorkers();
                     }
                 }
             );

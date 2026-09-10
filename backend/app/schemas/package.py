@@ -17,6 +17,7 @@ class PackageWorkerSummary(BaseModel):
     worker_id: int
     full_name: Optional[str] = None
     profession: Optional[str] = None
+    is_leader: bool = False
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -32,6 +33,7 @@ class PackageCreate(BaseModel):
     status: str = Field("published", min_length=1, max_length=20)
     service_ids: List[int] = []
     worker_ids: List[int] = []
+    leader_worker_id: Optional[int] = Field(None, gt=0)
 
 
 class PackageUpdate(BaseModel):
@@ -45,6 +47,7 @@ class PackageUpdate(BaseModel):
     status: Optional[str] = Field(None, min_length=1, max_length=20)
     service_ids: Optional[List[int]] = None
     worker_ids: Optional[List[int]] = None
+    leader_worker_id: Optional[int] = Field(None, gt=0)
 
 
 class PackageResponse(BaseModel):

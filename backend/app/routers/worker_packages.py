@@ -118,6 +118,7 @@ def _replace_package_workers(
     package_id: int,
     worker_ids: list[int],
     db: Session,
+    leader_worker_id: Optional[int] = None,
 ):
     existing = (
         db.query(models.PackageWorker)
@@ -133,6 +134,10 @@ def _replace_package_workers(
             models.PackageWorker(
                 package_id=package_id,
                 worker_id=worker_id,
+                is_leader=(
+                    leader_worker_id is not None
+                    and worker_id == leader_worker_id
+                ),
             )
         )
 
@@ -222,6 +227,17 @@ def _build_package_response(
         .all()
     )
 
+    package_worker_rows = (
+        db.query(models.PackageWorker)
+        .filter(models.PackageWorker.package_id == package.id)
+        .all()
+    )
+
+    leader_map = {
+        pw.worker_id: pw.is_leader
+        for pw in package_worker_rows
+    }
+
     return PackageResponse(
         id=package.id,
         name=package.name,
@@ -254,6 +270,7 @@ def _build_package_response(
                     if worker.worker_profile
                     else None
                 ),
+                is_leader=leader_map.get(worker.id, False),
             )
             for worker in workers
         ],
@@ -392,10 +409,23 @@ def create_package(
     # -----------------------------------------------------
 
     if payload.package_type == "team":
+        if payload.leader_worker_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Team package must have a leader",
+            )
+
+        if payload.leader_worker_id not in team_worker_ids:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Leader must be one of the selected workers",
+            )
+
         _replace_package_workers(
             package.id,
             team_worker_ids,
             db,
+            leader_worker_id=payload.leader_worker_id,
         )
 
     db.commit()
@@ -572,11 +602,52 @@ def update_package(
     if target_type == "team":
 
         if validated_worker_ids is not None:
+            if payload.leader_worker_id is None:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Team package must have a leader",
+                )
+
+            if payload.leader_worker_id not in validated_worker_ids:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Leader must be one of the selected workers",
+                )
+
             _replace_package_workers(
                 package.id,
                 validated_worker_ids,
                 db,
+                leader_worker_id=payload.leader_worker_id,
             )
+
+        elif payload.leader_worker_id is not None:
+            current_member_ids = [
+                row.worker_id
+                for row in (
+                    db.query(models.PackageWorker)
+                    .filter(
+                        models.PackageWorker.package_id
+                        == package.id
+                    )
+                    .all()
+                )
+            ]
+
+            if payload.leader_worker_id not in current_member_ids:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Leader must be one of the current team members",
+                )
+
+            db.query(models.PackageWorker).filter(
+                models.PackageWorker.package_id == package.id
+            ).update({"is_leader": False}, synchronize_session=False)
+
+            db.query(models.PackageWorker).filter(
+                models.PackageWorker.package_id == package.id,
+                models.PackageWorker.worker_id == payload.leader_worker_id,
+            ).update({"is_leader": True}, synchronize_session=False)
 
     else:
         # Multitasking packages must not retain team workers
