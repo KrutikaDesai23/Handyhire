@@ -3,6 +3,7 @@
 
     var allWorkers = [];
     var currentFilter = "all";
+    var currentSearch = "";
 
     function requireAuth() {
         var api = window.HandyHireAPI;
@@ -409,6 +410,45 @@
             );
         }
 
+        if (currentSearch) {
+            var query =
+                currentSearch
+                    .toLowerCase()
+                    .trim();
+
+            filteredWorkers =
+                filteredWorkers.filter(
+                    function (worker) {
+                        return (
+                            String(
+                                worker.fullName ||
+                                ""
+                            )
+                                .toLowerCase()
+                                .includes(query) ||
+                            String(
+                                worker.profession ||
+                                ""
+                            )
+                                .toLowerCase()
+                                .includes(query) ||
+                            String(
+                                worker.location ||
+                                ""
+                            )
+                                .toLowerCase()
+                                .includes(query) ||
+                            String(
+                                worker.availability ||
+                                ""
+                            )
+                                .toLowerCase()
+                                .includes(query)
+                        );
+                    }
+                );
+        }
+
         renderWorkers(filteredWorkers);
     }
 
@@ -456,6 +496,29 @@
                 }
             );
         });
+    }
+
+    function initializeSearch() {
+        var searchInput =
+            document.getElementById(
+                "providerWorkerSearch"
+            );
+
+        if (!searchInput) {
+            return;
+        }
+
+        searchInput.addEventListener(
+            "input",
+            function () {
+                currentSearch =
+                    searchInput.value;
+
+                applyFilter(
+                    currentFilter
+                );
+            }
+        );
     }
 
     async function loadWorkers() {
@@ -559,6 +622,7 @@
         }
 
         initializeFilters();
+        initializeSearch();
         loadWorkers();
     }
 

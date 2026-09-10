@@ -234,7 +234,7 @@ body {
 
 .hero-image {
     width: 100%;
-    height: 170px;
+    height: 200px;
     border-radius: var(--radius-card);
     background:
         linear-gradient(135deg, rgba(104, 134, 92, 0.85), rgba(86, 111, 75, 0.85)),
@@ -249,6 +249,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-direction: column;
+    gap: 12px;
     color: #ffffff;
     font-size: 22px;
     font-weight: 700;
@@ -256,6 +258,47 @@ body {
     box-shadow: var(--shadow-elevated);
     position: relative;
     overflow: hidden;
+}
+
+.hero-search {
+    width: 100%;
+    max-width: 650px;
+    padding: 0 16px;
+    position: relative;
+}
+
+.hero-search-icon {
+    position: absolute;
+    left: 28px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    color: var(--color-text-muted);
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.hero-search-input {
+    width: 100%;
+    padding: 12px 16px 12px 44px;
+    border: none;
+    border-radius: 999px;
+    font-size: 15px;
+    font-family: var(--font-family);
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--color-text);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    outline: none;
+    transition: box-shadow var(--transition);
+}
+
+.hero-search-input:focus {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+}
+
+.hero-search-input::placeholder {
+    color: var(--color-text-muted);
 }
 
 .hero-image::after {
