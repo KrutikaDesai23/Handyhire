@@ -300,7 +300,7 @@
 
     /**
      * Filter the already-loaded worker list by the current
-     * search query and render the matching subset.
+     * search query and sort, then render the matching subset.
      */
     function applySearch() {
         const container = document.getElementById('serviceGrid');
@@ -308,6 +308,9 @@
 
         const input = document.getElementById('workerSearch');
         const query = input ? searchToken(input.value) : '';
+
+        const sortSelect = document.getElementById('workerSort');
+        const sort = sortSelect ? sortSelect.value : '';
 
         const workers = currentWorkers.filter(function (worker) {
             if (!query) return true;
@@ -324,7 +327,11 @@
             );
         });
 
-        renderWorkers(container, workers);
+        const sorted = window.HandyHireWorkers && window.HandyHireWorkers.sortWorkers
+            ? window.HandyHireWorkers.sortWorkers(workers, sort)
+            : workers;
+
+        renderWorkers(container, sorted);
     }
 
     /**
@@ -336,6 +343,19 @@
         if (!input) return;
 
         input.addEventListener('input', function () {
+            applySearch();
+        });
+    }
+
+    /**
+     * Wire up the sort dropdown so the worker grid re-sorts
+     * live without a backend round-trip.
+     */
+    function initSort() {
+        const select = document.getElementById('workerSort');
+        if (!select) return;
+
+        select.addEventListener('change', function () {
             applySearch();
         });
     }
@@ -356,6 +376,7 @@
         initPackageTiles();
         initTopNav();
         initSearch();
+        initSort();
     }
 
     // Run after DOM is ready

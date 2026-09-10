@@ -81,9 +81,10 @@
 
     /**
      * Fetch the customer worker listing from the backend.
-     * Only uses filters that actually exist in
+     * Supports the filters/sorting exposed by
      * backend/app/routers/workers.py (profession, location,
-     * availability, min_price, max_price, search).
+     * availability, min_price, max_price, search, min_rating,
+     * sort, limit, offset).
      * @param {Object} [filters]
      * @returns {Promise<Array<Object>>}
      */
@@ -96,6 +97,40 @@
                 }
                 return response.json();
             });
+    }
+
+    /**
+     * Sort an array of backend WorkerResponse objects client-side.
+     * Mirrors the backend sort values so the UI can re-sort without
+     * a round-trip. Workers with no rating sort last for 'rating'.
+     * @param {Array<Object>} workers
+     * @param {string} sort  rating | price_asc | price_desc | name
+     * @returns {Array<Object>}
+     */
+    function sortWorkers(workers, sort) {
+        var list = Array.isArray(workers) ? workers.slice() : [];
+        if (!sort) return list;
+
+        if (sort === 'rating') {
+            list.sort(function (a, b) {
+                var ra = Number(a.average_rating) || 0;
+                var rb = Number(b.average_rating) || 0;
+                return rb - ra;
+            });
+        } else if (sort === 'price_asc') {
+            list.sort(function (a, b) {
+                return (Number(a.price) || 0) - (Number(b.price) || 0);
+            });
+        } else if (sort === 'price_desc') {
+            list.sort(function (a, b) {
+                return (Number(b.price) || 0) - (Number(a.price) || 0);
+            });
+        } else if (sort === 'name') {
+            list.sort(function (a, b) {
+                return String(a.full_name || '').localeCompare(String(b.full_name || ''));
+            });
+        }
+        return list;
     }
 
     /**
@@ -127,6 +162,7 @@
         buildQuery: buildQuery,
         getApi: getApi,
         fetchWorkers: fetchWorkers,
+        sortWorkers: sortWorkers,
         toCard: toCard,
     };
 })();

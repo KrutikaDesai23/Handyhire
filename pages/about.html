@@ -11,33 +11,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
+    <link rel="stylesheet" href="../css/tokens.css" />
     <link rel="stylesheet" href="../css/menu.css" />
-    <style>
-        .page-main { padding: 24px 20px; max-width: 720px; margin: 0 auto; }
-        .page-card {
-            background-color: #ffffff;
-            border-radius: 14px;
-            padding: 24px;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-            margin-bottom: 16px;
-        }
-        .page-card h2 { font-size: 18px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px; }
-        .page-card p { font-size: 14px; color: #6a6a6a; line-height: 1.5; }
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 14px;
-            background-color: #68865C;
-            color: #ffffff;
-            border-radius: 999px;
-            font-size: 13px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: background-color 300ms ease;
-        }
-        .back-link:hover { background-color: #566f4b; }
-    </style>
+    <link rel="stylesheet" href="../css/info-pages.css" />
 </head>
 <body>
     <header class="menu-header" role="banner">
@@ -52,10 +28,80 @@
 
     <main class="page-main" role="main">
         <section class="page-card">
-            <h2>About HandyHire</h2>
-            <p>HandyHire connects customers with trusted, on-demand service professionals - plumbers, electricians, carpenters, cleaners and more. This page is a placeholder pending the full about copy.</p>
+            <h1 class="page-title">About HandyHire</h1>
+
+            <div class="page-section">
+                <h2 class="page-section-title">What is HandyHire?</h2>
+                <p class="page-text">
+                    HandyHire is a service marketplace that connects customers with on-demand service
+                    professionals. Whether you need a plumber, electrician, carpenter, cleaner, or another
+                    skilled worker, HandyHire helps you find and book the right person for the job.
+                </p>
+            </div>
+
+            <div class="page-section">
+                <h2 class="page-section-title">Our Purpose</h2>
+                <p class="page-text">
+                    The purpose of HandyHire is to make it simple for customers to find trusted service
+                    providers and for skilled workers to reach more customers. The platform brings both
+                    sides together in one place, so bookings can be arranged through a clear, structured
+                    process.
+                </p>
+            </div>
+
+            <div class="page-section">
+                <h2 class="page-section-title">How the Marketplace Works</h2>
+                <p class="page-text">
+                    HandyHire works as a two-sided marketplace. Customers browse available professionals,
+                    review their profiles, and submit a booking. Service providers receive booking
+                    requests, review the job details, and accept the work they can complete. The booking
+                    then moves through a shared status flow so both sides stay informed.
+                </p>
+            </div>
+
+            <div class="page-section">
+                <h2 class="page-section-title">Benefits for Customers</h2>
+                <ul class="page-list">
+                    <li>Browse and search for professionals by skill, location, and price.</li>
+                    <li>Review provider profiles before booking.</li>
+                    <li>Submit bookings and track their status through the app.</li>
+                    <li>Confirm completion and leave a review after the job.</li>
+                </ul>
+            </div>
+
+            <div class="page-section">
+                <h2 class="page-section-title">Benefits for Providers</h2>
+                <ul class="page-list">
+                    <li>Create a professional profile to showcase skills and services.</li>
+                    <li>Receive booking requests from customers.</li>
+                    <li>Accept the jobs that fit your availability.</li>
+                    <li>Build a reputation through customer reviews.</li>
+                </ul>
+            </div>
+
+            <div class="page-section">
+                <h2 class="page-section-title">Our Mission</h2>
+                <p class="page-text">
+                    Our mission is to make household and professional services easier to find, book, and
+                    complete for everyone.
+                </p>
+            </div>
         </section>
+
         <a href="menu.html" class="back-link">&larr; Back to Menu</a>
+
+        <nav class="info-links" aria-label="Helpful links">
+            <h2 class="info-links-title">Helpful Links</h2>
+            <ul class="info-links-list">
+                <li><a class="info-link" href="how-it-works.html">How It Works</a></li>
+                <li><a class="info-link" href="faq.html">FAQ</a></li>
+                <li><a class="info-link" href="safety.html">Safety</a></li>
+                <li><a class="info-link" href="contact.html">Contact</a></li>
+                <li><a class="info-link" href="privacy-policy.html">Privacy</a></li>
+                <li><a class="info-link" href="terms.html">Terms</a></li>
+                <li><a class="info-link" href="cancellation-policy.html">Cancellation</a></li>
+            </ul>
+        </nav>
     </main>
 </body>
 </html>

@@ -555,3 +555,15 @@ a {
     border: 1px solid rgba(192, 57, 43, 0.25);
     border-radius: 8px;
 }
+
+/* Booking form error message (was previously inline-styled) */
+.booking-error {
+    margin: 0 0 14px;
+    padding: 10px 14px;
+    font-size: 13px;
+    line-height: 1.4;
+    color: #c0392b;
+    background: #fdf0ef;
+    border: 1px solid #f2c1bc;
+    border-radius: 10px;
+}

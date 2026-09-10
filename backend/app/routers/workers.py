@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 from sqlalchemy.orm import Session
 from typing import Optional
 
@@ -8,6 +8,8 @@ from app.database.connection import get_db
 from app.schemas import WorkerResponse
 
 router = APIRouter(prefix="/api/workers", tags=["workers"])
+
+VALID_SORTS = {"rating", "price_asc", "price_desc", "name"}
 
 
 @router.get("", response_model=list[WorkerResponse])
@@ -18,9 +20,40 @@ def list_workers(
     min_price: Optional[int] = Query(None, gt=0),
     max_price: Optional[int] = Query(None, gt=0),
     search: Optional[str] = Query(None),
+    min_rating: Optional[float] = Query(None, ge=1, le=5),
+    sort: Optional[str] = Query(None),
+    limit: Optional[int] = Query(None, ge=1, le=200),
+    offset: Optional[int] = Query(None, ge=0),
     db: Session = Depends(get_db),
 ):
-    query = db.query(models.WorkerProfile, models.User).join(models.User, models.WorkerProfile.user_id == models.User.id)
+    if sort and sort not in VALID_SORTS:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Invalid sort value. Allowed: {', '.join(sorted(VALID_SORTS))}",
+        )
+
+    # Aggregate average rating + review count per worker in a single query
+    # to avoid the previous N+1 review query inside the loop.
+    rating_subq = (
+        db.query(
+            models.Review.worker_id.label("worker_id"),
+            func.avg(models.Review.rating).label("avg_rating"),
+            func.count(models.Review.id).label("review_count"),
+        )
+        .group_by(models.Review.worker_id)
+        .subquery()
+    )
+
+    query = (
+        db.query(
+            models.WorkerProfile,
+            models.User,
+            rating_subq.c.avg_rating,
+            rating_subq.c.review_count,
+        )
+        .join(models.User, models.WorkerProfile.user_id == models.User.id)
+        .outerjoin(rating_subq, rating_subq.c.worker_id == models.User.id)
+    )
 
     if profession:
         query = query.filter(models.WorkerProfile.profession.ilike(f"%{profession}%"))
@@ -41,12 +74,28 @@ def list_workers(
                 models.WorkerProfile.location.ilike(like),
             )
         )
+    if min_rating is not None:
+        query = query.filter(rating_subq.c.avg_rating >= min_rating)
+
+    if sort == "rating":
+        query = query.order_by(rating_subq.c.avg_rating.desc().nullslast())
+    elif sort == "price_asc":
+        query = query.order_by(models.WorkerProfile.price.asc())
+    elif sort == "price_desc":
+        query = query.order_by(models.WorkerProfile.price.desc())
+    elif sort == "name":
+        query = query.order_by(models.User.full_name.asc())
+    else:
+        query = query.order_by(models.User.id.asc())
+
+    if offset is not None:
+        query = query.offset(offset)
+    if limit is not None:
+        query = query.limit(limit)
 
     results = query.all()
     response = []
-    for worker_profile, user in results:
-        reviews = db.query(models.Review).filter(models.Review.worker_id == user.id).all()
-        avg_rating = sum(r.rating for r in reviews) / len(reviews) if reviews else None
+    for worker_profile, user, avg_rating, review_count in results:
         response.append(
             WorkerResponse(
                 id=user.id,
@@ -59,8 +108,8 @@ def list_workers(
                 price=worker_profile.price,
                 availability=worker_profile.availability,
                 profile_image=worker_profile.profile_image,
-                average_rating=avg_rating,
-                review_count=len(reviews),
+                average_rating=round(avg_rating, 1) if avg_rating is not None else None,
+                review_count=review_count or 0,
             )
         )
     return response

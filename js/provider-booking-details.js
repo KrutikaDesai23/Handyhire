@@ -226,6 +226,7 @@
 
         if (image) {
             contactImageEl.src = image;
+            contactImageEl.alt = (name || 'Contact') + ' photo';
             contactImageEl.hidden = false;
             contactInitialEl.hidden = true;
         } else {

@@ -61,6 +61,16 @@
         <section class="service-section" aria-labelledby="workersHeading">
             <div class="section-header">
                 <h2 id="workersHeading" class="section-title">Available Professionals</h2>
+                <div class="sort-control">
+                    <label for="workerSort" class="sort-label">Sort</label>
+                    <select id="workerSort" class="sort-select" aria-label="Sort professionals">
+                        <option value="">Default</option>
+                        <option value="rating">Rating: High to Low</option>
+                        <option value="price_asc">Price: Low to High</option>
+                        <option value="price_desc">Price: High to Low</option>
+                        <option value="name">Name: A to Z</option>
+                    </select>
+                </div>
             </div>
 
             <div class="service-grid" id="serviceGrid">

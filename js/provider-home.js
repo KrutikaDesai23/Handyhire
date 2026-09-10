@@ -4,6 +4,7 @@
     var allWorkers = [];
     var currentFilter = "all";
     var currentSearch = "";
+    var currentSort = "";
 
     function requireAuth() {
         var api = window.HandyHireAPI;
@@ -449,6 +450,36 @@
                 );
         }
 
+        if (currentSort) {
+            filteredWorkers.sort(
+                function (first, second) {
+                    if (currentSort === "rating") {
+                        return (
+                            Number(second.averageRating || 0) -
+                            Number(first.averageRating || 0)
+                        );
+                    }
+                    if (currentSort === "price_asc") {
+                        return (
+                            Number(first.price || 0) -
+                            Number(second.price || 0)
+                        );
+                    }
+                    if (currentSort === "price_desc") {
+                        return (
+                            Number(second.price || 0) -
+                            Number(first.price || 0)
+                        );
+                    }
+                    if (currentSort === "name") {
+                        return String(first.fullName || "")
+                            .localeCompare(String(second.fullName || ""));
+                    }
+                    return 0;
+                }
+            );
+        }
+
         renderWorkers(filteredWorkers);
     }
 
@@ -513,6 +544,29 @@
             function () {
                 currentSearch =
                     searchInput.value;
+
+                applyFilter(
+                    currentFilter
+                );
+            }
+        );
+    }
+
+    function initializeSort() {
+        var sortSelect =
+            document.getElementById(
+                "providerWorkerSort"
+            );
+
+        if (!sortSelect) {
+            return;
+        }
+
+        sortSelect.addEventListener(
+            "change",
+            function () {
+                currentSort =
+                    sortSelect.value;
 
                 applyFilter(
                     currentFilter
@@ -623,6 +677,7 @@
 
         initializeFilters();
         initializeSearch();
+        initializeSort();
         loadWorkers();
     }
 

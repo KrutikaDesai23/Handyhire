@@ -294,3 +294,16 @@ body {
         transform: none;
     }
 }
+
+/* ---------- Auth switch (login / register footer links) ---------- */
+.auth-switch {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 14px;
+}
+
+.auth-switch a {
+    color: var(--color-border-focus);
+    text-decoration: underline;
+    font-weight: 600;
+}

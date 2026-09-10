@@ -361,6 +361,7 @@
         const avatarSrc = data.worker_image || data.customer_image || null;
         if (avatarSrc) {
             contactImageEl.src = avatarSrc;
+            contactImageEl.alt = (data.worker_name || data.customer_name || 'Contact') + ' photo';
             contactImageEl.hidden = false;
             contactInitialEl.hidden = true;
         } else {
