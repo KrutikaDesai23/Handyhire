@@ -5,6 +5,8 @@
     var currentFilter = "all";
     var currentSearch = "";
     var currentSort = "";
+    var availabilitySaving = false;
+    var lastKnownAvailability = "";
 
     var DISPLAY_LIMIT = 4;
     var displayList = [];
@@ -707,6 +709,130 @@
         }
     }
 
+    async function loadAvailability() {
+        var api = window.HandyHireAPI;
+
+        if (!api || typeof api.apiFetch !== "function") {
+            return;
+        }
+
+        try {
+            var response = await api.apiFetch("/api/worker/profile");
+
+            if (response.status === 401) {
+                return;
+            }
+
+            if (!response.ok) {
+                return;
+            }
+
+            var data = await response.json();
+            var value = String(data.availability || "").trim();
+            lastKnownAvailability = value;
+            applyAvailabilityToggle(value);
+        } catch (error) {
+            // Non-blocking: leave toggle in default OFF state.
+        }
+    }
+
+    function applyAvailabilityToggle(value) {
+        var toggle = document.getElementById("availabilityToggle");
+        var message = document.getElementById("availabilityMessage");
+
+        if (!toggle) {
+            return;
+        }
+
+        var isAvailable = Boolean(value);
+        toggle.setAttribute("aria-checked", isAvailable ? "true" : "false");
+        toggle.classList.toggle("is-active", isAvailable);
+
+        if (message) {
+            message.textContent = "";
+            message.hidden = true;
+        }
+    }
+
+    function showAvailabilityMessage(text) {
+        var message = document.getElementById("availabilityMessage");
+
+        if (!message) {
+            return;
+        }
+
+        message.textContent = text || "";
+        message.hidden = !text;
+    }
+
+    async function updateAvailability(nextValue) {
+        var api = window.HandyHireAPI;
+
+        if (!api || typeof api.apiFetch !== "function") {
+            return;
+        }
+
+        if (availabilitySaving) {
+            return;
+        }
+
+        var toggle = document.getElementById("availabilityToggle");
+
+        if (!toggle) {
+            return;
+        }
+
+        availabilitySaving = true;
+        toggle.disabled = true;
+        showAvailabilityMessage("");
+
+        try {
+            var response = await api.apiFetch("/api/worker/profile", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    availability: nextValue || null
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error("update-failed");
+            }
+
+            lastKnownAvailability = String(nextValue || "").trim();
+            applyAvailabilityToggle(lastKnownAvailability);
+        } catch (error) {
+            applyAvailabilityToggle(lastKnownAvailability);
+            showAvailabilityMessage("Unable to update availability.");
+        } finally {
+            availabilitySaving = false;
+            toggle.disabled = false;
+        }
+    }
+
+    function initAvailabilityToggle() {
+        var toggle = document.getElementById("availabilityToggle");
+
+        if (!toggle) {
+            return;
+        }
+
+        toggle.addEventListener("click", function () {
+            if (availabilitySaving) {
+                return;
+            }
+
+            var isActive = toggle.classList.contains("is-active");
+            var nextValue = isActive ? "" : "both";
+
+            toggle.setAttribute("aria-checked", isActive ? "false" : "true");
+            toggle.classList.toggle("is-active", !isActive);
+            updateAvailability(nextValue);
+        });
+    }
+
     function initializePage() {
         if (!requireAuth()) {
             return;
@@ -715,6 +841,8 @@
         initializeFilters();
         initializeSearch();
         initializeSort();
+        initAvailabilityToggle();
+        loadAvailability();
         loadWorkers();
     }
 

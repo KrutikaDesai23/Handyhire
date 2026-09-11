@@ -33,6 +33,20 @@
         <!-- ========== HERO BANNER ========== -->
         <section class="hero-banner" aria-label="Promotional banner">
             <div class="hero-image" role="img" aria-label="HandyHire promotional banner">
+                <div class="hero-availability" id="heroAvailability">
+                    <span class="availability-toggle-label">Available for work</span>
+                    <button
+                        type="button"
+                        class="toggle-switch"
+                        id="availabilityToggle"
+                        role="switch"
+                        aria-checked="false"
+                        aria-label="Available for work"
+                    >
+                        <span class="toggle-switch__knob" aria-hidden="true"></span>
+                    </button>
+                    <span class="availability-message" id="availabilityMessage" role="alert" hidden></span>
+                </div>
                 <div class="hero-search">
                     <svg class="hero-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <circle cx="11" cy="11" r="8"></circle>
