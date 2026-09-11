@@ -28,3 +28,4 @@ class User(Base):
     team_memberships = relationship("TeamMember", back_populates="worker", foreign_keys="TeamMember.worker_id")
     customer_reviews = relationship("Review", back_populates="customer", foreign_keys="Review.customer_id")
     worker_reviews = relationship("Review", back_populates="worker", foreign_keys="Review.worker_id")
+    work_photos = relationship("WorkerWorkPhoto", back_populates="worker")

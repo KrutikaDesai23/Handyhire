@@ -542,8 +542,7 @@
     const INFO_ITEMS = [
         { key: 'profession',   label: 'Occupation',   icon: '&#128188;' },
         { key: 'experience',   label: 'Experience',   icon: '&#128188;' },
-        { key: 'mobile',       label: 'Mobile No.',   icon: '&#128241;' },
-        { key: 'email',        label: 'Email ID',     icon: '&#9993;' },
+        { key: 'availability', label: 'Availability', icon: '&#9200;' },
         { key: 'location',     label: 'Location',     icon: '&#127968;' },
         { key: 'qualification',label: 'Qualification',icon: '&#127891;' },
         { key: 'price',        label: 'Service Price',icon: '&#128176;' },
@@ -821,6 +820,55 @@
         list.innerHTML = allServices.map(function (s) {
             return '<li class="service-pill">' + escapeHtml(s.name || '') + '</li>';
         }).join('');
+    }
+
+    /**
+     * Render the worker's portfolio (previous work) photos.
+     * Photos are read-only for the customer: no upload/delete controls.
+     * @param {Array} photos  array of { id, image_url, created_at }
+     */
+    function renderPortfolio(photos) {
+        const grid = document.getElementById('portfolioGrid');
+        const empty = document.getElementById('portfolioEmpty');
+        if (!grid) return;
+
+        const items = Array.isArray(photos) ? photos : [];
+        if (!items.length) {
+            grid.innerHTML = '';
+            if (empty) empty.hidden = false;
+            return;
+        }
+
+        if (empty) empty.hidden = true;
+        grid.innerHTML = items.map(function (photo) {
+            const url = String(photo.image_url || '').replace(/["\\]/g, '');
+            return '<li class="portfolio-photo">' +
+                '<img src="' + url + '" alt="Previous work photo" loading="lazy" />' +
+            '</li>';
+        }).join('');
+    }
+
+    /**
+     * Load a worker's public portfolio from the backend and render it.
+     * Fails soft (empty grid) so the details page still works.
+     * @param {string|number} workerId
+     */
+    function loadPortfolio(workerId) {
+        if (!workerId) {
+            renderPortfolio([]);
+            return;
+        }
+        getApi().apiFetch('/api/workers/' + encodeURIComponent(String(workerId)) + '/work-photos')
+            .then(function (response) {
+                if (!response.ok) return [];
+                return response.json();
+            })
+            .then(function (photos) {
+                renderPortfolio(photos);
+            })
+            .catch(function () {
+                renderPortfolio([]);
+            });
     }
 
     /**
@@ -1153,17 +1201,24 @@
                         const worker = mapApiWorkerToUi(results[0], results[1]);
                         worker.__context = { source: readQueryParam('source'), member: readSelectedMember() };
                         renderAll(worker);
+                        loadPortfolio(workerId);
                     })
                     .catch(function () {
                         // Backend unavailable or worker not found: fall back to
                         // slug/catalog resolution for team deep links.
                         const resolved = resolveFromContext();
                         renderAll(resolved.worker);
+                        loadPortfolio(workerId);
                     });
             }
 
             const resolved = resolveFromContext();
             renderAll(resolved.worker);
+            if (resolved.worker && resolved.worker.__workerId) {
+                loadPortfolio(resolved.worker.__workerId);
+            } else {
+                renderPortfolio([]);
+            }
         });
     }
 

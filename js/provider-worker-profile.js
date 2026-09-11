@@ -488,6 +488,166 @@
     let currentProfile = null;
 
     /**
+     * Escape a URL string for use inside a CSS url() value.
+     * @param {string} str
+     * @returns {string}
+     */
+    function escapeCssUrl(str) {
+        return String(str).replace(/["\\]/g, '');
+    }
+
+    /**
+     * Load the worker's own work photos and render the gallery.
+     */
+    function loadWorkPhotos() {
+        const api = window.HandyHireAPI;
+        if (!api || typeof api.apiFetch !== 'function') return;
+
+        api.apiFetch('/api/worker/work-photos').then(function (response) {
+            if (!response.ok) return [];
+            return response.json();
+        }).then(function (photos) {
+            renderWorkPhotos(Array.isArray(photos) ? photos : []);
+        }).catch(function () {
+            renderWorkPhotos([]);
+        });
+    }
+
+    /**
+     * Render the work photos gallery into the page.
+     * @param {Array} photos
+     */
+    function renderWorkPhotos(photos) {
+        const grid = document.getElementById('workPhotosGrid');
+        const empty = document.getElementById('workPhotosEmpty');
+        if (!grid) return;
+
+        if (!photos.length) {
+            grid.innerHTML = '';
+            if (empty) empty.hidden = false;
+            return;
+        }
+
+        if (empty) empty.hidden = true;
+        grid.innerHTML = photos.map(function (photo) {
+            const url = escapeCssUrl(photo.image_url || '');
+            const id = photo.id;
+            return '<li class="work-photo-card">' +
+                '<img class="work-photo-img" src="' + escapeHtml(url) + '" alt="Work photo" loading="lazy" />' +
+                '<button type="button" class="work-photo-delete" data-photo-id="' + id + '" aria-label="Delete work photo">&#10005;</button>' +
+            '</li>';
+        }).join('');
+    }
+
+    /**
+     * Upload a new work photo via the multipart endpoint and refresh the gallery.
+     */
+    function handleWorkPhotoUpload(event) {
+        event.preventDefault();
+
+        const api = window.HandyHireAPI;
+        const input = document.getElementById('workPhotoInput');
+        const errorEl = document.getElementById('workPhotoError');
+        const btn = document.getElementById('addWorkPhotoBtn');
+        const file = input && input.files && input.files[0] ? input.files[0] : null;
+
+        if (!file) {
+            showWorkPhotoError('Please choose a photo to upload.');
+            return;
+        }
+
+        if (errorEl) errorEl.hidden = true;
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'Uploading...';
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        api.apiFetch('/api/worker/work-photos', {
+            method: 'POST',
+            body: formData,
+        }).then(function (response) {
+            if (response.ok) {
+                if (input) input.value = '';
+                loadWorkPhotos();
+            }
+            return response;
+        }).then(function (response) {
+            if (!response.ok) {
+                return response.json().then(function (err) {
+                    throw new Error((err && err.detail) || 'Failed to upload photo');
+                }).catch(function (e) {
+                    throw new Error(e && e.message ? e.message : 'Failed to upload photo');
+                });
+            }
+        }).catch(function (err) {
+            showWorkPhotoError(err && err.message ? err.message : 'Failed to upload photo');
+        }).finally(function () {
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = '+ Add Photo';
+            }
+        });
+    }
+
+    /**
+     * Show a message in the work photo error element.
+     * @param {string} message
+     */
+    function showWorkPhotoError(message) {
+        const el = document.getElementById('workPhotoError');
+        if (!el) return;
+        el.textContent = message;
+        el.hidden = false;
+    }
+
+    /**
+     * Delete a work photo by id and refresh the gallery.
+     * @param {number} photoId
+     */
+    function deleteWorkPhoto(photoId) {
+        const api = window.HandyHireAPI;
+        if (!api || !photoId) return;
+
+        api.apiFetch('/api/worker/work-photos/' + encodeURIComponent(String(photoId)), {
+            method: 'DELETE',
+        }).then(function (response) {
+            if (!response.ok) {
+                return response.json().then(function (err) {
+                    throw new Error((err && err.detail) || 'Failed to delete photo');
+                }).catch(function () {
+                    throw new Error('Failed to delete photo');
+                });
+            }
+            return loadWorkPhotos();
+        }).catch(function (err) {
+            showWorkPhotoError(err && err.message ? err.message : 'Failed to delete photo');
+        });
+    }
+
+    /**
+     * Wire up the work photos upload form and delete-button delegation.
+     */
+    function initWorkPhotos() {
+        const form = document.getElementById('workPhotoForm');
+        if (form) form.addEventListener('submit', handleWorkPhotoUpload);
+
+        const grid = document.getElementById('workPhotosGrid');
+        if (grid) {
+            grid.addEventListener('click', function (event) {
+                const del = event.target.closest('.work-photo-delete');
+                if (!del) return;
+                const id = del.getAttribute('data-photo-id');
+                if (id) deleteWorkPhoto(id);
+            });
+        }
+
+        loadWorkPhotos();
+    }
+
+    /**
      * Initialize the Provider Worker Profile page.
      */
     function init() {
@@ -503,6 +663,8 @@
 
         const form = document.getElementById('editProfileForm');
         if (form) form.addEventListener('submit', handleSave);
+
+        initWorkPhotos();
 
         loadProfile();
     }

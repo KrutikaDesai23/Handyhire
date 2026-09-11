@@ -6,6 +6,10 @@
     var currentSearch = "";
     var currentSort = "";
 
+    var DISPLAY_LIMIT = 4;
+    var displayList = [];
+    var isExpanded = false;
+
     function requireAuth() {
         var api = window.HandyHireAPI;
 
@@ -291,35 +295,67 @@
             return;
         }
 
-        grid.innerHTML = "";
+        displayList = Array.isArray(workers) ? workers : [];
+        renderDisplay(grid);
+    }
 
-        if (!workers.length) {
+    function getViewAllButton(grid) {
+        var section = grid.closest(".service-section");
+        if (!section) return null;
+
+        var btn = section.querySelector("[data-view-all]");
+        if (btn) return btn;
+
+        btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "view-all-btn";
+        btn.dataset["viewAll"] = "true";
+        btn.addEventListener("click", function () {
+            isExpanded = !isExpanded;
+            renderDisplay(grid);
+        });
+
+        grid.parentNode.insertBefore(btn, grid.nextSibling);
+        return btn;
+    }
+
+    function renderDisplay(grid) {
+        if (!grid) return;
+
+        var btn = getViewAllButton(grid);
+
+        if (!displayList.length) {
             var message = "No workers found.";
 
             if (currentFilter === "pre-booking") {
-                message =
-                    "No pre-booking workers available.";
+                message = "No pre-booking workers available.";
             }
 
             if (currentFilter === "on-spot") {
-                message =
-                    "No on-spot workers available.";
+                message = "No on-spot workers available.";
             }
 
             if (currentFilter === "near-me") {
-                message =
-                    "No workers found near your location.";
+                message = "No workers found near your location.";
             }
 
             showMessage(message);
+            if (btn) btn.hidden = true;
             return;
         }
 
-                workers.forEach(function (worker) {
-            grid.appendChild(
-                createWorkerCard(worker)
-            );
+        var list = isExpanded ? displayList : displayList.slice(0, DISPLAY_LIMIT);
+
+        grid.innerHTML = "";
+
+        list.forEach(function (worker) {
+            grid.appendChild(createWorkerCard(worker));
         });
+
+        if (btn) {
+            btn.hidden = displayList.length <= DISPLAY_LIMIT;
+            btn.textContent = isExpanded ? "Show Less" : "View All";
+        }
     }
 
     function getCurrentLocation() {
@@ -350,6 +386,7 @@
 
     function applyFilter(filter) {
         currentFilter = filter || "all";
+        isExpanded = false;
 
         var filteredWorkers =
             allWorkers.slice();

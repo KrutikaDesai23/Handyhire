@@ -12,6 +12,7 @@ from app.models.package_service import PackageService
 from app.models.package_member import PackageMember
 from app.models.package_worker import PackageWorker
 from app.models.review import Review
+from app.models.worker_work_photo import WorkerWorkPhoto
 
 __all__ = [
     "User",
@@ -28,4 +29,5 @@ __all__ = [
     "PackageMember",
     "PackageWorker",
     "Review",
+    "WorkerWorkPhoto",
 ]

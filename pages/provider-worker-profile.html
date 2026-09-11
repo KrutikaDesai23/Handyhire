@@ -215,16 +215,33 @@
             </form>
         </section>
 
-        <!-- ========== MANAGE PACKAGES ========== -->
-        <section class="profile-section" aria-label="Package management">
-            <h2 class="section-title">Packages</h2>
-            <div class="manage-card">
-                <span class="manage-icon" aria-hidden="true">&#128230;</span>
-                <div class="manage-text">
-                    <p class="manage-title">Manage Packages</p>
-                    <p class="manage-desc">Create, edit and manage your multitasking and team packages.</p>
-                </div>
-                <a href="provider-multitasking-package.html" class="edit-profile-btn">Manage</a>
+        <!-- ========== MY WORK PHOTOS ========== -->
+        <section class="profile-section" aria-label="My work photos">
+            <h2 class="section-title">My Work Photos</h2>
+            <div class="work-photos-card">
+                <p class="manage-desc">Show customers examples of your previous work.</p>
+
+                <form class="work-photo-upload" id="workPhotoForm">
+                    <input
+                        type="file"
+                        id="workPhotoInput"
+                        name="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        class="work-photo-file-input"
+                    />
+                    <button type="submit" class="edit-profile-btn" id="addWorkPhotoBtn">+ Add Photo</button>
+                    <span class="form-hint">JPG, PNG or WEBP. Max 5 MB.</span>
+                </form>
+
+                <p class="edit-error" id="workPhotoError" hidden role="alert"></p>
+
+                <ul class="work-photos-grid" id="workPhotosGrid">
+                    <!-- Injected by js/provider-worker-profile.js -->
+                </ul>
+
+                <p class="work-photos-empty" id="workPhotosEmpty" hidden>
+                    No work photos yet. Add photos to showcase your skills.
+                </p>
             </div>
         </section>
 

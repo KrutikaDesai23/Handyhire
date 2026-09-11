@@ -8,6 +8,23 @@
     'use strict';
 
     /**
+     * Number of worker cards shown initially before the list is
+     * expanded via the "View All" toggle.
+     */
+    const DISPLAY_LIMIT = 4;
+
+    /**
+     * The currently displayed worker list. Kept in full so the
+     * "View All" toggle can reveal every card without refetching.
+     */
+    let displayList = [];
+
+    /**
+     * Whether the full list is currently expanded.
+     */
+    let isExpanded = false;
+
+    /**
      * Routes for the filter chips. "On-spot" is the active chip
      * and has no target - the user is already on this page.
      */
@@ -73,17 +90,56 @@
      */
     function renderWorkers(container, workers) {
         if (!container) return;
+        displayList = Array.isArray(workers) ? workers : [];
+        renderDisplay(container);
+    }
 
-        if (!workers || !workers.length) {
+    /**
+     * Get (or lazily create) the View All / Show Less toggle button
+     * placed directly below the service grid.
+     * @param {HTMLElement} container
+     * @returns {HTMLElement}
+     */
+    function getViewAllButton(container) {
+        const section = container.closest('.service-section');
+        if (!section) return null;
+        let btn = section.querySelector('[data-view-all]');
+        if (btn) return btn;
+        btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'view-all-btn';
+        btn.dataset.viewAll = 'true';
+        btn.addEventListener('click', function () {
+            isExpanded = !isExpanded;
+            renderDisplay(container);
+        });
+        container.parentNode.insertBefore(btn, container.nextSibling);
+        return btn;
+    }
+
+    /**
+     * Render the current display list, constrained to the first
+     * DISPLAY_LIMIT cards unless expanded, and keep the toggle in sync.
+     * @param {HTMLElement} container
+     */
+    function renderDisplay(container) {
+        if (!container) return;
+
+        const btn = getViewAllButton(container);
+
+        if (!displayList.length) {
             container.innerHTML = `
                 <p class="empty-state" style="grid-column: 1 / -1; text-align: center; color: var(--color-text-muted); padding: 32px 0;">
                     No on-spot professionals available right now.
                 </p>
             `;
+            if (btn) btn.hidden = true;
             return;
         }
 
-        const html = workers.map((worker) => {
+        const shown = isExpanded ? displayList : displayList.slice(0, DISPLAY_LIMIT);
+
+        const html = shown.map((worker) => {
             const card = window.HandyHireWorkers.toCard(worker);
             const name = window.HandyHireWorkers.escapeHtml(card.name);
             const profession = window.HandyHireWorkers.escapeHtml(card.profession);
@@ -111,6 +167,11 @@
         }).join('');
 
         container.innerHTML = html;
+
+        if (btn) {
+            btn.hidden = displayList.length <= DISPLAY_LIMIT;
+            btn.textContent = isExpanded ? 'Show Less' : 'View All';
+        }
     }
 
     /**

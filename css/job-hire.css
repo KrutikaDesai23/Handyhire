@@ -407,6 +407,49 @@ ul {
 }
 
 /* =========================================================
+   PREVIOUS WORK (WORKER PORTFOLIO)
+   ========================================================= */
+.portfolio-section {
+    margin: 0 0 22px;
+}
+
+.portfolio-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    list-style: none;
+}
+
+.portfolio-photo {
+    border-radius: var(--radius-card);
+    overflow: hidden;
+    background-color: var(--color-accent-bg);
+    border: 1px solid var(--color-border);
+    aspect-ratio: 1 / 1;
+}
+
+.portfolio-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.portfolio-empty {
+    text-align: center;
+    font-size: 13px;
+    color: var(--color-text-muted);
+    margin: 0;
+    padding: 8px 0;
+}
+
+@media (max-width: 374px) {
+    .portfolio-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* =========================================================
    RATING & REVIEWS
    ========================================================= */
 .reviews-section {

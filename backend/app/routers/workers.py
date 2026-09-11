@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import BaseModel
 from sqlalchemy import or_, func
 from sqlalchemy.orm import Session
 from typing import Optional
@@ -8,6 +9,12 @@ from app.database.connection import get_db
 from app.schemas import WorkerResponse
 
 router = APIRouter(prefix="/api/workers", tags=["workers"])
+
+
+class WorkerWorkPhotoPublicResponse(BaseModel):
+    id: int
+    image_url: str
+    created_at: Optional[str] = None
 
 VALID_SORTS = {"rating", "price_asc", "price_desc", "name"}
 
@@ -142,3 +149,25 @@ def get_worker_detail(worker_id: int, db: Session = Depends(get_db)):
         average_rating=avg_rating,
         review_count=len(reviews),
     )
+
+
+@router.get("/{worker_id}/work-photos", response_model=list[WorkerWorkPhotoPublicResponse])
+def get_worker_work_photos(worker_id: int, db: Session = Depends(get_db)):
+    """Public, read-only list of a worker's portfolio work photos.
+
+    Returns only id, image_url and created_at. Never exposes private info.
+    """
+    photos = (
+        db.query(models.WorkerWorkPhoto)
+        .filter(models.WorkerWorkPhoto.worker_id == worker_id)
+        .order_by(models.WorkerWorkPhoto.created_at.desc())
+        .all()
+    )
+    return [
+        WorkerWorkPhotoPublicResponse(
+            id=p.id,
+            image_url=p.image_url,
+            created_at=p.created_at.isoformat() if p.created_at else None,
+        )
+        for p in photos
+    ]

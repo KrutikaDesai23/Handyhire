@@ -9,6 +9,12 @@
     'use strict';
 
     /**
+     * Number of worker cards shown initially before the list is
+     * expanded via the "View All" toggle.
+     */
+    const DISPLAY_LIMIT = 4;
+
+    /**
      * Routes for the filter chips that have a dedicated page.
      * Chips without an entry here are treated as in-page only.
      */
@@ -75,19 +81,63 @@
      * @param {HTMLElement} container
      * @param {Array} workers  backend WorkerResponse objects
      */
+    /**
+     * Render the service grid into the DOM from backend data.
+     * @param {HTMLElement} container
+     * @param {Array} workers  backend WorkerResponse objects
+     */
     function renderWorkers(container, workers) {
         if (!container) return;
+        displayList = Array.isArray(workers) ? workers : [];
+        renderDisplay(container);
+    }
 
-        if (!workers || !workers.length) {
+    /**
+     * Get (or lazily create) the View All / Show Less toggle button
+     * placed directly below the service grid.
+     * @param {HTMLElement} container
+     * @returns {HTMLElement}
+     */
+    function getViewAllButton(container) {
+        const section = container.closest('.service-section');
+        if (!section) return null;
+        let btn = section.querySelector('[data-view-all]');
+        if (btn) return btn;
+        btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'view-all-btn';
+        btn.dataset.viewAll = 'true';
+        btn.addEventListener('click', function () {
+            isExpanded = !isExpanded;
+            renderDisplay(container);
+        });
+        container.parentNode.insertBefore(btn, container.nextSibling);
+        return btn;
+    }
+
+    /**
+     * Render the current display list, constrained to the first
+     * DISPLAY_LIMIT cards unless expanded, and keep the toggle in sync.
+     * @param {HTMLElement} container
+     */
+    function renderDisplay(container) {
+        if (!container) return;
+
+        const btn = getViewAllButton(container);
+
+        if (!displayList.length) {
             container.innerHTML = `
                 <p class="empty-state" style="grid-column: 1 / -1; text-align: center; color: var(--color-text-muted); padding: 32px 0;">
                     No professionals available right now.
                 </p>
             `;
+            if (btn) btn.hidden = true;
             return;
         }
 
-        const html = workers.map((worker) => {
+        const shown = isExpanded ? displayList : displayList.slice(0, DISPLAY_LIMIT);
+
+        const html = shown.map((worker) => {
             const card = window.HandyHireWorkers.toCard(worker);
             const name = window.HandyHireWorkers.escapeHtml(card.name);
             const profession = window.HandyHireWorkers.escapeHtml(card.profession);
@@ -115,6 +165,11 @@
         }).join('');
 
         container.innerHTML = html;
+
+        if (btn) {
+            btn.hidden = displayList.length <= DISPLAY_LIMIT;
+            btn.textContent = isExpanded ? 'Show Less' : 'View All';
+        }
     }
 
     /**
@@ -251,6 +306,18 @@
     let currentWorkers = [];
 
     /**
+     * The currently displayed (already filtered + sorted) worker list.
+     * Kept in full so the "View All" toggle can reveal every card
+     * without a second backend request.
+     */
+    let displayList = [];
+
+    /**
+     * Whether the full list is currently expanded.
+     */
+    let isExpanded = false;
+
+    /**
      * Load workers from the backend and render them into the
      * grid. Shows a loading state, then renders real data or a
      * friendly error/empty message using the existing styling.
@@ -303,6 +370,7 @@
      * search query and sort, then render the matching subset.
      */
     function applySearch() {
+        isExpanded = false;
         const container = document.getElementById('serviceGrid');
         if (!container) return;
 

@@ -24,6 +24,7 @@ from app.routers.worker_requests import router as worker_requests_router
 from app.routers.worker_services import router as worker_services_router
 from app.routers.worker_team_members import router as worker_team_members_router
 from app.routers.worker_teams import router as worker_teams_router
+from app.routers.worker_work_photos import router as worker_work_photos_router
 from app.routers.workers import router as workers_router
 
 app = FastAPI(
@@ -61,6 +62,7 @@ app.include_router(worker_packages_router)
 app.include_router(worker_services_router)
 app.include_router(worker_teams_router)
 app.include_router(worker_team_members_router)
+app.include_router(worker_work_photos_router)
 
 # Serve uploaded profile images from the backend uploads directory.
 # Files are exposed under /static/profile-images/<filename>.
