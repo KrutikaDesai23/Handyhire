@@ -20,7 +20,7 @@
                 <path d="M15 18l-6-6 6-6"/>
             </svg>
         </a>
-        <h1 class="header-title">Booking Details</h1>
+        <h1 class="header-title" id="pageTitle">Booking Details</h1>
         <span class="header-spacer" aria-hidden="true"></span>
     </header>
 
@@ -115,6 +115,37 @@
                 <div id="teamMembersSection" class="card list-card" hidden>
                     <h3 class="card-title">Team Members</h3>
                     <ul id="teamMembersList" class="simple-list"></ul>
+                </div>
+
+                <div id="jobPhotosSection" class="card photos-card" hidden>
+                    <h3 class="card-title">Job Photos</h3>
+
+                    <div id="beforePhotosBlock" class="photo-block" hidden>
+                        <h4 class="photo-block-title">Before Job</h4>
+                        <div id="beforePhotosGrid" class="photo-grid"></div>
+                        <p id="beforePhotosEmpty" class="photo-empty" hidden>No before-job photos.</p>
+                    </div>
+
+                    <div id="afterPhotosBlock" class="photo-block" hidden>
+                        <h4 class="photo-block-title">After Job</h4>
+                        <div id="afterPhotosGrid" class="photo-grid"></div>
+                        <p id="afterPhotosEmpty" class="photo-empty" hidden>No after-job photos yet.</p>
+                    </div>
+
+                    <div id="addAfterPhotos" class="add-after-photos" hidden>
+                        <label class="add-after-trigger" for="afterPhotoInput">
+                            <span aria-hidden="true">&#128247;</span> Add After Photos
+                        </label>
+                        <input
+                            type="file"
+                            id="afterPhotoInput"
+                            class="photo-upload-input"
+                            accept="image/jpeg,image/png,image/webp"
+                            multiple
+                            hidden
+                        />
+                        <p id="afterPhotoError" class="photo-upload-error" role="alert" hidden></p>
+                    </div>
                 </div>
             </div>
         </section>
