@@ -833,6 +833,16 @@
         });
     }
 
+    function initQuickHire() {
+        const links = document.querySelectorAll('.hero-quick-hire');
+        links.forEach(function (link) {
+            link.addEventListener('click', function (event) {
+                event.preventDefault();
+                window.location.href = 'quick-hire.html';
+            });
+        });
+    }
+
     function initializePage() {
         if (!requireAuth()) {
             return;
@@ -844,6 +854,7 @@
         initAvailabilityToggle();
         loadAvailability();
         loadWorkers();
+        initQuickHire();
     }
 
     if (document.readyState === "loading") {

@@ -301,6 +301,104 @@ body {
     color: var(--color-text-muted);
 }
 
+/* =========================================================
+   QUICK HIRE HERO CTA
+   ========================================================= */
+.hero-quick-hire {
+    position: absolute;
+    top: 20px;
+    left: 24px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+    text-decoration: none;
+    color: var(--color-text);
+    z-index: 10;
+    transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.hero-quick-hire:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+}
+
+.hero-quick-hire:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.hero-quick-hire-icon {
+    font-size: 18px;
+    line-height: 1;
+    color: var(--color-primary);
+}
+
+.hero-quick-hire-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.hero-quick-hire-title {
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--color-text);
+}
+
+.hero-quick-hire-subtitle {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-text-muted);
+    line-height: 1.2;
+}
+
+@media (max-width: 374px) {
+    .hero-quick-hire {
+        top: 12px;
+        left: 12px;
+        padding: 6px 10px;
+        gap: 6px;
+    }
+
+    .hero-quick-hire-icon {
+        font-size: 16px;
+    }
+
+    .hero-quick-hire-title {
+        font-size: 12px;
+    }
+
+    .hero-quick-hire-subtitle {
+        font-size: 10px;
+    }
+}
+
+@media (min-width: 768px) {
+    .hero-quick-hire {
+        top: 24px;
+        left: 24px;
+        padding: 10px 14px;
+        gap: 10px;
+    }
+
+    .hero-quick-hire-icon {
+        font-size: 20px;
+    }
+
+    .hero-quick-hire-title {
+        font-size: 14px;
+    }
+
+    .hero-quick-hire-subtitle {
+        font-size: 12px;
+    }
+}
+
 .hero-image::after {
     content: 'HandyHire \2022 Trusted Professionals';
     opacity: 0.9;

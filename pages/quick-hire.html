@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="HandyHire Quick Hire - Book a trusted professional in just a few steps." />
+    <meta name="theme-color" content="#68865C" />
+    <title>Quick Hire | HandyHire</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="../css/quick-hire.css" />
+</head>
+<body>
+    <header class="quickhire-header" role="banner">
+        <a href="../pages/home.html" class="quickhire-back" id="quickHireBack" aria-label="Back">
+            <span class="quickhire-back-icon" aria-hidden="true">&#8592;</span>
+            <span class="quickhire-back-label">Back</span>
+        </a>
+
+        <div class="quickhire-title-group">
+            <h1 class="quickhire-title">&#9889; Quick Hire</h1>
+            <p class="quickhire-subtitle">Book a trusted professional in just a few steps.</p>
+        </div>
+    </header>
+
+    <main class="quickhire-main" role="main">
+        <nav class="quickhire-progress" aria-label="Booking progress">
+            <ol class="quickhire-progress-list">
+                <li class="quickhire-progress-step is-active" data-step="1">
+                    <span class="quickhire-progress-number">1</span>
+                    <span class="quickhire-progress-label">Service</span>
+                </li>
+                <li class="quickhire-progress-step" data-step="2">
+                    <span class="quickhire-progress-number">2</span>
+                    <span class="quickhire-progress-label">Professional</span>
+                </li>
+                <li class="quickhire-progress-step" data-step="3">
+                    <span class="quickhire-progress-number">3</span>
+                    <span class="quickhire-progress-label">Details</span>
+                </li>
+                <li class="quickhire-progress-step" data-step="4">
+                    <span class="quickhire-progress-number">4</span>
+                    <span class="quickhire-progress-label">Confirm</span>
+                </li>
+            </ol>
+        </nav>
+
+        <section class="quickhire-step" id="stepService" aria-labelledby="stepServiceHeading">
+            <h2 class="quickhire-step-title" id="stepServiceHeading">What do you need help with?</h2>
+            <p class="quickhire-step-subtitle">
+                <span class="quickhire-badge" aria-hidden="true">&#9889;</span>
+                Immediate service — find a professional available now.
+            </p>
+
+            <div class="quickhire-service-grid" id="quickHireServiceGrid" role="list">
+                <p class="quickhire-loading" id="serviceLoading">Loading services...</p>
+            </div>
+
+            <div class="quickhire-step-actions">
+                <button type="button" class="quickhire-continue" id="serviceContinue" disabled>
+                    Continue
+                </button>
+            </div>
+        </section>
+
+        <section class="quickhire-step is-hidden" id="stepProfessionals" aria-labelledby="stepProfessionalsHeading" hidden>
+            <div class="quickhire-service-summary" id="serviceSummary">
+                <span class="quickhire-service-summary-label">Service</span>
+                <span class="quickhire-service-summary-value" id="selectedServiceName"></span>
+                <button type="button" class="quickhire-change-service" id="changeServiceBtn">Change service</button>
+            </div>
+
+            <h2 class="quickhire-step-title" id="stepProfessionalsHeading">Available professionals</h2>
+            <p class="quickhire-step-subtitle">
+                <span class="quickhire-badge" aria-hidden="true">&#128269;</span>
+                Ready to help you right now.
+            </p>
+
+            <div class="quickhire-professionals-toolbar" id="professionalsToolbar">
+                <button type="button" class="quickhire-refresh" id="refreshWorkersBtn" aria-label="Refresh professionals">
+                    <span aria-hidden="true">&#8635;</span> Refresh
+                </button>
+            </div>
+
+            <div class="quickhire-professionals-area" id="professionalsArea">
+                <div class="quickhire-professionals-loading" id="professionalsLoading" hidden>
+                    <span class="quickhire-spinner" aria-hidden="true"></span>
+                    <span>Finding professionals available right now...</span>
+                </div>
+                <div class="quickhire-worker-grid" id="workerGrid" role="list"></div>
+                <p class="quickhire-empty" id="workerEmpty" hidden>No professionals are available right now.</p>
+                <p class="quickhire-empty-sub" id="workerEmptySub" hidden>
+                    You can try again shortly or use regular booking to schedule a professional.
+                </p>
+                <div class="quickhire-empty-actions" id="workerEmptyActions" hidden>
+                    <button type="button" class="quickhire-secondary" id="tryAgainBtn">Try Again</button>
+                    <button type="button" class="quickhire-continue" id="regularBookingBtn">Regular Booking</button>
+                </div>
+                <p class="quickhire-error" id="workerError" hidden>We couldn't load available professionals.</p>
+                <div class="quickhire-empty-actions" id="workerErrorActions" hidden>
+                    <button type="button" class="quickhire-secondary" id="tryAgainErrorBtn">Try Again</button>
+                </div>
+            </div>
+
+            <div class="quickhire-step-actions">
+                <button type="button" class="quickhire-secondary" id="professionalsBack">Back</button>
+                <button type="button" class="quickhire-continue" id="professionalsContinue" disabled>
+                    Continue
+                </button>
+            </div>
+        </section>
+
+        <section class="quickhire-step is-hidden" id="stepDetails" aria-labelledby="stepDetailsHeading" hidden>
+            <div class="quickhire-selected-professional" id="selectedProfessionalSummary"></div>
+
+            <div class="quickhire-service-summary" id="step3ServiceSummary">
+                <span class="quickhire-service-summary-label">Service</span>
+                <span class="quickhire-service-summary-value" id="step3SelectedServiceName"></span>
+                <button type="button" class="quickhire-change-service" id="step3ChangeServiceBtn">Change service</button>
+            </div>
+
+            <h2 class="quickhire-step-title" id="stepDetailsHeading">Tell us about the job</h2>
+            <p class="quickhire-step-subtitle">
+                Share the details so the professional can prepare.
+            </p>
+
+            <div class="quickhire-form">
+                <div class="quickhire-form-row">
+                    <label class="quickhire-form-label" for="quickHireAddress">Service Address</label>
+                    <textarea
+                        id="quickHireAddress"
+                        class="quickhire-form-input"
+                        rows="3"
+                        placeholder="Enter the address where the service is needed"
+                        maxlength="500"
+                        required
+                    ></textarea>
+                </div>
+
+                <div class="quickhire-form-row">
+                    <label class="quickhire-form-label" for="quickHireHours">Estimated Duration</label>
+                    <select id="quickHireHours" class="quickhire-form-select">
+                        <option value="1">1 hour</option>
+                        <option value="2">2 hours</option>
+                        <option value="3">3 hours</option>
+                        <option value="4">4 hours</option>
+                        <option value="5">5 hours</option>
+                        <option value="6">6 hours</option>
+                        <option value="7">7 hours</option>
+                        <option value="8">8 hours</option>
+                    </select>
+                </div>
+
+                <div class="quickhire-form-row">
+                    <label class="quickhire-form-label" for="quickHireDescription">Work Details <span class="quickhire-form-optional">(Optional)</span></label>
+                    <textarea
+                        id="quickHireDescription"
+                        class="quickhire-form-input"
+                        rows="3"
+                        placeholder="Describe what needs to be done"
+                    ></textarea>
+                </div>
+
+                <div class="quickhire-form-row">
+                    <span class="quickhire-form-label">Job Photos <span class="quickhire-form-optional">(Optional)</span></span>
+                    <p class="quickhire-form-help">Add photos so the professional can understand the work before arriving.</p>
+                    <div class="quickhire-photo-upload" id="photoUpload">
+                        <label class="quickhire-photo-trigger" for="quickHireBeforePhotoInput">
+                            <span aria-hidden="true">&#128247;</span> Add Photos
+                        </label>
+                        <input
+                            type="file"
+                            id="quickHireBeforePhotoInput"
+                            class="quickhire-photo-input"
+                            accept="image/jpeg,image/png,image/webp"
+                            multiple
+                            hidden
+                        />
+                        <div class="quickhire-photo-grid" id="quickHireBeforePhotoPreview" hidden></div>
+                        <p class="quickhire-photo-error" id="quickHirePhotoError" role="alert" hidden></p>
+                    </div>
+                </div>
+
+                <div class="quickhire-price-card" id="quickHirePriceCard">
+                    <p class="quickhire-price-label">Estimated cost</p>
+                    <p class="quickhire-price-summary" id="quickHirePriceSummary"></p>
+                    <p class="quickhire-price-note" id="quickHirePriceNote" hidden>This professional does not have a valid hourly rate.</p>
+                </div>
+            </div>
+
+            <div class="quickhire-step-actions">
+                <button type="button" class="quickhire-secondary" id="detailsBack">Back</button>
+                <button type="button" class="quickhire-continue" id="detailsContinue" disabled>
+                    Review Quick Hire
+                </button>
+            </div>
+        </section>
+
+        <section class="quickhire-step is-hidden" id="stepConfirm" aria-labelledby="stepConfirmHeading" hidden>
+            <h2 class="quickhire-step-title" id="stepConfirmHeading">Review your Quick Hire</h2>
+            <p class="quickhire-step-subtitle">
+                Check the details before requesting this professional.
+            </p>
+
+            <div class="quickhire-confirm-layout">
+                <div class="quickhire-confirm-card" id="confirmProfessionalCard"></div>
+
+                <div class="quickhire-confirm-summary">
+                    <div class="quickhire-confirm-row">
+                        <span class="quickhire-confirm-label">Professional</span>
+                        <span class="quickhire-confirm-value" id="confirmProfessionalName"></span>
+                    </div>
+                    <div class="quickhire-confirm-row">
+                        <span class="quickhire-confirm-label">Service</span>
+                        <span class="quickhire-confirm-value" id="confirmService"></span>
+                    </div>
+                    <div class="quickhire-confirm-row">
+                        <span class="quickhire-confirm-label">When</span>
+                        <span class="quickhire-confirm-value" id="confirmWhen"></span>
+                    </div>
+                    <div class="quickhire-confirm-row">
+                        <span class="quickhire-confirm-label">Availability</span>
+                        <span class="quickhire-confirm-value" id="confirmAvailability"></span>
+                    </div>
+                    <div class="quickhire-confirm-row">
+                        <span class="quickhire-confirm-label">Address</span>
+                        <span class="quickhire-confirm-value" id="confirmAddress"></span>
+                    </div>
+                    <div class="quickhire-confirm-row">
+                        <span class="quickhire-confirm-label">Estimated Duration</span>
+                        <span class="quickhire-confirm-value" id="confirmDuration"></span>
+                    </div>
+                    <div class="quickhire-confirm-row">
+                        <span class="quickhire-confirm-label">Work Details</span>
+                        <span class="quickhire-confirm-value" id="confirmDetails"></span>
+                    </div>
+                    <div class="quickhire-confirm-row">
+                        <span class="quickhire-confirm-label">Job Photos</span>
+                        <span class="quickhire-confirm-value" id="confirmPhotos"></span>
+                    </div>
+                    <div class="quickhire-confirm-row quickhire-confirm-total">
+                        <span class="quickhire-confirm-label">Price</span>
+                        <span class="quickhire-confirm-value" id="confirmPriceSummary"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="quickhire-step-actions">
+                <button type="button" class="quickhire-secondary" id="editDetailsBtn">Edit details</button>
+                <button type="button" class="quickhire-continue" id="confirmQuickHireBtn">
+                    &#9889; Confirm Quick Hire
+                </button>
+            </div>
+
+            <p class="quickhire-confirm-message" id="quickHireConfirmMessage" role="alert" hidden></p>
+        </section>
+    </main>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/quick-hire.js"></script>
+</body>
+</html>

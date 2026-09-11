@@ -1,0 +1,1358 @@
+/* =========================================================
+   HandyHire - Quick Hire Stylesheet
+   Shared instant-booking flow for customer and worker roles.
+   Phase 1: Service selection + professionals placeholder.
+   ========================================================= */
+
+/* ---------- CSS Reset ---------- */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* ---------- Root Variables ---------- */
+:root {
+    --color-bg: #f5f7f5;
+    --color-surface: #ffffff;
+    --color-primary: #68865C;
+    --color-primary-dark: #566f4b;
+    --color-text: #1a1a1a;
+    --color-text-muted: #6a6a6a;
+    --color-border: #e2e6e2;
+    --color-rating: #f5a623;
+    --color-price: #68865C;
+    --color-danger: #c0392b;
+
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --radius-card: 14px;
+    --radius-chip: 999px;
+    --shadow-card: 0 4px 14px rgba(0, 0, 0, 0.08);
+    --shadow-elevated: 0 10px 24px rgba(0, 0, 0, 0.12);
+    --transition: 300ms ease;
+}
+
+/* ---------- Global ---------- */
+html,
+body {
+    width: 100%;
+    min-height: 100vh;
+    font-family: var(--font-family);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+}
+
+body {
+    overflow-x: hidden;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+.quickhire-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background-color: var(--color-primary);
+    color: #ffffff;
+    padding: 12px 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.quickhire-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 8px 10px;
+    border-radius: 10px;
+    transition: background-color var(--transition);
+    flex-shrink: 0;
+}
+
+.quickhire-back:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+.quickhire-back:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.7);
+    outline-offset: 2px;
+}
+
+.quickhire-back-icon {
+    font-size: 20px;
+    line-height: 1;
+}
+
+.quickhire-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.quickhire-title {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+}
+
+.quickhire-subtitle {
+    font-size: 12px;
+    font-weight: 400;
+    opacity: 0.85;
+    line-height: 1.3;
+}
+
+/* =========================================================
+   PROGRESS INDICATOR
+   ========================================================= */
+.quickhire-progress {
+    padding: 16px 16px 8px;
+}
+
+.quickhire-progress-list {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    list-style: none;
+}
+
+.quickhire-progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+}
+
+.quickhire-progress-number {
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 700;
+    background-color: var(--color-border);
+    color: var(--color-text-muted);
+    transition: background-color var(--transition), color var(--transition);
+}
+
+.quickhire-progress-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-align: center;
+    white-space: nowrap;
+}
+
+.quickhire-progress-step.is-active .quickhire-progress-number {
+    background-color: var(--color-primary);
+    color: #ffffff;
+}
+
+.quickhire-progress-step.is-active .quickhire-progress-label {
+    color: var(--color-text);
+}
+
+.quickhire-progress-step.is-completed .quickhire-progress-number {
+    background-color: var(--color-primary-dark);
+    color: #ffffff;
+}
+
+.quickhire-progress-step.is-completed .quickhire-progress-label {
+    color: var(--color-text);
+}
+
+@media (max-width: 374px) {
+    .quickhire-progress-label {
+        font-size: 10px;
+    }
+
+    .quickhire-progress-number {
+        width: 24px;
+        height: 24px;
+        font-size: 11px;
+    }
+}
+
+/* =========================================================
+   MAIN CONTENT
+   ========================================================= */
+.quickhire-main {
+    padding: 8px 16px 24px;
+}
+
+.quickhire-step {
+    animation: quickhireFadeIn 250ms ease;
+}
+
+.quickhire-step.is-hidden {
+    display: none;
+}
+
+@keyframes quickhireFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.quickhire-step-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 4px;
+    letter-spacing: -0.01em;
+}
+
+.quickhire-step-subtitle {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--color-text-muted);
+    margin-bottom: 16px;
+    line-height: 1.4;
+}
+
+.quickhire-badge {
+    font-size: 14px;
+    line-height: 1;
+    color: var(--color-primary);
+}
+
+/* =========================================================
+   SERVICE GRID
+   ========================================================= */
+.quickhire-service-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.quickhire-service-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 6px;
+    padding: 18px 12px;
+    background-color: var(--color-surface);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    cursor: pointer;
+    transition:
+        transform var(--transition),
+        box-shadow var(--transition),
+        border-color var(--transition),
+        background-color var(--transition);
+    width: 100%;
+    font-family: inherit;
+    color: inherit;
+}
+
+.quickhire-service-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-elevated);
+    border-color: rgba(104, 134, 92, 0.35);
+}
+
+.quickhire-service-card:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.quickhire-service-card.is-selected {
+    border-color: var(--color-primary);
+    background-color: rgba(104, 134, 92, 0.06);
+    box-shadow: 0 0 0 3px rgba(104, 134, 92, 0.12);
+}
+
+.quickhire-service-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-text);
+    line-height: 1.25;
+}
+
+.quickhire-service-category {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.quickhire-service-desc {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--color-text-muted);
+    line-height: 1.35;
+}
+
+.quickhire-loading,
+.quickhire-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: var(--color-text-muted);
+    padding: 32px 0;
+    font-size: 14px;
+}
+
+/* =========================================================
+   SERVICE SUMMARY
+   ========================================================= */
+.quickhire-service-summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+}
+
+.quickhire-service-summary-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.quickhire-service-summary-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.quickhire-change-service {
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-primary);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 8px;
+    transition: background-color var(--transition);
+}
+
+.quickhire-change-service:hover {
+    background-color: rgba(104, 134, 92, 0.08);
+}
+
+.quickhire-change-service:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+/* =========================================================
+   PROFESSIONALS TOOLBAR
+   ========================================================= */
+.quickhire-professionals-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 12px;
+}
+
+.quickhire-refresh {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    color: var(--color-text-muted);
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color var(--transition), color var(--transition), border-color var(--transition);
+}
+
+.quickhire-refresh:hover {
+    color: var(--color-text);
+    border-color: var(--color-primary);
+    background-color: rgba(104, 134, 92, 0.04);
+}
+
+.quickhire-refresh:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+/* =========================================================
+   PROFESSIONALS AREA
+   ========================================================= */
+.quickhire-professionals-area {
+    min-height: 120px;
+}
+
+.quickhire-professionals-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 40px 0;
+    color: var(--color-text-muted);
+    font-size: 14px;
+}
+
+.quickhire-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--color-border);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: quickhireSpin 0.8s linear infinite;
+}
+
+@keyframes quickhireSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.quickhire-worker-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.quickhire-worker-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    background-color: var(--color-surface);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    cursor: pointer;
+    transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+    text-align: left;
+    width: 100%;
+    font-family: inherit;
+    color: inherit;
+}
+
+.quickhire-worker-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-elevated);
+    border-color: rgba(104, 134, 92, 0.35);
+}
+
+.quickhire-worker-card:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.quickhire-worker-card.is-selected {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(104, 134, 92, 0.12);
+}
+
+.quickhire-worker-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: #d9e1d9;
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.quickhire-worker-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.quickhire-worker-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 2px;
+    line-height: 1.25;
+    word-break: break-word;
+}
+
+.quickhire-worker-profession {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-text-muted);
+    margin-bottom: 2px;
+}
+
+.quickhire-worker-location {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--color-text-muted);
+    margin-bottom: 4px;
+}
+
+.quickhire-worker-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.quickhire-worker-rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.quickhire-star {
+    color: var(--color-rating);
+    font-size: 13px;
+    line-height: 1;
+}
+
+.quickhire-worker-reviews {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--color-text-muted);
+}
+
+.quickhire-worker-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.quickhire-worker-price {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-price);
+}
+
+.quickhire-availability-badge {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--color-primary);
+    background-color: rgba(104, 134, 92, 0.1);
+    padding: 4px 8px;
+    border-radius: 999px;
+}
+
+.quickhire-select-worker {
+    flex-shrink: 0;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    color: #ffffff;
+    background-color: var(--color-primary);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color var(--transition), transform var(--transition);
+}
+
+.quickhire-select-worker:hover {
+    background-color: var(--color-primary-dark);
+    transform: translateY(-1px);
+}
+
+.quickhire-select-worker:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.quickhire-worker-card.is-selected .quickhire-select-worker {
+    background-color: var(--color-primary-dark);
+}
+
+/* =========================================================
+   SELECTED PROFESSIONAL (STEP 3)
+   ========================================================= */
+.quickhire-selected-professional {
+    margin-bottom: 16px;
+}
+
+.quickhire-selected-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+}
+
+.quickhire-selected-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: #d9e1d9;
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.quickhire-selected-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.quickhire-selected-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 2px;
+}
+
+.quickhire-selected-profession {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text-muted);
+    margin-bottom: 2px;
+}
+
+.quickhire-selected-location {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--color-text-muted);
+    margin-bottom: 4px;
+}
+
+.quickhire-selected-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.quickhire-selected-rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.quickhire-selected-reviews {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--color-text-muted);
+}
+
+.quickhire-selected-price {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-price);
+}
+
+/* =========================================================
+   ACTIONS
+   ========================================================= */
+.quickhire-step-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.quickhire-continue {
+    flex: 1;
+    padding: 14px 20px;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: inherit;
+    color: #ffffff;
+    background-color: var(--color-primary);
+    border: none;
+    border-radius: 12px;
+    box-shadow: var(--shadow-card);
+    cursor: pointer;
+    transition: background-color var(--transition), transform var(--transition), opacity var(--transition);
+}
+
+.quickhire-continue:hover:not(:disabled) {
+    background-color: var(--color-primary-dark);
+    transform: translateY(-1px);
+}
+
+.quickhire-continue:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.quickhire-continue:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.quickhire-secondary {
+    padding: 14px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    color: var(--color-text-muted);
+    background-color: transparent;
+    border: 1.5px solid var(--color-border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background-color var(--transition), color var(--transition);
+}
+
+.quickhire-secondary:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+    color: var(--color-text);
+}
+
+.quickhire-secondary:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 374px) {
+    .quickhire-header {
+        padding: 10px 12px;
+    }
+
+    .quickhire-title {
+        font-size: 15px;
+    }
+
+    .quickhire-subtitle {
+        font-size: 11px;
+    }
+
+    .quickhire-main {
+        padding: 8px 12px 20px;
+    }
+
+    .quickhire-service-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .quickhire-worker-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .quickhire-worker-card {
+        flex-wrap: wrap;
+    }
+
+    .quickhire-select-worker {
+        width: 100%;
+        margin-top: 8px;
+    }
+
+    .quickhire-worker-footer {
+        width: 100%;
+    }
+
+    .quickhire-step-title {
+        font-size: 16px;
+    }
+}
+
+@media (min-width: 768px) {
+    .quickhire-header {
+        padding: 14px 24px;
+    }
+
+    .quickhire-title {
+        font-size: 18px;
+    }
+
+    .quickhire-subtitle {
+        font-size: 13px;
+    }
+
+    .quickhire-main {
+        padding: 12px 24px 32px;
+        max-width: 860px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .quickhire-service-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+
+    .quickhire-worker-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+    }
+
+    .quickhire-step-title {
+        font-size: 20px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .quickhire-main {
+        max-width: 960px;
+    }
+
+    .quickhire-service-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .quickhire-worker-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+    .quickhire-service-card,
+    .quickhire-worker-card,
+    .quickhire-continue,
+    .quickhire-secondary,
+    .quickhire-back,
+    .quickhire-refresh,
+    .quickhire-select-worker {
+        transition: none;
+        transform: none;
+    }
+
+    .quickhire-step {
+        animation: none;
+    }
+
+    .quickhire-spinner {
+        animation: none;
+    }
+}
+
+/* =========================================================
+   FORM
+   ========================================================= */
+.quickhire-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 8px;
+}
+
+.quickhire-form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.quickhire-form-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.quickhire-form-optional {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--color-text-muted);
+}
+
+.quickhire-form-input,
+.quickhire-form-select {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 14px;
+    font-family: inherit;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    color: var(--color-text);
+    transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.quickhire-form-input:focus,
+.quickhire-form-select:focus {
+    outline: none;
+    border-color: rgba(104, 134, 92, 0.4);
+    box-shadow: 0 0 0 3px rgba(104, 134, 92, 0.1);
+}
+
+.quickhire-form-help {
+    font-size: 12px;
+    color: var(--color-text-muted);
+    line-height: 1.4;
+}
+
+/* =========================================================
+   PHOTOS
+   ========================================================= */
+.quickhire-photo-upload {
+    margin-top: 6px;
+}
+
+.quickhire-photo-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background-color: rgba(104, 134, 92, 0.06);
+    border: 1.5px dashed var(--color-primary);
+    border-radius: 12px;
+    color: var(--color-primary-dark);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color var(--transition), border-color var(--transition);
+}
+
+.quickhire-photo-trigger:hover {
+    background-color: rgba(104, 134, 92, 0.12);
+    border-color: var(--color-primary-dark);
+}
+
+.quickhire-photo-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.quickhire-photo-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.quickhire-photo-preview-item {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: var(--color-border);
+}
+
+.quickhire-photo-preview-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.quickhire-photo-remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 22px;
+    height: 22px;
+    border: none;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: #ffffff;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quickhire-photo-error {
+    margin-top: 8px;
+    padding: 8px 12px;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--color-danger);
+    background-color: rgba(192, 57, 43, 0.08);
+    border: 1px solid rgba(192, 57, 43, 0.25);
+    border-radius: 8px;
+}
+
+/* =========================================================
+   PRICE
+   ========================================================= */
+.quickhire-price-card {
+    padding: 14px 16px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    box-shadow: var(--shadow-card);
+}
+
+.quickhire-price-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 6px;
+}
+
+.quickhire-price-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.quickhire-price-rate {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.quickhire-price-hours {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text-muted);
+}
+
+.quickhire-price-total {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--color-primary);
+}
+
+.quickhire-price-unavailable {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-danger);
+}
+
+.quickhire-price-note {
+    font-size: 12px;
+    color: var(--color-danger);
+    margin-top: 6px;
+    line-height: 1.4;
+}
+
+/* =========================================================
+   CONFIRMATION
+   ========================================================= */
+.quickhire-confirm-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 8px;
+}
+
+.quickhire-confirm-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+}
+
+.quickhire-confirm-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: #d9e1d9;
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.quickhire-confirm-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.quickhire-confirm-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 2px;
+}
+
+.quickhire-confirm-profession {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text-muted);
+    margin-bottom: 2px;
+}
+
+.quickhire-confirm-location {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--color-text-muted);
+    margin-bottom: 4px;
+}
+
+.quickhire-confirm-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.quickhire-confirm-rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.quickhire-confirm-reviews {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--color-text-muted);
+}
+
+.quickhire-confirm-price {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-price);
+}
+
+.quickhire-confirm-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+}
+
+.quickhire-confirm-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.quickhire-confirm-row:last-child {
+    border-bottom: none;
+}
+
+.quickhire-confirm-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    flex-shrink: 0;
+}
+
+.quickhire-confirm-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-text);
+    text-align: right;
+    word-break: break-word;
+}
+
+.quickhire-confirm-total {
+    border-top: 2px solid var(--color-border);
+    border-bottom: none;
+    margin-top: 4px;
+    padding-top: 10px;
+}
+
+.quickhire-confirm-total .quickhire-confirm-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.quickhire-confirm-badge {
+    font-size: 14px;
+    line-height: 1;
+}
+
+.quickhire-confirm-message {
+    margin-top: 12px;
+    padding: 10px 14px;
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--color-danger);
+    background-color: rgba(192, 57, 43, 0.08);
+    border: 1px solid rgba(192, 57, 43, 0.25);
+    border-radius: 10px;
+    text-align: center;
+}
+
+.quickhire-confirm-message[hidden] {
+    display: none;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 374px) {
+    .quickhire-header {
+        padding: 10px 12px;
+    }
+
+    .quickhire-title {
+        font-size: 15px;
+    }
+
+    .quickhire-subtitle {
+        font-size: 11px;
+    }
+
+    .quickhire-main {
+        padding: 8px 12px 20px;
+    }
+
+    .quickhire-service-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .quickhire-worker-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .quickhire-worker-card {
+        flex-wrap: wrap;
+    }
+
+    .quickhire-select-worker {
+        width: 100%;
+        margin-top: 8px;
+    }
+
+    .quickhire-worker-footer {
+        width: 100%;
+    }
+
+    .quickhire-step-title {
+        font-size: 16px;
+    }
+}
+
+@media (min-width: 768px) {
+    .quickhire-header {
+        padding: 14px 24px;
+    }
+
+    .quickhire-title {
+        font-size: 18px;
+    }
+
+    .quickhire-subtitle {
+        font-size: 13px;
+    }
+
+    .quickhire-main {
+        padding: 12px 24px 32px;
+        max-width: 860px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .quickhire-service-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+
+    .quickhire-worker-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+    }
+
+    .quickhire-step-title {
+        font-size: 20px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .quickhire-main {
+        max-width: 960px;
+    }
+
+    .quickhire-service-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .quickhire-worker-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+    .quickhire-service-card,
+    .quickhire-worker-card,
+    .quickhire-continue,
+    .quickhire-secondary,
+    .quickhire-back,
+    .quickhire-refresh,
+    .quickhire-select-worker {
+        transition: none;
+        transform: none;
+    }
+
+    .quickhire-step {
+        animation: none;
+    }
+
+    .quickhire-spinner {
+        animation: none;
+    }
+}
