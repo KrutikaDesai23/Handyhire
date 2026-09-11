@@ -361,3 +361,197 @@ def test_worker_booking_details_return_both_photo_types(client, customer, worker
     body = resp.json()
     assert len(body["before_photos"]) == 1
     assert len(body["after_photos"]) == 1
+
+
+def test_worker_booking_owner_can_upload_before_photo(client, customer, worker, db):
+    booking = models.Booking(
+        customer_id=worker.id,
+        worker_id=worker.id,
+        booking_date=date(2026, 9, 1),
+        booking_time="10:00",
+        address="123 Test St",
+        description="Fix the sink",
+        amount=500,
+        status="pending",
+    )
+    db.add(booking)
+    db.commit()
+    db.refresh(booking)
+
+    worker_token = security.create_access_token({"sub": str(worker.id), "role": "worker"})
+    headers = {"Authorization": f"Bearer {worker_token}"}
+
+    resp = client.post(
+        f"/api/bookings/{booking.id}/photos",
+        headers=headers,
+        data={"photo_type": "before"},
+        files={"file": ("before.png", io.BytesIO(_png_bytes()), "image/png")},
+    )
+    assert resp.status_code == 201, resp.text
+    photo = resp.json()
+    assert photo["booking_id"] == booking.id
+    assert photo["photo_type"] == "before"
+    assert "/static/booking-photos/" in photo["image_url"]
+
+
+def test_worker_booking_owner_before_photo_in_detail(client, customer, worker, db):
+    booking = models.Booking(
+        customer_id=worker.id,
+        worker_id=worker.id,
+        booking_date=date(2026, 9, 1),
+        booking_time="10:00",
+        address="123 Test St",
+        description="Fix the sink",
+        amount=500,
+        status="pending",
+    )
+    db.add(booking)
+    db.commit()
+    db.refresh(booking)
+
+    worker_token = security.create_access_token({"sub": str(worker.id), "role": "worker"})
+    headers = {"Authorization": f"Bearer {worker_token}"}
+
+    client.post(
+        f"/api/bookings/{booking.id}/photos",
+        headers=headers,
+        data={"photo_type": "before"},
+        files={"file": ("before.png", io.BytesIO(_png_bytes()), "image/png")},
+    )
+
+    resp = client.get(
+        f"/api/worker/bookings/{booking.id}",
+        headers=headers,
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert len(body["before_photos"]) == 1
+    assert body["before_photos"][0]["photo_type"] == "before"
+
+
+def test_unrelated_worker_cannot_use_booking_owner_photo_endpoint(client, customer, worker, db):
+    booking = models.Booking(
+        customer_id=worker.id,
+        worker_id=worker.id,
+        booking_date=date(2026, 9, 1),
+        booking_time="10:00",
+        address="123 Test St",
+        description="Fix the sink",
+        amount=500,
+        status="pending",
+    )
+    db.add(booking)
+    db.commit()
+    db.refresh(booking)
+
+    other = models.User(
+        full_name="Other Worker",
+        email="otherworker2@example.com",
+        mobile_number="7777777777",
+        password_hash=security.hash_password("password123"),
+        role="worker",
+    )
+    db.add(other)
+    db.commit()
+    db.refresh(other)
+
+    other_token = security.create_access_token({"sub": str(other.id), "role": "worker"})
+    resp = client.post(
+        f"/api/bookings/{booking.id}/photos",
+        headers={"Authorization": f"Bearer {other_token}"},
+        data={"photo_type": "before"},
+        files={"file": ("before.png", io.BytesIO(_png_bytes()), "image/png")},
+    )
+    assert resp.status_code == 404
+
+
+def test_customer_owner_upload_still_works(client, customer, worker, db):
+    booking = _make_booking(db, customer, worker)
+    customer_token = security.create_access_token({"sub": str(customer.id), "role": "customer"})
+    headers = {"Authorization": f"Bearer {customer_token}"}
+
+    resp = client.post(
+        f"/api/bookings/{booking.id}/photos",
+        headers=headers,
+        data={"photo_type": "before"},
+        files={"file": ("before.png", io.BytesIO(_png_bytes()), "image/png")},
+    )
+    assert resp.status_code == 201, resp.text
+
+
+def test_anonymous_booking_owner_photo_upload_rejected(client, customer, worker, db):
+    booking = models.Booking(
+        customer_id=worker.id,
+        worker_id=worker.id,
+        booking_date=date(2026, 9, 1),
+        booking_time="10:00",
+        address="123 Test St",
+        description="Fix the sink",
+        amount=500,
+        status="pending",
+    )
+    db.add(booking)
+    db.commit()
+    db.refresh(booking)
+
+    resp = client.post(
+        f"/api/bookings/{booking.id}/photos",
+        data={"photo_type": "before"},
+        files={"file": ("before.png", io.BytesIO(_png_bytes()), "image/png")},
+    )
+    assert resp.status_code == 401
+
+
+def test_invalid_mime_booking_owner_upload_rejected(client, customer, worker, db):
+    booking = models.Booking(
+        customer_id=worker.id,
+        worker_id=worker.id,
+        booking_date=date(2026, 9, 1),
+        booking_time="10:00",
+        address="123 Test St",
+        description="Fix the sink",
+        amount=500,
+        status="pending",
+    )
+    db.add(booking)
+    db.commit()
+    db.refresh(booking)
+
+    worker_token = security.create_access_token({"sub": str(worker.id), "role": "worker"})
+    headers = {"Authorization": f"Bearer {worker_token}"}
+
+    resp = client.post(
+        f"/api/bookings/{booking.id}/photos",
+        headers=headers,
+        data={"photo_type": "before"},
+        files={"file": ("before.txt", io.BytesIO(b"hello"), "text/plain")},
+    )
+    assert resp.status_code == 415
+
+
+def test_oversized_booking_owner_upload_rejected(client, customer, worker, db):
+    booking = models.Booking(
+        customer_id=worker.id,
+        worker_id=worker.id,
+        booking_date=date(2026, 9, 1),
+        booking_time="10:00",
+        address="123 Test St",
+        description="Fix the sink",
+        amount=500,
+        status="pending",
+    )
+    db.add(booking)
+    db.commit()
+    db.refresh(booking)
+
+    worker_token = security.create_access_token({"sub": str(worker.id), "role": "worker"})
+    headers = {"Authorization": f"Bearer {worker_token}"}
+
+    big = b"x" * (5 * 1024 * 1024 + 1)
+    resp = client.post(
+        f"/api/bookings/{booking.id}/photos",
+        headers=headers,
+        data={"photo_type": "before"},
+        files={"file": ("before.png", io.BytesIO(big), "image/png")},
+    )
+    assert resp.status_code == 413

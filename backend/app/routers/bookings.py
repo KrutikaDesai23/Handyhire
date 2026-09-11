@@ -18,8 +18,8 @@ from sqlalchemy.orm import Session
 
 from app import models
 from app.auth.dependencies import (
-    get_current_customer,
     get_current_user,
+    get_current_customer,
 )
 from app.database.connection import get_db
 from app.schemas import (
@@ -779,7 +779,7 @@ def upload_booking_photo(
     photo_type: str = Form("before"),
     file: UploadFile = File(...),
     request: Request = None,
-    current_user: models.User = Depends(get_current_customer),
+    current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     booking = (
@@ -798,6 +798,12 @@ def upload_booking_photo(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Booking not found",
+        )
+
+    if current_user.role not in {"customer", "worker"}:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Customer or worker access required",
         )
 
     photo_type = (photo_type or "before").strip().lower()
