@@ -172,3 +172,192 @@ def test_non_image_rejected(client, customer, worker, db):
         files={"file": ("job.txt", io.BytesIO(b"hello"), "text/plain")},
     )
     assert resp.status_code == 415
+
+
+def test_provider_upload_after_photo_success(client, customer, worker, db):
+    booking = _make_booking(db, customer, worker, status="accepted")
+    worker_token = security.create_access_token({"sub": str(worker.id), "role": "worker"})
+    headers = {"Authorization": f"Bearer {worker_token}"}
+
+    resp = client.post(
+        f"/api/worker/bookings/{booking.id}/photos",
+        headers=headers,
+        data={"photo_type": "after"},
+        files={"file": ("after.png", io.BytesIO(_png_bytes()), "image/png")},
+    )
+    assert resp.status_code == 201, resp.text
+    photo = resp.json()
+    assert photo["booking_id"] == booking.id
+    assert photo["photo_type"] == "after"
+    assert "/static/booking-photos/" in photo["image_url"]
+
+
+def test_provider_after_photo_appears_in_booking_details(client, customer, worker, db):
+    booking = _make_booking(db, customer, worker, status="accepted")
+    worker_token = security.create_access_token({"sub": str(worker.id), "role": "worker"})
+    headers = {"Authorization": f"Bearer {worker_token}"}
+
+    client.post(
+        f"/api/worker/bookings/{booking.id}/photos",
+        headers=headers,
+        data={"photo_type": "after"},
+        files={"file": ("after.png", io.BytesIO(_png_bytes()), "image/png")},
+    )
+
+    resp = client.get(
+        f"/api/worker/bookings/{booking.id}",
+        headers=headers,
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert len(body["after_photos"]) == 1
+    assert body["after_photos"][0]["photo_type"] == "after"
+
+
+def test_unrelated_worker_cannot_upload_photo(client, customer, worker, db):
+    booking = _make_booking(db, customer, worker, status="accepted")
+
+    other = models.User(
+        full_name="Other Worker",
+        email="otherworker@example.com",
+        mobile_number="9999999999",
+        password_hash=security.hash_password("password123"),
+        role="worker",
+    )
+    db.add(other)
+    db.commit()
+    db.refresh(other)
+
+    other_token = security.create_access_token({"sub": str(other.id), "role": "worker"})
+    resp = client.post(
+        f"/api/worker/bookings/{booking.id}/photos",
+        headers={"Authorization": f"Bearer {other_token}"},
+        data={"photo_type": "after"},
+        files={"file": ("after.png", io.BytesIO(_png_bytes()), "image/png")},
+    )
+    assert resp.status_code == 404
+
+
+def test_anonymous_provider_upload_rejected(client, customer, worker, db):
+    booking = _make_booking(db, customer, worker, status="accepted")
+    resp = client.post(
+        f"/api/worker/bookings/{booking.id}/photos",
+        data={"photo_type": "after"},
+        files={"file": ("after.png", io.BytesIO(_png_bytes()), "image/png")},
+    )
+    assert resp.status_code == 401
+
+
+def test_provider_before_photo_type_rejected(client, customer, worker, db):
+    booking = _make_booking(db, customer, worker, status="accepted")
+    worker_token = security.create_access_token({"sub": str(worker.id), "role": "worker"})
+    resp = client.post(
+        f"/api/worker/bookings/{booking.id}/photos",
+        headers={"Authorization": f"Bearer {worker_token}"},
+        data={"photo_type": "before"},
+        files={"file": ("before.png", io.BytesIO(_png_bytes()), "image/png")},
+    )
+    assert resp.status_code == 422
+
+
+def test_provider_non_image_upload_rejected(client, customer, worker, db):
+    booking = _make_booking(db, customer, worker, status="accepted")
+    worker_token = security.create_access_token({"sub": str(worker.id), "role": "worker"})
+    resp = client.post(
+        f"/api/worker/bookings/{booking.id}/photos",
+        headers={"Authorization": f"Bearer {worker_token}"},
+        data={"photo_type": "after"},
+        files={"file": ("after.txt", io.BytesIO(b"hello"), "text/plain")},
+    )
+    assert resp.status_code == 415
+
+
+def test_provider_oversized_upload_rejected(client, customer, worker, db):
+    booking = _make_booking(db, customer, worker, status="accepted")
+    worker_token = security.create_access_token({"sub": str(worker.id), "role": "worker"})
+    headers = {"Authorization": f"Bearer {worker_token}"}
+
+    big = b"x" * (5 * 1024 * 1024 + 1)
+    resp = client.post(
+        f"/api/worker/bookings/{booking.id}/photos",
+        headers=headers,
+        data={"photo_type": "after"},
+        files={"file": ("after.png", io.BytesIO(big), "image/png")},
+    )
+    assert resp.status_code == 413
+
+
+def test_booking_worker_participant_can_upload_after_photo(client, customer, worker, db):
+    booking = _make_booking(db, customer, worker, status="accepted")
+
+    participant = models.User(
+        full_name="Participant Worker",
+        email="participant@example.com",
+        mobile_number="8888888888",
+        password_hash=security.hash_password("password123"),
+        role="worker",
+    )
+    db.add(participant)
+    db.flush()
+    db.refresh(participant)
+
+    bw = models.BookingWorker(
+        booking_id=booking.id,
+        worker_id=participant.id,
+        status="accepted",
+    )
+    db.add(bw)
+    db.commit()
+    db.refresh(booking)
+
+    participant_token = security.create_access_token({"sub": str(participant.id), "role": "worker"})
+    headers = {"Authorization": f"Bearer {participant_token}"}
+
+    resp = client.post(
+        f"/api/worker/bookings/{booking.id}/photos",
+        headers=headers,
+        data={"photo_type": "after"},
+        files={"file": ("after.png", io.BytesIO(_png_bytes()), "image/png")},
+    )
+    assert resp.status_code == 201, resp.text
+    photo = resp.json()
+    assert photo["booking_id"] == booking.id
+    assert photo["photo_type"] == "after"
+
+    detail = client.get(
+        f"/api/worker/bookings/{booking.id}",
+        headers=headers,
+    )
+    assert detail.status_code == 200
+    body = detail.json()
+    assert len(body["after_photos"]) == 1
+
+
+def test_worker_booking_details_return_both_photo_types(client, customer, worker, db):
+    booking = _make_booking(db, customer, worker, status="accepted")
+    customer_token = security.create_access_token({"sub": str(customer.id), "role": "customer"})
+    worker_token = security.create_access_token({"sub": str(worker.id), "role": "worker"})
+    cust_headers = {"Authorization": f"Bearer {customer_token}"}
+    work_headers = {"Authorization": f"Bearer {worker_token}"}
+
+    client.post(
+        f"/api/bookings/{booking.id}/photos",
+        headers=cust_headers,
+        data={"photo_type": "before"},
+        files={"file": ("before.png", io.BytesIO(_png_bytes()), "image/png")},
+    )
+    client.post(
+        f"/api/bookings/{booking.id}/photos",
+        headers=cust_headers,
+        data={"photo_type": "after"},
+        files={"file": ("after.png", io.BytesIO(_png_bytes()), "image/png")},
+    )
+
+    resp = client.get(
+        f"/api/worker/bookings/{booking.id}",
+        headers=work_headers,
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert len(body["before_photos"]) == 1
+    assert len(body["after_photos"]) == 1

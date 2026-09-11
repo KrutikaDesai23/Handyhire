@@ -264,6 +264,120 @@
         mapsBtn.href = mapsUrl;
     }
 
+    function renderPhotoGrid(containerId, photos) {
+        const grid = document.getElementById(containerId);
+        if (!grid) return;
+        if (!photos || !photos.length) {
+            grid.innerHTML = '';
+            return;
+        }
+        grid.innerHTML = photos.map(function (photo) {
+            var src = escapeHtml(photo.image_url || '');
+            return (
+                "<div class='photo-grid-item'>" +
+                    "<img src='" + src + "' alt='Job photo' loading='lazy' onerror=\"this.parentNode.innerHTML='<div class=\\'photo-grid-item photo-grid-item--fallback\\'>Unavailable</div>'\" />" +
+                "</div>"
+            );
+        }).join('');
+    }
+
+    function renderJobPhotos(data) {
+        const section = document.getElementById('jobPhotosSection');
+        if (!section) return;
+
+        const before = data.before_photos || [];
+        const after = data.after_photos || [];
+
+        const beforeBlock = document.getElementById('beforePhotosBlock');
+        const afterBlock = document.getElementById('afterPhotosBlock');
+        const beforeEmpty = document.getElementById('beforePhotosEmpty');
+        const afterEmpty = document.getElementById('afterPhotosEmpty');
+
+        if (beforeBlock) {
+            beforeBlock.hidden = !before.length && !beforeEmpty;
+            if (beforeEmpty) beforeEmpty.hidden = !!before.length;
+            renderPhotoGrid('beforePhotosGrid', before);
+        }
+        if (afterBlock) {
+            afterBlock.hidden = !after.length && !afterEmpty;
+            if (afterEmpty) afterEmpty.hidden = !!after.length;
+            renderPhotoGrid('afterPhotosGrid', after);
+        }
+
+        const hasAny = before.length || after.length;
+        section.hidden = !hasAny && !document.getElementById('addAfterPhotos');
+
+        const addAfter = document.getElementById('addAfterPhotos');
+        if (addAfter) {
+            addAfter.hidden = false;
+        }
+    }
+
+    function initAfterPhotoUpload() {
+        const input = document.getElementById('afterPhotoInput');
+        const errorEl = document.getElementById('afterPhotoError');
+        if (!input) return;
+
+        const MAX_BYTES = 5 * 1024 * 1024;
+        const ALLOWED = ['image/jpeg', 'image/png', 'image/webp'];
+
+        function showError(message) {
+            if (errorEl) {
+                errorEl.textContent = message;
+                errorEl.hidden = false;
+            }
+        }
+
+        input.addEventListener('change', function () {
+            if (errorEl) errorEl.hidden = true;
+            const files = input.files;
+            if (!files || !files.length) return;
+
+            const bookingId = getQueryParams().bookingId;
+            if (!bookingId) return;
+
+            const api = getApi();
+            if (!api) return;
+
+            var uploads = [];
+            for (var i = 0; i < files.length; i++) {
+                var file = files[i];
+                if (!ALLOWED.includes(file.type)) {
+                    showError('Only JPG, PNG, and WEBP images are allowed.');
+                    continue;
+                }
+                if (file.size > MAX_BYTES) {
+                    showError('Each photo must be 5 MB or smaller.');
+                    continue;
+                }
+                var formData = new FormData();
+                formData.append('photo_type', 'after');
+                formData.append('file', file, file.name);
+                uploads.push(
+                    api.apiFetch('/api/worker/bookings/' + encodeURIComponent(String(bookingId)) + '/photos', {
+                        method: 'POST',
+                        body: formData,
+                    }).then(function (response) {
+                        if (response.status === 401) {
+                            redirectToLogin();
+                            return null;
+                        }
+                        if (!response.ok) {
+                            showError('Some photos could not be uploaded. Please try again.');
+                            return null;
+                        }
+                        return response.json();
+                    })
+                );
+            }
+
+            Promise.all(uploads).then(function () {
+                input.value = '';
+                loadBooking();
+            });
+        });
+    }
+
     function renderBooking(data, mode) {
         document.getElementById('pageTitle').textContent = mode === 'received' ? 'Job Details' : 'Hired Worker Details';
         document.getElementById('bookingId').textContent = 'Booking #' + data.id;
@@ -319,6 +433,7 @@
 
         renderStatusActions(data.status, mode);
         renderContactCard(data, mode);
+        renderJobPhotos(data);
         showDetails();
     }
 
@@ -433,6 +548,7 @@
     function init() {
         if (!(window.HandyHireAPI && window.HandyHireAPI.requireRole('worker'))) return;
         initStatusActions();
+        initAfterPhotoUpload();
         loadBooking();
     }
 

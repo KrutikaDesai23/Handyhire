@@ -63,3 +63,6 @@ __pypackages__/
 htmlcov/
 .tox/
 .nox/
+
+# Runtime uploads
+backend/uploads/

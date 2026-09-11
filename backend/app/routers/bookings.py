@@ -6,6 +6,7 @@ from fastapi import (
     Depends,
     HTTPException,
     Query,
+    Request,
     status,
     UploadFile,
     File,
@@ -777,6 +778,7 @@ def upload_booking_photo(
     booking_id: int,
     photo_type: str = Form("before"),
     file: UploadFile = File(...),
+    request: Request = None,
     current_user: models.User = Depends(get_current_customer),
     db: Session = Depends(get_db),
 ):
@@ -869,7 +871,7 @@ def upload_booking_photo(
     photo = models.BookingPhoto(
         booking_id=booking.id,
         photo_type=photo_type,
-        image_url="http://127.0.0.1:8000/static/booking-photos/" + filename,
+        image_url=str(request.url_for("static", path="booking-photos/" + filename)),
     )
     db.add(photo)
     db.commit()

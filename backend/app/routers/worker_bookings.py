@@ -5,6 +5,10 @@ from fastapi import (
     Depends,
     HTTPException,
     Query,
+    Request,
+    UploadFile,
+    File,
+    Form,
     status,
 )
 from fastapi.responses import JSONResponse
@@ -19,6 +23,7 @@ from app.database.connection import get_db
 from app.schemas import (
     BookingResponse,
     BookingDetailResponse,
+    BookingPhotoResponse,
 )
 
 
@@ -511,6 +516,135 @@ def get_sent_worker_booking(
     return _build_worker_booking_detail_response(
         booking,
         db,
+    )
+
+
+@router.post(
+    "/bookings/{booking_id}/photos",
+    response_model=BookingPhotoResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def upload_worker_booking_photo(
+    booking_id: int,
+    photo_type: str = Form("after"),
+    file: UploadFile = File(...),
+    request: Request = None,
+    current_user: models.User = Depends(get_current_worker),
+    db: Session = Depends(get_db),
+):
+    booking = (
+        db.query(models.Booking)
+        .filter(models.Booking.id == booking_id)
+        .first()
+    )
+
+    if not booking:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Booking not found",
+        )
+
+    is_participant = (
+        db.query(models.BookingWorker)
+        .filter(
+            models.BookingWorker.booking_id == booking_id,
+            models.BookingWorker.worker_id == current_user.id,
+        )
+        .first()
+        is not None
+    )
+
+    if booking.worker_id != current_user.id and not is_participant:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Booking not found",
+        )
+
+    photo_type = (photo_type or "after").strip().lower()
+    if photo_type != "after":
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Providers can only upload after-job photos.",
+        )
+
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail="Only image files are allowed.",
+        )
+
+    allowed = {"image/jpeg", "image/png", "image/webp"}
+    if file.content_type not in allowed:
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail="Allowed image types: JPG, PNG, WEBP.",
+        )
+
+    max_bytes = 5 * 1024 * 1024
+
+    try:
+        file.file.seek(0, 2)
+        size = file.file.tell()
+        file.file.seek(0)
+    except Exception:
+        size = None
+
+    if size is not None and size > max_bytes:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="Maximum image size is 5 MB.",
+        )
+
+    import os
+    import uuid
+
+    ext_map = {
+        "image/jpeg": ".jpg",
+        "image/png": ".png",
+        "image/webp": ".webp",
+    }
+    suffix = ext_map.get(file.content_type, ".bin")
+
+    filename = (
+        "booking-"
+        + str(booking.id)
+        + "-"
+        + str(uuid.uuid4().hex)
+        + suffix
+    )
+
+    upload_dir = os.path.join(
+        os.path.dirname(__file__),
+        "..",
+        "..",
+        "uploads",
+        "booking-photos",
+    )
+    upload_dir = os.path.abspath(upload_dir)
+    os.makedirs(upload_dir, exist_ok=True)
+
+    destination = os.path.join(upload_dir, filename)
+
+    with open(destination, "wb") as buffer:
+        buffer.write(file.file.read())
+
+    image_url = str(request.url_for("static", path="booking-photos/" + filename)) if request else "/static/booking-photos/" + filename
+
+    photo = models.BookingPhoto(
+        booking_id=booking.id,
+        photo_type=photo_type,
+        image_url=image_url,
+    )
+    db.add(photo)
+    db.commit()
+    db.refresh(photo)
+
+    return BookingPhotoResponse(
+        id=photo.id,
+        booking_id=photo.booking_id,
+        photo_type=photo.photo_type,
+        image_url=photo.image_url,
+        created_at=photo.created_at.isoformat() if photo.created_at else None,
     )
 
 
