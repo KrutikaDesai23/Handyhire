@@ -378,12 +378,13 @@
      * @param {number} hours
      * @returns {Object}
      */
-    function buildBookingPayload(workerId, dateValue, timeValue, addressValue, hours) {
+    function buildBookingPayload(workerId, dateValue, timeValue, addressValue, hours, descriptionValue) {
+        const trimmed = String(descriptionValue || '').trim();
         const payload = {
             booking_date: dateValue,
             booking_time: timeValue,
             address: addressValue,
-            description: null,
+            description: trimmed || null,
             amount: hours * PACKAGE_HOURLY_RATE,
         };
 
@@ -622,6 +623,7 @@
         const dateInput = document.getElementById('scheduleDate');
         const timeInput = document.getElementById('bookingTime');
         const addressInput = document.getElementById('bookingAddress');
+        const descriptionInput = document.getElementById('bookingDescription');
         const select = document.getElementById('hoursSelect');
 
         if (dateInput && !dateInput.value) {
@@ -658,7 +660,8 @@
             dateInput.value,
             (timeInput ? timeInput.value : '').slice(0, 10),
             addressInput ? addressInput.value.trim() : '',
-            hours
+            hours,
+            descriptionInput ? descriptionInput.value : ''
         );
 
         const btn = document.getElementById('bookBtn');
@@ -698,6 +701,7 @@
         const dateInput = document.getElementById('scheduleDate');
         const timeInput = document.getElementById('bookingTime');
         const addressInput = document.getElementById('bookingAddress');
+        const descriptionInput = document.getElementById('bookingDescription');
         const select = document.getElementById('hoursSelect');
 
         if (dateInput && !dateInput.value) {
@@ -734,7 +738,8 @@
             dateInput.value,
             (timeInput ? timeInput.value : '').slice(0, 10),
             addressInput ? addressInput.value.trim() : '',
-            hours
+            hours,
+            descriptionInput ? descriptionInput.value : ''
         );
 
         const btn = document.getElementById('bookBtn');
