@@ -19,15 +19,13 @@
     <header class="app-header" role="banner">
         <div class="header-inner">
             <a href="provider-home.html" class="brand-mark" aria-label="HandyHire provider home">
-                <span class="brand-logo-shell">
-                    <img src="../Images/Hamor.jpeg" alt="" class="brand-logo" />
-                </span>
+                <span class="brand-logo-shell"><img src="../Images/Hamor.jpeg" alt="" class="brand-logo" /></span>
                 <span class="brand-name">HandyHire</span>
             </a>
 
             <nav class="app-nav" aria-label="Primary navigation">
                 <a href="provider-home.html" class="nav-tab is-active" aria-current="page">Home</a>
-                <a href="provider-request.html" class="nav-tab">Requests</a>
+                <a href="provider-request.html" class="nav-tab" id="requestTab">Requests<span class="nav-count" data-request-count hidden>0</span></a>
                 <a href="provider-activity.html" class="nav-tab">Activity</a>
                 <a href="provider-worker-profile.html" class="nav-tab">Profile</a>
             </nav>
@@ -38,9 +36,7 @@
 
     <main class="app-main pkg-page" role="main">
         <a class="page-back" href="provider-home.html" aria-label="Back to provider home">
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="m15 18-6-6 6-6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m15 18-6-6 6-6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" /></svg>
             <span>Back to Home</span>
         </a>
 
@@ -68,10 +64,7 @@
                     </span>
                     <div><strong>Bundle your skills</strong><small>Offer more in one package</small></div>
                 </div>
-                <div class="hero-tool-card hero-tool-card--mini">
-                    <span>2+</span>
-                    <small>services per package</small>
-                </div>
+                <div class="hero-tool-card hero-tool-card--mini"><span>2+</span><small>services per package</small></div>
             </div>
         </section>
 
@@ -99,10 +92,7 @@
 
                 <label class="visually-hidden" for="packageSearch">Search packages</label>
                 <div class="search-wrap">
-                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8" />
-                        <path d="m16.2 16.2 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-                    </svg>
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8" /><path d="m16.2 16.2 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
                     <input type="search" id="packageSearch" class="search-input" placeholder="Search packages, services or skills" autocomplete="off" />
                 </div>
             </div>
@@ -116,14 +106,39 @@
         </section>
     </main>
 
-    <nav class="bottom-nav" aria-label="Provider mobile navigation">
+    <nav class="bottom-nav" aria-label="Bottom navigation">
         <a href="provider-home.html" class="bottom-nav-item is-active" aria-current="page"><span class="bottom-nav-icon" aria-hidden="true">⌂</span><span>Home</span></a>
-        <a href="provider-request.html" class="bottom-nav-item"><span class="bottom-nav-icon" aria-hidden="true">□</span><span>Requests</span></a>
+        <a href="provider-request.html" class="bottom-nav-item" id="requestTabBottom"><span class="bottom-nav-icon" aria-hidden="true">□</span><span>Requests</span><span class="bottom-nav-count" data-request-count hidden>0</span></a>
         <a href="provider-activity.html" class="bottom-nav-item"><span class="bottom-nav-icon" aria-hidden="true">⌁</span><span>Activity</span></a>
         <a href="provider-worker-profile.html" class="bottom-nav-item"><span class="bottom-nav-icon" aria-hidden="true">○</span><span>Profile</span></a>
     </nav>
 
     <script src="../js/api.js"></script>
+    <script>
+    (function () {
+        async function syncProviderRequestBadge() {
+            var api = window.HandyHireAPI;
+            if (!api || typeof api.apiFetch !== 'function') return;
+            try {
+                var response = await api.apiFetch('/api/worker/requests');
+                if (!response.ok) return;
+                var data = await response.json();
+                var pending = (Array.isArray(data) ? data : []).filter(function (item) {
+                    return String(item && item.status || 'pending').toLowerCase() === 'pending';
+                }).length;
+                document.querySelectorAll('[data-request-count]').forEach(function (badge) {
+                    badge.textContent = String(pending);
+                    if (pending > 0) badge.removeAttribute('hidden');
+                    else badge.setAttribute('hidden', '');
+                });
+            } catch (error) {
+                /* Badge is non-blocking. */
+            }
+        }
+        syncProviderRequestBadge();
+        window.addEventListener('focus', syncProviderRequestBadge);
+    })();
+    </script>
     <script src="../js/provider-multitasking-package.js"></script>
 </body>
 </html>
