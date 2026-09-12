@@ -6,6 +6,7 @@ html,
 body {
     width: 100%;
     max-width: 100%;
+    margin: 0;
     overflow-x: clip !important;
 }
 
@@ -65,7 +66,10 @@ body {
 .brand-logo-shell {
     width: 42px !important;
     height: 42px !important;
+    min-width: 42px !important;
+    min-height: 42px !important;
     flex: 0 0 42px !important;
+    aspect-ratio: 1 / 1 !important;
     display: grid !important;
     place-items: center !important;
     overflow: hidden !important;
@@ -77,8 +81,11 @@ body {
 .brand-logo {
     width: 100% !important;
     height: 100% !important;
+    min-width: 100% !important;
+    min-height: 100% !important;
     display: block !important;
     object-fit: cover !important;
+    object-position: center !important;
     border-radius: 0 !important;
 }
 
@@ -134,27 +141,55 @@ body {
     border: 1px solid rgba(18,53,35,.08) !important;
 }
 
-/* Hide browser scrollbars on phone previews while preserving vertical scrolling. */
+/*
+   Safari Responsive Design Mode can reserve a visible viewport scrollbar gutter.
+   On phone widths we move scrolling onto BODY itself and keep the root viewport
+   fixed. This removes the fake right-side strip without disabling vertical scroll.
+*/
 @media (max-width: 767px) {
-    html,
+    html {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        height: 100% !important;
+        min-height: 100% !important;
+        overflow: hidden !important;
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+    }
+
     body {
-        scrollbar-width: none;
-        -ms-overflow-style: none;
+        width: 100vw !important;
+        max-width: 100vw !important;
+        height: 100dvh !important;
+        min-height: 100dvh !important;
+        margin: 0 !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        overscroll-behavior-x: none;
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+        -webkit-overflow-scrolling: touch;
     }
 
     html::-webkit-scrollbar,
     body::-webkit-scrollbar {
-        width: 0;
-        height: 0;
-        display: none;
+        width: 0 !important;
+        height: 0 !important;
+        display: none !important;
+        background: transparent !important;
+    }
+
+    .app-header {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        margin: 0 !important;
     }
 
     .header-inner {
-        width: calc(100% - 26px) !important;
-        max-width: none !important;
+        width: calc(100vw - 26px) !important;
+        max-width: calc(100vw - 26px) !important;
         min-height: 62px !important;
-        margin-left: 13px !important;
-        margin-right: 13px !important;
+        margin: 0 13px !important;
     }
 
     .app-nav,
@@ -165,6 +200,8 @@ body {
     .brand-logo-shell {
         width: 38px !important;
         height: 38px !important;
+        min-width: 38px !important;
+        min-height: 38px !important;
         flex-basis: 38px !important;
         border-radius: 12px !important;
     }
@@ -176,9 +213,10 @@ body {
 
     .app-main,
     .profile-page {
-        max-width: calc(100% - 24px) !important;
-        margin-left: auto !important;
-        margin-right: auto !important;
+        width: calc(100vw - 24px) !important;
+        max-width: calc(100vw - 24px) !important;
+        margin-left: 12px !important;
+        margin-right: 12px !important;
     }
 
     .app-main > *,
@@ -194,5 +232,10 @@ body {
     .booking-modes {
         min-width: 0 !important;
         max-width: 100% !important;
+    }
+
+    .bottom-nav,
+    .mobile-bottom-nav {
+        max-width: calc(100vw - 20px) !important;
     }
 }
