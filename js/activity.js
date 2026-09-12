@@ -1,30 +1,28 @@
 /* =========================================================
-   HandyHire - Activity / Booking History JavaScript
-   Fetches the authenticated customer's real bookings from
-   the FastAPI backend (GET /api/bookings/customer/bookings)
-   and renders them grouped by Today / Yesterday / Earlier.
-   Completed bookings expose a Leave Review flow backed by
-   POST /api/reviews. PostgreSQL is the source of truth.
+   HandyHire - Customer Activity
+   Uses the provider Activity DOM/card language while keeping
+   customer endpoints, completion actions and review flow.
    ========================================================= */
 
 (function () {
     'use strict';
 
-    const SECTION_TITLES = {
-        today:     'Today',
+    const GROUP_TITLES = {
+        today: 'Today',
         yesterday: 'Yesterday',
-        older:     'Earlier',
+        older: 'Earlier'
     };
 
-    const STATUS_MAP = {
-        pending:   { label: 'Pending',   css: 'booking-status--pending' },
-        accepted:  { label: 'Accepted',  css: 'booking-status--confirmed' },
-        confirmed: { label: 'Confirmed', css: 'booking-status--confirmed' },
-        in_progress: { label: 'In Progress', css: 'booking-status--in-progress' },
-        rejected:  { label: 'Rejected',  css: 'booking-status--cancelled' },
-        cancelled: { label: 'Cancelled', css: 'booking-status--cancelled' },
-        completed: { label: 'Completed', css: 'booking-status--completed' },
-        completion_requested: { label: 'Awaiting confirmation', css: 'booking-status--pending' },
+    const STATUSES = {
+        pending: ['Pending', 'booking-status--pending'],
+        accepted: ['Accepted', 'booking-status--confirmed'],
+        confirmed: ['Confirmed', 'booking-status--confirmed'],
+        in_progress: ['In Progress', 'booking-status--in-progress'],
+        rejected: ['Rejected', 'booking-status--cancelled'],
+        declined: ['Declined', 'booking-status--cancelled'],
+        cancelled: ['Cancelled', 'booking-status--cancelled'],
+        completed: ['Completed', 'booking-status--completed'],
+        completion_requested: ['Awaiting confirmation', 'booking-status--pending']
     };
 
     const ACTIONS = {
@@ -39,19 +37,26 @@
         reject_completion: 'reject-completion'
     };
 
+    let activeMode = 'all';
     let currentBookings = [];
     let reviewedBookingIds = new Set();
     let currentReviewBookingId = null;
     let selectedRating = 0;
 
-    function buildStars(rating) {
-        const full = Math.max(0, Math.min(5, Math.floor(rating)));
-        const empty = 5 - full;
-        return '\u2605'.repeat(full) + '\u2606'.repeat(empty);
+    function getApi() {
+        const api = window.HandyHireAPI;
+        return api && typeof api.apiFetch === 'function' ? api : null;
     }
 
-    function escapeHtml(str) {
-        return String(str)
+    function redirectToLogin() {
+        try {
+            sessionStorage.setItem('handyhire.customer.previousPage', 'activity.html');
+        } catch (error) {}
+        window.location.href = 'login.html';
+    }
+
+    function escapeHtml(value) {
+        return String(value == null ? '' : value)
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
@@ -59,172 +64,221 @@
             .replace(/'/g, '&#39;');
     }
 
-    function getApi() {
-        if (window.HandyHireAPI && typeof window.HandyHireAPI.apiFetch === 'function') {
-            return window.HandyHireAPI;
-        }
-        return null;
-    }
-
-    function hasSession() {
-        try {
-            const token = localStorage.getItem('handyhire.auth.token');
-            return Boolean(token && token.trim());
-        } catch (e) {
-            return false;
-        }
-    }
-
-    function redirectToLogin() {
-        try {
-            sessionStorage.setItem('handyhire.customer.previousPage', 'activity.html');
-        } catch (e) {}
-        window.location.href = 'login.html';
-    }
-
     function parseDate(value) {
+        if (!value) return null;
         if (value instanceof Date) return value;
-        const text = String(value || '').trim();
-        if (!text) return null;
-        const parts = text.split('-').map(Number);
-        if (parts.length === 3 && parts.every((n) => Number.isFinite(n))) {
+
+        const parts = String(value).split('-').map(Number);
+        if (parts.length === 3 && parts.every(Number.isFinite)) {
             return new Date(parts[0], parts[1] - 1, parts[2]);
         }
-        const d = new Date(text);
-        return isNaN(d.getTime()) ? null : d;
+
+        const date = new Date(value);
+        return isNaN(date.getTime()) ? null : date;
     }
 
-    function isSameDay(a, b) {
-        return a.getFullYear() === b.getFullYear() &&
-            a.getMonth() === b.getMonth() &&
-            a.getDate() === b.getDate();
+    function sameDay(first, second) {
+        return first.getFullYear() === second.getFullYear() &&
+            first.getMonth() === second.getMonth() &&
+            first.getDate() === second.getDate();
     }
 
-    function groupFor(date) {
+    function getGroup(date) {
         if (!date) return 'older';
-        const now = new Date();
-        if (isSameDay(date, now)) return 'today';
-        const yesterday = new Date(now);
-        yesterday.setDate(now.getDate() - 1);
-        if (isSameDay(date, yesterday)) return 'yesterday';
-        return 'older';
+
+        const today = new Date();
+        if (sameDay(date, today)) return 'today';
+
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+        return sameDay(date, yesterday) ? 'yesterday' : 'older';
     }
 
     function formatDate(date) {
         if (!date) return '--';
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        const group = groupFor(date);
-        const dayNum = date.getDate();
-        const month = months[date.getMonth()];
-        if (group === 'today') return 'Today, ' + dayNum + ' ' + month;
-        if (group === 'yesterday') return 'Yesterday, ' + dayNum + ' ' + month;
-        return dayNum + ' ' + month + ' ' + date.getFullYear();
+
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+
+        if (sameDay(date, today)) {
+            return 'Today, ' + date.getDate() + ' ' + months[date.getMonth()];
+        }
+        if (sameDay(date, yesterday)) {
+            return 'Yesterday, ' + date.getDate() + ' ' + months[date.getMonth()];
+        }
+        return date.getDate() + ' ' + months[date.getMonth()] + ' ' + date.getFullYear();
     }
 
-    function formatTime(time) {
-        const text = String(time || '').trim();
-        if (!text) return '--';
-        return text;
+    function formatTime(value) {
+        const text = String(value || '').trim();
+        const match = text.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+        if (!match) return text || '--';
+
+        let hour = parseInt(match[1], 10);
+        const suffix = hour >= 12 ? 'PM' : 'AM';
+        hour = hour % 12 || 12;
+        return hour + ':' + match[2] + ' ' + suffix;
     }
 
-    function mapBooking(b) {
-        const statusKey = String(b.status || 'pending').toLowerCase();
-        const status = STATUS_MAP[statusKey] || { label: escapeHtml(b.status || '--'), css: 'booking-status--pending' };
-        const date = parseDate(b.booking_date);
-        var name = b.worker_name || '--';
-        var occupation = b.service_name || '--';
+    function formatPrice(value) {
+        const amount = Number(value);
+        return Number.isFinite(amount) ? '\u20B9' + amount.toLocaleString('en-IN') : '--';
+    }
 
-        if (b.package_id && b.package_name) {
-            name = b.package_name;
-            occupation = 'Multitasking Package';
+    function getPackageTypeLabel(booking) {
+        if (!booking.packageId) return 'INDIVIDUAL BOOKING';
+        if (booking.packageType === 'team') return 'TEAM PACKAGE';
+        if (booking.packageType === 'multitasking') return 'MULTITASKING PACKAGE';
+        return 'PACKAGE BOOKING';
+    }
+
+    function mapBooking(booking) {
+        const statusKey = String(booking.status || 'pending').toLowerCase();
+        const status = STATUSES[statusKey] || [booking.status || 'Pending', 'booking-status--pending'];
+        const date = parseDate(booking.booking_date);
+        const packageId = booking.package_id || null;
+        const packageType = booking.package_type || null;
+        const packageName = booking.package_name || null;
+        const isPackage = Boolean(packageId);
+
+        let name = booking.worker_name || '--';
+        let occupation = booking.service_name || 'Professional service';
+        let personLabel = 'Professional';
+
+        if (isPackage) {
+            name = packageName || 'Service Package';
+            occupation = packageType === 'team'
+                ? 'Team Package'
+                : packageType === 'multitasking'
+                    ? 'Multitasking Package'
+                    : 'Package Booking';
+            personLabel = 'Package';
         }
 
         return {
-            id: b.id,
+            id: booking.id,
             name: name,
             occupation: occupation,
-            status: status.label,
-            statusCss: status.css,
+            personLabel: personLabel,
+            bookingType: isPackage ? 'package' : 'individual',
+            packageId: packageId,
+            packageType: packageType,
+            packageName: packageName,
             statusKey: statusKey,
+            status: status[0],
+            statusCss: status[1],
             date: formatDate(date),
-            time: formatTime(b.booking_time),
-            group: groupFor(date),
-            amount: typeof b.amount === 'number' ? b.amount : null,
-            address: b.address || '--',
-            worker_id: b.worker_id || null,
+            time: formatTime(booking.booking_time),
+            group: getGroup(date),
+            amount: booking.amount,
+            address: booking.address || '--',
+            description: booking.description || '',
+            workerId: booking.worker_id || null
         };
     }
 
-    function renderCard(b) {
-        const ratingRow = (b.rating != null)
-            ? `<div class="booking-rating" aria-label="Rated ${Number(b.rating).toFixed(1)} out of 5">
-                    <span class="stars" aria-hidden="true">${buildStars(Number(b.rating))}</span>
-                    <span class="rating-value">${Number(b.rating).toFixed(1)}</span>
-                </div>`
-            : '';
+    function renderActions(booking) {
+        const actions = ACTIONS[booking.statusKey];
+        if (!actions) return '';
 
-        const metaRow = `
-            <div class="booking-meta">
-                <span><span class="meta-label">Date:</span><span class="meta-value">${escapeHtml(b.date)}</span></span>
-                <span><span class="meta-label">Time:</span><span class="meta-value">${escapeHtml(b.time)}</span></span>
-            </div>`;
+        return '<div class="booking-actions">' + actions.map(function (action) {
+            return '<button type="button" class="booking-action-btn ' + escapeHtml(action[2]) + '" ' +
+                'data-action="' + escapeHtml(action[0]) + '" data-id="' + escapeHtml(booking.id) + '">' +
+                escapeHtml(action[1]) + '</button>';
+        }).join('') + '</div>';
+    }
 
-        const isCompleted = b.statusKey === 'completed';
-        const alreadyReviewed = reviewedBookingIds.has(b.id);
-        const reviewButtonHtml = isCompleted && !alreadyReviewed
-            ? `<div class="booking-review-row"><button type="button" class="review-btn" data-booking-id="${escapeHtml(String(b.id))}">Leave Review</button></div>`
-            : isCompleted && alreadyReviewed
-                ? `<div class="booking-review-row"><span class="reviewed-badge" aria-label="Reviewed">&#10003; Reviewed</span></div>`
-                : '';
+    function renderReview(booking) {
+        if (booking.statusKey !== 'completed') return '';
 
-        const actions = ACTIONS[b.statusKey] || [];
-        const actionsHtml = actions.length
-            ? `<div class="booking-actions">` + actions.map(function (action) {
-                return `<button type="button" class="booking-action-btn ${escapeHtml(action[2])}" data-action="${escapeHtml(action[0])}" data-id="${escapeHtml(String(b.id))}">${escapeHtml(action[1])}</button>`;
-            }).join('') + `</div>`
+        if (reviewedBookingIds.has(booking.id)) {
+            return '<div class="booking-actions"><span class="booking-status booking-status--confirmed">Reviewed</span></div>';
+        }
+
+        return '<div class="booking-actions">' +
+            '<button type="button" class="booking-action-btn booking-action-btn--accept review-btn" ' +
+            'data-booking-id="' + escapeHtml(booking.id) + '">Leave Review</button>' +
+            '</div>';
+    }
+
+    function renderCard(booking) {
+        const typeLabel = getPackageTypeLabel(booking);
+        const description = booking.description
+            ? '<p class="booking-description">' + escapeHtml(booking.description) + '</p>'
             : '';
 
         return `
-            <article class="booking-card" tabindex="0" role="button"
-                     data-booking-id="${escapeHtml(b.id)}"
-                     aria-label="Booking ${escapeHtml(b.id)} with ${escapeHtml(b.name)}, ${escapeHtml(b.occupation)}, ${escapeHtml(b.status)} on ${escapeHtml(b.date)} at ${escapeHtml(b.time)}">
+            <article
+                class="booking-card"
+                tabindex="0"
+                role="button"
+                data-booking-id="${escapeHtml(booking.id)}"
+            >
+                <p class="booking-direction">
+                    ${escapeHtml(booking.personLabel)}
+                </p>
+
                 <div class="booking-top">
                     <div>
-                        <p class="booking-name">${escapeHtml(b.name)}</p>
-                        <p class="booking-occupation">${escapeHtml(b.occupation)}</p>
+                        <p class="booking-name">${escapeHtml(booking.name)}</p>
+                        <p class="booking-occupation">${escapeHtml(booking.occupation)}</p>
                     </div>
-                    <span class="${b.statusCss}">${escapeHtml(b.status)}</span>
+
+                    <div class="booking-badges">
+                        <span class="booking-type-badge booking-type-badge--${escapeHtml(booking.bookingType)}">
+                            ${escapeHtml(typeLabel)}
+                        </span>
+                        <span class="booking-status ${escapeHtml(booking.statusCss)}">
+                            ${escapeHtml(booking.status)}
+                        </span>
+                    </div>
                 </div>
-                ${ratingRow}
-                ${metaRow}
-                ${actionsHtml}
-                ${reviewButtonHtml}
+
+                <div class="booking-meta">
+                    <span>
+                        <span class="meta-label">Date:</span>
+                        <span class="meta-value">${escapeHtml(booking.date)}</span>
+                    </span>
+                    <span>
+                        <span class="meta-label">Time:</span>
+                        <span class="meta-value">${escapeHtml(booking.time)}</span>
+                    </span>
+                </div>
+
+                <div class="booking-meta">
+                    <span>
+                        <span class="meta-label">Amount:</span>
+                        <span class="meta-value">${escapeHtml(formatPrice(booking.amount))}</span>
+                    </span>
+                </div>
+
+                ${description}
+                ${renderActions(booking)}
+                ${renderReview(booking)}
             </article>
         `.trim();
     }
 
-    function renderSection(groupKey, items) {
-        if (!items.length) return '';
-        const title = SECTION_TITLES[groupKey] || '';
-        const idSafe = groupKey.replace(/[^a-z0-9]/gi, '-');
-        const cards = items.map(renderCard).join('');
+    function renderSection(group, bookings) {
+        if (!bookings.length) return '';
         return `
-            <section class="section-group" aria-labelledby="group-${idSafe}">
-                <h2 class="section-title" id="group-${idSafe}">${title}</h2>
-                ${cards}
+            <section class="section-group">
+                <h2 class="section-title">${GROUP_TITLES[group]}</h2>
+                ${bookings.map(renderCard).join('')}
             </section>
         `.trim();
     }
 
     function renderFeed(bookings, container, emptyState) {
         const groups = { today: [], yesterday: [], older: [] };
-        bookings.forEach((b) => {
-            if (groups[b.group]) groups[b.group].push(b);
+        bookings.forEach(function (booking) {
+            if (groups[booking.group]) groups[booking.group].push(booking);
         });
 
         const html = ['today', 'yesterday', 'older']
-            .map((key) => renderSection(key, groups[key]))
+            .map(function (group) { return renderSection(group, groups[group]); })
             .filter(Boolean)
             .join('');
 
@@ -232,40 +286,77 @@
         if (emptyState) emptyState.hidden = Boolean(html);
     }
 
-    function filterBookings(bookings, query) {
-        const q = String(query || '').trim().toLowerCase();
-        if (!q) return bookings.slice();
+    function matchesSearch(booking, query) {
+        if (!query) return true;
+        const amount = booking.amount != null ? String(booking.amount) : '';
+        return booking.name.toLowerCase().includes(query) ||
+            booking.occupation.toLowerCase().includes(query) ||
+            booking.status.toLowerCase().includes(query) ||
+            booking.date.toLowerCase().includes(query) ||
+            booking.time.toLowerCase().includes(query) ||
+            booking.address.toLowerCase().includes(query) ||
+            amount.includes(query);
+    }
 
-        return bookings.filter((b) => {
-            const amount = b.amount != null ? String(b.amount) : '';
-            return (
-                b.name.toLowerCase().includes(q) ||
-                b.occupation.toLowerCase().includes(q) ||
-                b.status.toLowerCase().includes(q) ||
-                b.date.toLowerCase().includes(q) ||
-                b.time.toLowerCase().includes(q) ||
-                b.address.toLowerCase().includes(q) ||
-                amount.includes(q)
-            );
+    function getVisibleBookings() {
+        const input = document.getElementById('activitySearch');
+        const query = input ? String(input.value || '').trim().toLowerCase() : '';
+
+        return currentBookings.filter(function (booking) {
+            const modeMatch = activeMode === 'completed'
+                ? booking.statusKey === 'completed'
+                : true;
+            return modeMatch && matchesSearch(booking, query);
+        });
+    }
+
+    function renderCurrent() {
+        const feed = document.getElementById('activityFeed');
+        const emptyState = document.getElementById('emptyState');
+        if (!feed) return;
+
+        const visible = getVisibleBookings();
+        renderFeed(visible, feed, emptyState);
+
+        if (emptyState && !visible.length && currentBookings.length) {
+            emptyState.textContent = activeMode === 'completed'
+                ? 'No completed bookings match this view.'
+                : 'No bookings match your search.';
+            emptyState.hidden = false;
+        }
+    }
+
+    function initModeTabs() {
+        const tabs = document.getElementById('activityModeTabs');
+        if (!tabs) return;
+
+        tabs.addEventListener('click', function (event) {
+            const button = event.target.closest('[data-mode]');
+            if (!button || !tabs.contains(button)) return;
+
+            activeMode = button.dataset.mode === 'completed' ? 'completed' : 'all';
+
+            tabs.querySelectorAll('[data-mode]').forEach(function (tab) {
+                const selected = tab === button;
+                tab.classList.toggle('is-active', selected);
+                tab.setAttribute('aria-selected', selected ? 'true' : 'false');
+            });
+
+            const input = document.getElementById('activitySearch');
+            if (input) {
+                input.placeholder = activeMode === 'completed'
+                    ? 'Search completed bookings'
+                    : 'Search all bookings';
+            }
+
+            renderCurrent();
         });
     }
 
     function initSearch() {
         const input = document.getElementById('activitySearch');
         if (!input) return;
-
-        input.addEventListener('input', function () {
-            const feed = document.getElementById('activityFeed');
-            const emptyState = document.getElementById('emptyState');
-            if (!feed) return;
-
-            const filtered = filterBookings(currentBookings, input.value);
-            renderFeed(filtered, feed, emptyState);
-            if (emptyState && !filtered.length && currentBookings.length) {
-                emptyState.textContent = 'No bookings match your search.';
-                emptyState.hidden = false;
-            }
-        });
+        input.addEventListener('input', renderCurrent);
     }
 
     function showLoading(container, emptyState) {
@@ -323,23 +414,19 @@
             .then(function (data) {
                 if (!data) return;
 
-                const bookings = (Array.isArray(data) ? data : []).map(mapBooking);
-                currentBookings = bookings;
-                if (!bookings.length) {
+                currentBookings = (Array.isArray(data) ? data : []).map(mapBooking);
+                if (!currentBookings.length) {
                     container.innerHTML = '';
                     showEmpty(emptyState);
                     return;
                 }
 
-                renderFeed(bookings, container, emptyState);
-                initSearch();
+                renderCurrent();
             })
             .catch(function () {
                 showError(container, emptyState, 'Unable to connect to HandyHire. Please try again.');
             });
     }
-
-    // ===================== CUSTOMER ACTIONS =====================
 
     async function updateCustomerBookingStatus(bookingId, newStatus) {
         const api = getApi();
@@ -355,41 +442,37 @@
                 window.location.href = 'login.html';
                 return;
             }
-
             if (response.status === 403) {
                 alert('You are not allowed to update this booking.');
                 return;
             }
-
             if (!response.ok) {
-                const err = await response.json().catch(function () { return {}; });
-                alert((err && err.detail) ? err.detail : 'Unable to update this booking.');
+                const error = await response.json().catch(function () { return {}; });
+                alert(error && error.detail ? error.detail : 'Unable to update this booking.');
                 return;
             }
 
             const updated = await response.json();
-            const index = currentBookings.findIndex(function (b) { return String(b.id) === String(updated.id); });
-            if (index >= 0) {
-                currentBookings[index] = mapBooking(updated);
-            }
-            renderFeed(currentBookings, document.getElementById('activityFeed'), document.getElementById('emptyState'));
+            const index = currentBookings.findIndex(function (booking) {
+                return String(booking.id) === String(updated.id);
+            });
+            if (index >= 0) currentBookings[index] = mapBooking(updated);
+            renderCurrent();
         } catch (error) {
             alert('Unable to connect to HandyHire.');
         }
     }
-
-    // ===================== REVIEW MODAL =====================
 
     function openReviewModal(bookingId) {
         currentReviewBookingId = bookingId;
         selectedRating = 0;
         updateStarDisplay();
 
-        const commentEl = document.getElementById('reviewComment');
-        if (commentEl) commentEl.value = '';
+        const comment = document.getElementById('reviewComment');
+        if (comment) comment.value = '';
 
-        const errorEl = document.getElementById('reviewError');
-        if (errorEl) { errorEl.hidden = true; errorEl.textContent = ''; }
+        const error = document.getElementById('reviewError');
+        if (error) { error.hidden = true; error.textContent = ''; }
 
         const ratingError = document.getElementById('reviewRatingError');
         if (ratingError) ratingError.hidden = true;
@@ -410,11 +493,11 @@
         selectedRating = 0;
         updateStarDisplay();
 
-        const commentEl = document.getElementById('reviewComment');
-        if (commentEl) commentEl.value = '';
+        const comment = document.getElementById('reviewComment');
+        if (comment) comment.value = '';
 
-        const errorEl = document.getElementById('reviewError');
-        if (errorEl) { errorEl.hidden = true; errorEl.textContent = ''; }
+        const error = document.getElementById('reviewError');
+        if (error) { error.hidden = true; error.textContent = ''; }
 
         const ratingError = document.getElementById('reviewRatingError');
         if (ratingError) ratingError.hidden = true;
@@ -428,11 +511,10 @@
     }
 
     function updateStarDisplay() {
-        const stars = document.querySelectorAll('#starRating .star');
-        stars.forEach(function (star) {
+        document.querySelectorAll('#starRating .star').forEach(function (star) {
             const value = Number(star.dataset.value);
             star.classList.toggle('selected', value <= selectedRating);
-            star.classList.toggle('hovered', false);
+            star.classList.remove('hovered');
             star.setAttribute('aria-checked', value === selectedRating ? 'true' : 'false');
         });
     }
@@ -440,52 +522,48 @@
     function setRating(value) {
         selectedRating = value;
         updateStarDisplay();
-
-        const ratingError = document.getElementById('reviewRatingError');
-        if (ratingError) ratingError.hidden = true;
+        const error = document.getElementById('reviewRatingError');
+        if (error) error.hidden = true;
     }
 
     function initStarRating() {
         const container = document.getElementById('starRating');
         if (!container) return;
-
         const stars = container.querySelectorAll('.star');
 
         stars.forEach(function (star) {
             star.addEventListener('click', function () {
                 setRating(Number(star.dataset.value));
             });
-
             star.addEventListener('mouseenter', function () {
                 const value = Number(star.dataset.value);
-                stars.forEach(function (s) {
-                    s.classList.toggle('hovered', Number(s.dataset.value) <= value);
+                stars.forEach(function (item) {
+                    item.classList.toggle('hovered', Number(item.dataset.value) <= value);
                 });
             });
-
-            star.addEventListener('keydown', function (e) {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
+            star.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
                     setRating(Number(star.dataset.value));
                 }
             });
         });
 
         container.addEventListener('mouseleave', function () {
-            stars.forEach(function (s) { s.classList.remove('hovered'); });
+            stars.forEach(function (star) { star.classList.remove('hovered'); });
         });
     }
 
     function showReviewError(message) {
-        const el = document.getElementById('reviewError');
-        if (!el) return;
-        el.textContent = message;
-        el.hidden = false;
+        const error = document.getElementById('reviewError');
+        if (!error) return;
+        error.textContent = message;
+        error.hidden = false;
     }
 
     function hideReviewError() {
-        const el = document.getElementById('reviewError');
-        if (el) { el.hidden = true; el.textContent = ''; }
+        const error = document.getElementById('reviewError');
+        if (error) { error.hidden = true; error.textContent = ''; }
     }
 
     function submitReview() {
@@ -498,179 +576,145 @@
         }
 
         hideReviewError();
-
         const api = getApi();
-        const submitBtn = document.getElementById('submitReviewBtn');
-        if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Submitting...';
+        if (!api) return;
+
+        const submitButton = document.getElementById('submitReviewBtn');
+        if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Submitting...';
         }
 
-        const commentEl = document.getElementById('reviewComment');
-        const comment = commentEl ? commentEl.value.trim() : '';
-
-        const payload = {
-            booking_id: Number(currentReviewBookingId),
-            rating: selectedRating,
-            comment: comment || null,
-        };
+        const commentElement = document.getElementById('reviewComment');
+        const comment = commentElement ? commentElement.value.trim() : '';
 
         api.apiFetch('/api/reviews', {
             method: 'POST',
-            body: JSON.stringify(payload),
-        }).then(function (response) {
-            if (response.status === 401) {
-                api.clearAuth();
-                window.location.href = 'login.html';
-                return;
-            }
-            if (response.status === 403) {
-                throw new Error('You are not authorized to review this booking.');
-            }
-            if (!response.ok) {
-                return response.json().then(function (err) {
-                    const detail = (err && err.detail) ? err.detail : 'Unable to submit review.';
-                    if (response.status === 400 && detail.toLowerCase().includes('already')) {
-                        throw new Error('You have already reviewed this booking.');
-                    }
-                    if (response.status === 400 && detail.toLowerCase().includes('completed')) {
-                        throw new Error('Only completed bookings can be reviewed.');
-                    }
-                    throw new Error(detail);
-                }).catch(function () {
-                    throw new Error('Unable to submit review. Please try again.');
-                });
-            }
-            return response.json();
-        }).then(function (review) {
-            if (!review) return;
-            reviewedBookingIds.add(currentReviewBookingId);
-            closeReviewModal();
-            const feed = document.getElementById('activityFeed');
-            const emptyState = document.getElementById('emptyState');
-            if (feed) loadBookings(feed, emptyState);
-        }).catch(function (err) {
-            showReviewError(err && err.message ? err.message : 'Unable to submit review. Please try again.');
-        }).finally(function () {
-            if (submitBtn) {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Submit Review';
-            }
-        });
+            body: JSON.stringify({
+                booking_id: Number(currentReviewBookingId),
+                rating: selectedRating,
+                comment: comment || null
+            })
+        })
+            .then(function (response) {
+                if (response.status === 401) {
+                    api.clearAuth();
+                    window.location.href = 'login.html';
+                    return null;
+                }
+                if (response.status === 403) {
+                    throw new Error('You are not authorized to review this booking.');
+                }
+                if (!response.ok) {
+                    return response.json().then(function (error) {
+                        const detail = error && error.detail ? String(error.detail) : 'Unable to submit review.';
+                        if (response.status === 400 && detail.toLowerCase().includes('already')) {
+                            throw new Error('You have already reviewed this booking.');
+                        }
+                        if (response.status === 400 && detail.toLowerCase().includes('completed')) {
+                            throw new Error('Only completed bookings can be reviewed.');
+                        }
+                        throw new Error(detail);
+                    });
+                }
+                return response.json();
+            })
+            .then(function (review) {
+                if (!review) return;
+                reviewedBookingIds.add(Number(currentReviewBookingId));
+                reviewedBookingIds.add(String(currentReviewBookingId));
+                closeReviewModal();
+                renderCurrent();
+            })
+            .catch(function (error) {
+                showReviewError(error && error.message ? error.message : 'Unable to submit review. Please try again.');
+            })
+            .finally(function () {
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Submit Review';
+                }
+            });
     }
 
     function initReviewModal() {
         const overlay = document.getElementById('reviewModalOverlay');
         if (!overlay) return;
 
-        overlay.addEventListener('click', function (e) {
-            if (e.target === overlay) closeReviewModal();
+        overlay.addEventListener('click', function (event) {
+            if (event.target === overlay) closeReviewModal();
         });
 
-        const cancelBtn = document.getElementById('cancelReviewBtn');
-        if (cancelBtn) cancelBtn.addEventListener('click', closeReviewModal);
+        const cancelButton = document.getElementById('cancelReviewBtn');
+        if (cancelButton) cancelButton.addEventListener('click', closeReviewModal);
 
-        const submitBtn = document.getElementById('submitReviewBtn');
-        if (submitBtn) submitBtn.addEventListener('click', submitReview);
+        const submitButton = document.getElementById('submitReviewBtn');
+        if (submitButton) submitButton.addEventListener('click', submitReview);
 
         initStarRating();
 
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape' && !overlay.hidden) {
-                closeReviewModal();
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && !overlay.hidden) closeReviewModal();
+        });
+    }
+
+    function initFeedActions() {
+        const feed = document.getElementById('activityFeed');
+        if (!feed) return;
+
+        feed.addEventListener('click', function (event) {
+            const reviewButton = event.target.closest('.review-btn');
+            if (reviewButton && feed.contains(reviewButton)) {
+                event.stopPropagation();
+                const bookingId = reviewButton.dataset.bookingId;
+                if (bookingId) openReviewModal(bookingId);
+                return;
             }
-        });
-    }
 
-    // ===================== REVIEW BUTTON DELEGATION =====================
+            const actionButton = event.target.closest('[data-action]');
+            if (actionButton && feed.contains(actionButton)) {
+                event.stopPropagation();
+                const action = actionButton.dataset.action;
+                const bookingId = actionButton.dataset.id;
+                const nextStatus = ACTION_STATUS[action];
+                if (!bookingId || !nextStatus) return;
+                actionButton.disabled = true;
+                updateCustomerBookingStatus(bookingId, nextStatus);
+                return;
+            }
 
-    function initReviewButtons() {
-        const feed = document.getElementById('activityFeed');
-        if (!feed) return;
-
-        feed.addEventListener('click', function (e) {
-            const btn = e.target.closest('.review-btn');
-            if (!btn) return;
-            const bookingId = btn.dataset.bookingId;
-            if (bookingId) openReviewModal(bookingId);
-        });
-    }
-
-    function initCustomerActions() {
-        const feed = document.getElementById('activityFeed');
-        if (!feed) return;
-
-        feed.addEventListener('click', function (e) {
-            const button = e.target.closest('[data-action]');
-            if (!button || !feed.contains(button)) return;
-
-            const action = button.dataset.action;
-            const bookingId = button.dataset.id;
-            if (!action || !bookingId) return;
-
-            const nextStatus = ACTION_STATUS[action];
-            if (!nextStatus) return;
-
-            button.disabled = true;
-            button.textContent += '...';
-
-            updateCustomerBookingStatus(bookingId, nextStatus);
-        });
-    }
-
-    // ===================== CARD NAVIGATION =====================
-
-    function openCustomerBookingDetails(bookingId) {
-        window.location.href = 'booking-details.html?booking_id=' + encodeURIComponent(String(bookingId));
-    }
-
-    function initCardNavigation() {
-        const feed = document.getElementById('activityFeed');
-        if (!feed) return;
-
-        feed.addEventListener('click', function (e) {
-            const card = e.target.closest('.booking-card');
-            if (!card) return;
-
-            if (e.target.closest('button')) return;
-            if (e.target.closest('a')) return;
-
+            const card = event.target.closest('.booking-card');
+            if (!card || !feed.contains(card)) return;
             const bookingId = card.dataset.bookingId;
             if (bookingId) {
-                openCustomerBookingDetails(bookingId);
+                window.location.href = 'booking-details.html?booking_id=' + encodeURIComponent(String(bookingId));
             }
         });
 
-        feed.addEventListener('keydown', function (e) {
-            const card = e.target.closest('.booking-card');
-            if (!card) return;
-
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                const bookingId = card.dataset.bookingId;
-                if (bookingId) {
-                    openCustomerBookingDetails(bookingId);
-                }
+        feed.addEventListener('keydown', function (event) {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            if (event.target.closest('button') || event.target.closest('a')) return;
+            const card = event.target.closest('.booking-card');
+            if (!card || !feed.contains(card)) return;
+            event.preventDefault();
+            const bookingId = card.dataset.bookingId;
+            if (bookingId) {
+                window.location.href = 'booking-details.html?booking_id=' + encodeURIComponent(String(bookingId));
             }
         });
     }
-
-    // ===================== INIT =====================
 
     function init() {
         const feed = document.getElementById('activityFeed');
         const emptyState = document.getElementById('emptyState');
         if (!feed) return;
 
-        // Central role guard: customers only. A worker token is
-        // redirected to provider-home.html by requireRole() itself.
         if (!(window.HandyHireAPI && window.HandyHireAPI.requireRole('customer'))) return;
 
-        initReviewModal();
-        initReviewButtons();
-        initCustomerActions();
-        initCardNavigation();
+        initModeTabs();
         initSearch();
+        initReviewModal();
+        initFeedActions();
         loadBookings(feed, emptyState);
     }
 
