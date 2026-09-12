@@ -522,49 +522,20 @@
         renderWorkers(filteredWorkers);
     }
 
-    function setActiveFilter(filter) {
-        var chips =
-            document.querySelectorAll(
-                ".filter-chips .chip"
-            );
+    function initBookingModeCards() {
+        var cards = document.querySelectorAll('.booking-mode-card');
+        if (!cards.length) return;
 
-        chips.forEach(function (chip) {
-            var active =
-                chip.dataset.filter === filter;
-
-            chip.classList.toggle(
-                "is-active",
-                active
-            );
-
-            chip.setAttribute(
-                "aria-pressed",
-                active ? "true" : "false"
-            );
-        });
-    }
-
-    function initializeFilters() {
-        var chips =
-            document.querySelectorAll(
-                ".filter-chips .chip"
-            );
-
-        currentFilter = "all";
-        setActiveFilter("all");
-
-        chips.forEach(function (chip) {
-            chip.addEventListener(
-                "click",
-                function () {
-                    var filter =
-                        chip.dataset.filter ||
-                        "all";
-
-                    setActiveFilter(filter);
-                    applyFilter(filter);
+        cards.forEach(function (card) {
+            card.addEventListener('click', function () {
+                var href = card.getAttribute('href');
+                if (href) {
+                    try {
+                        sessionStorage.setItem('handyhire.provider.previousPage', window.location.href);
+                    } catch (e) {}
+                    window.location.href = href;
                 }
-            );
+            });
         });
     }
 
@@ -848,7 +819,7 @@
             return;
         }
 
-        initializeFilters();
+        initBookingModeCards();
         initializeSearch();
         initializeSort();
         initAvailabilityToggle();

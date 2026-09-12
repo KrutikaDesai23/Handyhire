@@ -95,6 +95,10 @@ class BookingPhotoResponse(BaseModel):
 
 
 class BookingDetailResponse(BookingResponse):
+    # For received team-package jobs, a participant can be at a different
+    # progress step than the overall booking. The UI uses viewer_status for
+    # the current provider's actions while status remains the overall booking.
+    viewer_status: Optional[str] = None
     worker_phone: Optional[str] = None
     customer_phone: Optional[str] = None
     worker_image: Optional[str] = None

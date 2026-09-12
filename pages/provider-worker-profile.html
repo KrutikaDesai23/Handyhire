@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="HandyHire - Provider professional profile." />
-    <meta name="theme-color" content="#68865C" />
+    <meta name="theme-color" content="#173f2b" />
     <title>Profile | HandyHire</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -12,197 +12,163 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="../css/provider-worker-profile.css" />
+    <link rel="stylesheet" href="../css/provider-shell-lock.css" />
 </head>
 <body>
-    <!-- ========== TOP BAR ========== -->
-    <header class="profile-topbar" role="banner">
-        <a href="home.html" class="brand-mark" aria-label="HandyHire home">
-    <img src="../Images/Hamor.jpeg" alt="HandyHire Logo" class="brand-logo">
-</a>
+    <header class="app-header" role="banner">
+        <div class="header-inner">
+            <a href="provider-home.html" class="brand-mark" aria-label="HandyHire provider home">
+                <span class="brand-logo-shell"><img src="../Images/Hamor.jpeg" alt="" class="brand-logo" /></span>
+                <span class="brand-name">HandyHire</span>
+            </a>
 
-        <nav class="app-nav" aria-label="Primary navigation">
-            <a href="provider-home.html" class="nav-tab">Home</a>
-            <a href="provider-request.html" class="nav-tab" id="requestTab">Request<span class="nav-count" data-request-count hidden>0</span></a>
-            <a href="provider-activity.html" class="nav-tab">Activity</a>
-            <a href="provider-worker-profile.html" class="nav-tab is-active" aria-current="page">Profile</a>
-        </nav>
+            <nav class="app-nav" aria-label="Primary navigation">
+                <a href="provider-home.html" class="nav-tab">Home</a>
+                <a href="provider-request.html" class="nav-tab" id="requestTab">Requests<span class="nav-count" data-request-count hidden>0</span></a>
+                <a href="provider-activity.html" class="nav-tab">Activity</a>
+                <a href="provider-worker-profile.html" class="nav-tab is-active" aria-current="page">Profile</a>
+            </nav>
 
-        <span class="icon-btn-spacer" aria-hidden="true"></span>
+            <span class="header-accent" aria-hidden="true"></span>
+        </div>
     </header>
 
     <main class="profile-page" role="main">
+        <section class="profile-hero" aria-label="Professional profile overview">
+            <div class="profile-hero-copy">
+                <span class="profile-eyebrow">YOUR PROFESSIONAL PROFILE</span>
 
-        <!-- ========== PROFESSIONAL HERO ========== -->
-        <section class="profile-hero-card" aria-label="Professional profile">
-            <div class="profile-hero-avatar" id="profileHeroAvatar" aria-hidden="true"></div>
-            <h1 class="profile-hero-name" id="profileHeroName">Loading...</h1>
-            <span class="profile-hero-badge">PROVIDER</span>
-            <p class="profile-hero-tagline" id="profileHeroTagline">Professional details will appear here.</p>
+                <div class="profile-identity">
+                    <div class="profile-avatar-wrap">
+                        <div class="profile-hero-avatar" id="profileHeroAvatar" aria-hidden="true"></div>
+                        <span class="avatar-status" aria-hidden="true"></span>
+                    </div>
 
-            <div class="availability-badge" id="availabilityBadge">
-                <span class="availability-dot" aria-hidden="true"></span>
-                <span class="availability-text">Available today</span>
-            </div>
-        </section>
+                    <div class="profile-identity-copy">
+                        <div class="profile-name-row">
+                            <h1 class="profile-hero-name" id="profileHeroName">Loading...</h1>
+                            <span class="profile-hero-badge">PROVIDER</span>
+                        </div>
+                        <p class="profile-hero-tagline" id="profileHeroTagline">Professional details will appear here.</p>
+                        <div class="availability-badge" id="availabilityBadge">
+                            <span class="availability-dot" aria-hidden="true"></span>
+                            <span class="availability-text">Available today</span>
+                        </div>
+                    </div>
+                </div>
 
-        <!-- ========== PROFESSIONAL STATS ========== -->
-        <section class="stats-section" aria-label="Professional statistics">
-            <div class="stat-card">
-                <span class="stat-value" id="statJobs">--</span>
-                <span class="stat-label">Jobs Completed</span>
+                <button type="button" class="edit-profile-btn edit-profile-btn--hero" id="editProfileBtn">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M13.5 6.5 17.5 10.5M4 20l4.4-1 9.7-9.7a2.8 2.8 0 0 0-4-4L4.4 15 4 20Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Edit profile
+                </button>
             </div>
-            <div class="stat-card">
-                <span class="stat-value" id="statRating">--</span>
-                <span class="stat-label">Rating</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-value" id="statReviews">--</span>
-                <span class="stat-label">Reviews</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-value" id="statExperience">--</span>
-                <span class="stat-label">Experience</span>
-            </div>
-        </section>
 
-        <!-- ========== PROFESSIONAL INFORMATION ========== -->
-        <section class="profile-section" aria-label="Professional information">
-            <h2 class="section-title">Professional Information</h2>
-            <div class="info-card-list">
-                <div class="info-card">
-                    <span class="info-card-icon" aria-hidden="true">&#128188;</span>
-                    <div class="info-card-text">
-                        <p class="info-card-label">Profession</p>
-                        <p class="info-card-value" id="infoProfession">--</p>
-                    </div>
+            <div class="hero-stats" aria-label="Professional statistics">
+                <div class="stat-card">
+                    <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 5h14v14H5zM8 12l2.4 2.4L16 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                    <span class="stat-value" id="statJobs">--</span>
+                    <span class="stat-label">Jobs completed</span>
                 </div>
-                <div class="info-card">
-                    <span class="info-card-icon" aria-hidden="true">&#128188;</span>
-                    <div class="info-card-text">
-                        <p class="info-card-label">Experience</p>
-                        <p class="info-card-value" id="infoExperience">--</p>
-                    </div>
+                <div class="stat-card">
+                    <span class="stat-icon stat-icon--gold" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m12 3 2.7 5.5 6 .9-4.4 4.2 1 6-5.3-2.8-5.3 2.8 1-6-4.4-4.2 6-.9L12 3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span>
+                    <span class="stat-value" id="statRating">--</span>
+                    <span class="stat-label">Rating</span>
                 </div>
-                <div class="info-card">
-                    <span class="info-card-icon" aria-hidden="true">&#127891;</span>
-                    <div class="info-card-text">
-                        <p class="info-card-label">Qualification</p>
-                        <p class="info-card-value" id="infoQualification">--</p>
-                    </div>
+                <div class="stat-card">
+                    <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 5h14v11H9l-4 3V5Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                    <span class="stat-value" id="statReviews">--</span>
+                    <span class="stat-label">Reviews</span>
                 </div>
-                <div class="info-card">
-                    <span class="info-card-icon" aria-hidden="true">&#127968;</span>
-                    <div class="info-card-text">
-                        <p class="info-card-label">Service Location</p>
-                        <p class="info-card-value" id="infoLocation">--</p>
-                    </div>
-                </div>
-                <div class="info-card">
-                    <span class="info-card-icon" aria-hidden="true">&#128241;</span>
-                    <div class="info-card-text">
-                        <p class="info-card-label">Mobile Number</p>
-                        <p class="info-card-value" id="infoMobile">--</p>
-                    </div>
-                </div>
-                <div class="info-card">
-                    <span class="info-card-icon" aria-hidden="true">&#9993;</span>
-                    <div class="info-card-text">
-                        <p class="info-card-label">Email</p>
-                        <p class="info-card-value" id="infoEmail">--</p>
-                    </div>
+                <div class="stat-card">
+                    <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                    <span class="stat-value" id="statExperience">--</span>
+                    <span class="stat-label">Experience</span>
                 </div>
             </div>
         </section>
 
-        <!-- ========== MY SERVICES ========== -->
-        <section class="profile-section" aria-label="My services">
-            <h2 class="section-title">My Services</h2>
-            <ul class="services-pills" id="servicesPills">
-                <!-- Injected by js/provider-worker-profile.js -->
-            </ul>
-        </section>
-
-        <!-- ========== AVAILABILITY ========== -->
-        <section class="profile-section" aria-label="Availability">
-            <h2 class="section-title">Availability</h2>
-            <div class="availability-card">
-                <span class="availability-dot" aria-hidden="true"></span>
-                <span class="availability-text">Available today</span>
-            </div>
-        </section>
-
-        <!-- ========== MANAGE PROFILE ========== -->
-        <section class="profile-section" aria-label="Professional profile management">
-            <h2 class="section-title">Manage Profile</h2>
-            <div class="manage-card">
-                <span class="manage-icon" aria-hidden="true">&#128221;</span>
-                <div class="manage-text">
-                    <p class="manage-title">Manage Professional Profile</p>
-                    <p class="manage-desc">Keep your professional information up to date so customers can find the right services.</p>
+        <section class="profile-content-grid" aria-label="Professional profile details">
+            <article class="profile-panel profile-panel--details">
+                <div class="panel-heading">
+                    <div>
+                        <span class="section-kicker">PROFESSIONAL DETAILS</span>
+                        <h2 class="section-title">About your work</h2>
+                        <p class="section-subtitle">The information customers use to understand your services.</p>
+                    </div>
                 </div>
-                <button type="button" class="edit-profile-btn" id="editProfileBtn">Edit</button>
-            </div>
 
+                <div class="info-card-list">
+                    <div class="info-card">
+                        <span class="info-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 7h14v12H5zM9 7V5h6v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                        <div class="info-card-text"><p class="info-card-label">Profession</p><p class="info-card-value" id="infoProfession">--</p></div>
+                    </div>
+                    <div class="info-card">
+                        <span class="info-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                        <div class="info-card-text"><p class="info-card-label">Experience</p><p class="info-card-value" id="infoExperience">--</p></div>
+                    </div>
+                    <div class="info-card">
+                        <span class="info-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m3 10 9-5 9 5-9 5-9-5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M7 13v4c2.8 2 7.2 2 10 0v-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+                        <div class="info-card-text"><p class="info-card-label">Qualification</p><p class="info-card-value" id="infoQualification">--</p></div>
+                    </div>
+                    <div class="info-card">
+                        <span class="info-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s6-5.2 6-11a6 6 0 1 0-12 0c0 5.8 6 11 6 11Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2" stroke="currentColor" stroke-width="1.8"/></svg></span>
+                        <div class="info-card-text"><p class="info-card-label">Service location</p><p class="info-card-value" id="infoLocation">--</p></div>
+                    </div>
+                    <div class="info-card">
+                        <span class="info-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M8 3h8a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8"/><path d="M10 18h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+                        <div class="info-card-text"><p class="info-card-label">Mobile number</p><p class="info-card-value" id="infoMobile">--</p></div>
+                    </div>
+                    <div class="info-card">
+                        <span class="info-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16v12H4z" stroke="currentColor" stroke-width="1.8"/><path d="m5 7 7 6 7-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                        <div class="info-card-text"><p class="info-card-label">Email</p><p class="info-card-value" id="infoEmail">--</p></div>
+                    </div>
+                </div>
+            </article>
+
+            <aside class="profile-side-stack">
+                <section class="profile-panel profile-panel--services" aria-label="My services">
+                    <div class="panel-heading panel-heading--compact">
+                        <span class="section-kicker">WHAT YOU OFFER</span>
+                        <h2 class="section-title">My services</h2>
+                    </div>
+                    <ul class="services-pills" id="servicesPills"><!-- Injected by js/provider-worker-profile.js --></ul>
+                </section>
+
+                <section class="profile-panel profile-panel--manage" aria-label="Profile management">
+                    <span class="manage-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M13.5 6.5 17.5 10.5M4 20l4.4-1 9.7-9.7a2.8 2.8 0 0 0-4-4L4.4 15 4 20Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                    <div class="manage-text">
+                        <span class="section-kicker">PROFILE CONTROL</span>
+                        <p class="manage-title">Keep your profile current</p>
+                        <p class="manage-desc">Strong, accurate details help customers choose you with confidence.</p>
+                    </div>
+                </section>
+            </aside>
+        </section>
+
+        <section class="profile-panel edit-panel" aria-label="Edit professional profile">
             <form class="edit-form" id="editProfileForm" hidden>
-                <div class="edit-grid">
-                    <div class="field field-wide">
-                        <label for="editFullName">Full Name</label>
-                        <input type="text" id="editFullName" name="full_name" autocomplete="name" />
-                    </div>
-                    <div class="field">
-                        <label for="editProfession">Profession</label>
-                        <input type="text" id="editProfession" name="profession" />
-                    </div>
-                    <div class="field">
-                        <label for="editMobile">Mobile Number</label>
-                        <input type="text" id="editMobile" name="mobile_number" />
-                    </div>
-                    <div class="field">
-                        <label for="editEmail">Email</label>
-                        <input type="email" id="editEmail" name="email" />
-                    </div>
-                    <div class="field">
-                        <label for="editLocation">Service Location</label>
-                        <input type="text" id="editLocation" name="location" />
-                    </div>
-                    <div class="field">
-                        <label for="editAddress">Address</label>
-                        <input type="text" id="editAddress" name="address" />
-                    </div>
-                    <div class="field">
-                        <label for="editCity">City</label>
-                        <input type="text" id="editCity" name="city" />
-                    </div>
-                    <div class="field">
-                        <label for="editExperience">Experience</label>
-                        <input type="text" id="editExperience" name="experience" />
-                    </div>
-                    <div class="field">
-                        <label for="editQualification">Qualification</label>
-                        <input type="text" id="editQualification" name="qualification" />
-                    </div>
-                    <div class="field">
-                        <label for="editPrice">Hourly Rate (&#8377;)</label>
-                        <input type="number" id="editPrice" name="price" min="1" step="1" inputmode="numeric" />
-                    </div>
-                    <div class="field field-wide">
-                        <label for="editAvailability">Availability</label>
-                        <input type="text" id="editAvailability" name="availability" placeholder="e.g. Available today" />
-                    </div>
-                    <div class="field field-wide">
-                        <label for="editBio">Bio</label>
-                        <textarea id="editBio" name="bio" rows="3"></textarea>
-                    </div>
+                <div class="edit-form-header">
+                    <div><span class="section-kicker">EDIT PROFILE</span><h2>Update your professional details</h2><p>Changes are saved to your HandyHire provider profile.</p></div>
                 </div>
 
-                <div class="field field-wide">
+                <div class="edit-grid">
+                    <div class="field field-wide"><label for="editFullName">Full Name</label><input type="text" id="editFullName" name="full_name" autocomplete="name" /></div>
+                    <div class="field"><label for="editProfession">Profession</label><input type="text" id="editProfession" name="profession" /></div>
+                    <div class="field"><label for="editMobile">Mobile Number</label><input type="text" id="editMobile" name="mobile_number" /></div>
+                    <div class="field"><label for="editEmail">Email</label><input type="email" id="editEmail" name="email" /></div>
+                    <div class="field"><label for="editLocation">Service Location</label><input type="text" id="editLocation" name="location" /></div>
+                    <div class="field"><label for="editAddress">Address</label><input type="text" id="editAddress" name="address" /></div>
+                    <div class="field"><label for="editCity">City</label><input type="text" id="editCity" name="city" /></div>
+                    <div class="field"><label for="editExperience">Experience</label><input type="text" id="editExperience" name="experience" /></div>
+                    <div class="field"><label for="editQualification">Qualification</label><input type="text" id="editQualification" name="qualification" /></div>
+                    <div class="field"><label for="editPrice">Hourly Rate (₹)</label><input type="number" id="editPrice" name="price" min="1" step="1" inputmode="numeric" /></div>
+                    <div class="field field-wide"><label for="editAvailability">Availability</label><input type="text" id="editAvailability" name="availability" placeholder="e.g. Available today" /></div>
+                    <div class="field field-wide"><label for="editBio">Bio</label><textarea id="editBio" name="bio" rows="4"></textarea></div>
+                </div>
+
+                <div class="field field-wide upload-field">
                     <label for="editProfileImage">Profile Photo</label>
-                    <input
-                        type="file"
-                        id="editProfileImage"
-                        name="profile_image"
-                        accept="image/jpeg,image/png,image/webp"
-                    />
+                    <input type="file" id="editProfileImage" name="profile_image" accept="image/jpeg,image/png,image/webp" />
                     <span class="form-hint">JPG, PNG or WEBP. Max 5 MB.</span>
                 </div>
 
@@ -215,42 +181,67 @@
             </form>
         </section>
 
-        <!-- ========== MY WORK PHOTOS ========== -->
-        <section class="profile-section" aria-label="My work photos">
-            <h2 class="section-title">My Work Photos</h2>
-            <div class="work-photos-card">
-                <p class="manage-desc">Show customers examples of your previous work.</p>
-
+        <section class="profile-panel work-panel" aria-label="My work photos">
+            <div class="work-panel-heading">
+                <div><span class="section-kicker">PORTFOLIO</span><h2 class="section-title">My work photos</h2><p class="section-subtitle">Show customers the quality of your previous work.</p></div>
                 <form class="work-photo-upload" id="workPhotoForm">
-                    <input
-                        type="file"
-                        id="workPhotoInput"
-                        name="file"
-                        accept="image/jpeg,image/png,image/webp"
-                        class="work-photo-file-input"
-                    />
-                    <button type="submit" class="edit-profile-btn" id="addWorkPhotoBtn">+ Add Photo</button>
+                    <label class="work-photo-picker" for="workPhotoInput">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 16V4M7.5 8.5 12 4l4.5 4.5M5 14v5h14v-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        Choose photo
+                    </label>
+                    <input type="file" id="workPhotoInput" name="file" accept="image/jpeg,image/png,image/webp" class="work-photo-file-input" />
+                    <button type="submit" class="edit-profile-btn add-photo-btn" id="addWorkPhotoBtn">Add to portfolio</button>
                     <span class="form-hint">JPG, PNG or WEBP. Max 5 MB.</span>
                 </form>
-
-                <p class="edit-error" id="workPhotoError" hidden role="alert"></p>
-
-                <ul class="work-photos-grid" id="workPhotosGrid">
-                    <!-- Injected by js/provider-worker-profile.js -->
-                </ul>
-
-                <p class="work-photos-empty" id="workPhotosEmpty" hidden>
-                    No work photos yet. Add photos to showcase your skills.
-                </p>
             </div>
+
+            <p class="edit-error" id="workPhotoError" hidden role="alert"></p>
+            <ul class="work-photos-grid" id="workPhotosGrid"><!-- Injected by js/provider-worker-profile.js --></ul>
+            <p class="work-photos-empty" id="workPhotosEmpty" hidden>No work photos yet. Add photos to showcase your skills.</p>
         </section>
 
-        <!-- ========== SIGN OUT ========== -->
-        <button type="button" class="signout-btn" id="signOutBtn">Sign Out</button>
-
+        <div class="profile-footer-actions">
+            <button type="button" class="signout-btn" id="signOutBtn">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10 5H5v14h5M14 8l4 4-4 4M8 12h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Sign out
+            </button>
+        </div>
     </main>
 
+    <nav class="bottom-nav" aria-label="Bottom navigation">
+        <a href="provider-home.html" class="bottom-nav-item"><span class="bottom-nav-icon" aria-hidden="true">⌂</span><span>Home</span></a>
+        <a href="provider-request.html" class="bottom-nav-item" id="requestTabBottom"><span class="bottom-nav-icon" aria-hidden="true">□</span><span>Requests</span><span class="bottom-nav-count" data-request-count hidden>0</span></a>
+        <a href="provider-activity.html" class="bottom-nav-item"><span class="bottom-nav-icon" aria-hidden="true">⌁</span><span>Activity</span></a>
+        <a href="provider-worker-profile.html" class="bottom-nav-item is-active" aria-current="page"><span class="bottom-nav-icon" aria-hidden="true">○</span><span>Profile</span></a>
+    </nav>
+
     <script src="../js/api.js"></script>
+    <script>
+    (function () {
+        async function syncProviderRequestBadge() {
+            var api = window.HandyHireAPI;
+            if (!api || typeof api.apiFetch !== 'function') return;
+            try {
+                var response = await api.apiFetch('/api/worker/requests');
+                if (!response.ok) return;
+                var data = await response.json();
+                var pending = (Array.isArray(data) ? data : []).filter(function (item) {
+                    var status = String(item && item.status || 'pending').toLowerCase();
+                    return status === 'pending';
+                }).length;
+                document.querySelectorAll('[data-request-count]').forEach(function (badge) {
+                    badge.textContent = String(pending);
+                    if (pending > 0) badge.removeAttribute('hidden');
+                    else badge.setAttribute('hidden', '');
+                });
+            } catch (error) {
+                /* Request badge is non-blocking. */
+            }
+        }
+        syncProviderRequestBadge();
+        window.addEventListener('focus', syncProviderRequestBadge);
+    })();
+    </script>
     <script src="../js/provider-worker-profile.js"></script>
 </body>
 </html>

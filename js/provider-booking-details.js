@@ -8,13 +8,10 @@
     const STATUS_FLOW = [
         { key: 'pending', label: 'Requested' },
         { key: 'accepted', label: 'Accepted' },
-        { key: 'confirmed', label: 'Accepted' },
         { key: 'in_progress', label: 'In Progress' },
         { key: 'completion_requested', label: 'Completion Requested' },
         { key: 'completed', label: 'Completed' },
     ];
-
-    const TERMINAL_STATUSES = new Set(['rejected', 'cancelled', 'completed']);
 
     function getApi() {
         return (window.HandyHireAPI && typeof window.HandyHireAPI.apiFetch === 'function')
@@ -82,6 +79,25 @@
         const suffix = hour >= 12 ? 'PM' : 'AM';
         hour = hour % 12 || 12;
         return hour + ':' + match[2] + ' ' + suffix;
+    }
+
+    function normalizeProgressStatus(status) {
+        const key = String(status || 'pending').toLowerCase();
+        return key === 'confirmed' ? 'accepted' : key;
+    }
+
+    function formatStatusLabel(status) {
+        const key = normalizeProgressStatus(status);
+        const labels = {
+            pending: 'Pending',
+            accepted: 'Accepted',
+            in_progress: 'In Progress',
+            completion_requested: 'Completion Requested',
+            completed: 'Completed',
+            rejected: 'Rejected',
+            cancelled: 'Cancelled',
+        };
+        return labels[key] || String(status || '--').replace(/_/g, ' ');
     }
 
     function getStatusClass(status) {
@@ -157,13 +173,30 @@
         const container = document.getElementById('statusTimeline');
         if (!container) return;
 
-        const key = String(status || 'pending').toLowerCase();
-        const currentIndex = STATUS_FLOW.findIndex(function (s) { return s.key === key; });
+        const key = normalizeProgressStatus(status);
+        let flow = STATUS_FLOW;
 
-        container.innerHTML = STATUS_FLOW.map(function (step, index) {
+        if (key === 'rejected') {
+            flow = [
+                { key: 'pending', label: 'Requested' },
+                { key: 'rejected', label: 'Rejected' },
+            ];
+        } else if (key === 'cancelled') {
+            flow = [
+                { key: 'pending', label: 'Requested' },
+                { key: 'accepted', label: 'Accepted' },
+                { key: 'cancelled', label: 'Cancelled' },
+            ];
+        }
+
+        const currentIndex = flow.findIndex(function (step) {
+            return step.key === key;
+        });
+
+        container.innerHTML = flow.map(function (step, index) {
             let cls = 'timeline-item';
             if (index === currentIndex) cls += ' is-active';
-            if (index < currentIndex) cls += ' is-completed';
+            if (currentIndex >= 0 && index < currentIndex) cls += ' is-completed';
             return '<div class="' + cls + '">' + escapeHtml(step.label) + '</div>';
         }).join('');
     }
@@ -203,12 +236,12 @@
             return '<li class="team-member-item">' +
                 '<span class="team-member-name">' + escapeHtml(member.full_name) + leaderTag + '</span>' +
                 profession +
-                ' <span style="color:var(--color-text-muted);font-weight:500;">- ' + escapeHtml(member.status) + '</span>' +
+                ' <span style="color:var(--color-text-muted);font-weight:500;">- ' + escapeHtml(formatStatusLabel(member.status)) + '</span>' +
                 '</li>';
         }).join('');
     }
 
-    function renderContactCard(data, mode) {
+    function renderContactCard(data, mode, effectiveStatus) {
         const contactNameEl = document.getElementById('contactName');
         const contactImageEl = document.getElementById('contactImage');
         const contactInitialEl = document.getElementById('contactInitial');
@@ -235,12 +268,13 @@
             contactInitialEl.textContent = name.charAt(0).toUpperCase();
         }
 
-        const activeStatuses = ['accepted', 'confirmed', 'completion_requested'];
-        const hasPhone = activeStatuses.includes(String(data.status || '').toLowerCase());
+        const key = normalizeProgressStatus(effectiveStatus || data.status);
+        const activeStatuses = ['accepted', 'in_progress', 'completion_requested'];
+        const hasPhone = activeStatuses.includes(key);
         const normalized = normalizePhone(phone);
 
         if (hasPhone && normalized) {
-            contactNoteEl.textContent = 'Contact available';
+            contactNoteEl.textContent = key === 'in_progress' ? 'Contact available while the job is active' : 'Contact available';
             callBtn.href = 'tel:' + normalized;
             callBtn.disabled = false;
             callBtn.classList.remove('is-disabled');
@@ -250,7 +284,14 @@
             waBtn.disabled = false;
             waBtn.classList.remove('is-disabled');
         } else {
-            contactNoteEl.textContent = 'Contact available after booking acceptance';
+            if (key === 'completed') {
+                contactNoteEl.textContent = 'Booking completed';
+            } else if (key === 'rejected' || key === 'cancelled') {
+                contactNoteEl.textContent = 'Contact unavailable for this booking';
+            } else {
+                contactNoteEl.textContent = 'Contact available after booking acceptance';
+            }
+
             callBtn.href = '#';
             callBtn.disabled = true;
             callBtn.classList.add('is-disabled');
@@ -281,12 +322,14 @@
         }).join('');
     }
 
-    function renderJobPhotos(data) {
+    function renderJobPhotos(data, mode, effectiveStatus) {
         const section = document.getElementById('jobPhotosSection');
         if (!section) return;
 
         const before = data.before_photos || [];
         const after = data.after_photos || [];
+        const key = normalizeProgressStatus(effectiveStatus || data.status);
+        const canUploadAfter = mode === 'received' && ['accepted', 'in_progress', 'completion_requested', 'completed'].includes(key);
 
         const beforeBlock = document.getElementById('beforePhotosBlock');
         const afterBlock = document.getElementById('afterPhotosBlock');
@@ -294,23 +337,24 @@
         const afterEmpty = document.getElementById('afterPhotosEmpty');
 
         if (beforeBlock) {
-            beforeBlock.hidden = !before.length && !beforeEmpty;
+            beforeBlock.hidden = false;
             if (beforeEmpty) beforeEmpty.hidden = !!before.length;
             renderPhotoGrid('beforePhotosGrid', before);
         }
         if (afterBlock) {
-            afterBlock.hidden = !after.length && !afterEmpty;
+            afterBlock.hidden = false;
             if (afterEmpty) afterEmpty.hidden = !!after.length;
             renderPhotoGrid('afterPhotosGrid', after);
         }
 
-        const hasAny = before.length || after.length;
-        section.hidden = !hasAny && !document.getElementById('addAfterPhotos');
-
         const addAfter = document.getElementById('addAfterPhotos');
         if (addAfter) {
-            addAfter.hidden = false;
+            addAfter.hidden = !canUploadAfter;
         }
+
+        /* Job Proof is part of the booking record, so keep it visible even
+           after completion when no photos were uploaded. */
+        section.hidden = false;
     }
 
     function initAfterPhotoUpload() {
@@ -321,7 +365,7 @@
         const MAX_BYTES = 5 * 1024 * 1024;
         const ALLOWED = ['image/jpeg', 'image/png', 'image/webp'];
 
-        function showError(message) {
+        function showUploadError(message) {
             if (errorEl) {
                 errorEl.textContent = message;
                 errorEl.hidden = false;
@@ -343,11 +387,11 @@
             for (var i = 0; i < files.length; i++) {
                 var file = files[i];
                 if (!ALLOWED.includes(file.type)) {
-                    showError('Only JPG, PNG, and WEBP images are allowed.');
+                    showUploadError('Only JPG, PNG, and WEBP images are allowed.');
                     continue;
                 }
                 if (file.size > MAX_BYTES) {
-                    showError('Each photo must be 5 MB or smaller.');
+                    showUploadError('Each photo must be 5 MB or smaller.');
                     continue;
                 }
                 var formData = new FormData();
@@ -363,7 +407,7 @@
                             return null;
                         }
                         if (!response.ok) {
-                            showError('Some photos could not be uploaded. Please try again.');
+                            showUploadError('Some photos could not be uploaded. Please try again.');
                             return null;
                         }
                         return response.json();
@@ -382,9 +426,13 @@
         document.getElementById('pageTitle').textContent = mode === 'received' ? 'Job Details' : 'Hired Worker Details';
         document.getElementById('bookingId').textContent = 'Booking #' + data.id;
 
+        const effectiveStatus = mode === 'received'
+            ? (data.viewer_status || data.status)
+            : data.status;
+
         const statusEl = document.getElementById('bookingStatus');
-        statusEl.textContent = data.status || '--';
-        statusEl.className = 'detail-status ' + getStatusClass(data.status);
+        statusEl.textContent = formatStatusLabel(effectiveStatus);
+        statusEl.className = 'detail-status ' + getStatusClass(effectiveStatus);
 
         document.getElementById('serviceName').textContent = data.package_name || data.service_name || '--';
 
@@ -422,18 +470,12 @@
             descSection.hidden = true;
         }
 
-        renderStatusTimeline(data.status);
+        renderStatusTimeline(effectiveStatus);
         renderPackageServices(data.package_services);
-
-        if (mode === 'sent') {
-            renderTeamMembers(data.team_members);
-        } else {
-            renderTeamMembers([]);
-        }
-
-        renderStatusActions(data.status, mode);
-        renderContactCard(data, mode);
-        renderJobPhotos(data);
+        renderTeamMembers(data.team_members);
+        renderStatusActions(effectiveStatus, mode);
+        renderContactCard(data, mode, effectiveStatus);
+        renderJobPhotos(data, mode, effectiveStatus);
         showDetails();
     }
 
@@ -443,13 +485,14 @@
 
         if (mode !== 'received') {
             actionsEl.hidden = true;
+            actionsEl.innerHTML = '';
             return;
         }
 
-        const key = String(status || '').toLowerCase();
+        const key = normalizeProgressStatus(status);
         let html = '';
 
-        if (key === 'accepted' || key === 'confirmed') {
+        if (key === 'accepted') {
             html = '<button type="button" class="status-action-btn status-action-btn--start" data-status-action="in_progress">Start Job</button>';
         } else if (key === 'in_progress') {
             html = '<button type="button" class="status-action-btn status-action-btn--complete" data-status-action="completion_requested">Request Completion</button>';

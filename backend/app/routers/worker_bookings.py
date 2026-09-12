@@ -171,6 +171,7 @@ def _resolve_team_leader(booking, db):
 def _build_worker_booking_detail_response(
     booking: models.Booking,
     db: Session,
+    viewer_status: Optional[str] = None,
 ) -> BookingDetailResponse:
     customer = (
         db.query(models.User)
@@ -262,7 +263,7 @@ def _build_worker_booking_detail_response(
                 "is_leader": pw.is_leader if pw else False,
             })
 
-    active_statuses = {"accepted", "confirmed", "completion_requested"}
+    active_statuses = {"accepted", "confirmed", "in_progress", "completion_requested"}
     include_phones = booking.status in active_statuses
 
     before_photos, after_photos = _load_booking_photos(booking.id, db)
@@ -286,6 +287,7 @@ def _build_worker_booking_detail_response(
         description=booking.description,
         amount=booking.amount,
         status=booking.status,
+        viewer_status=viewer_status,
         created_at=(
             booking.created_at.isoformat()
             if booking.created_at
@@ -459,15 +461,15 @@ def get_worker_booking(
             detail="Booking not found",
         )
 
-    is_participant = (
+    participant = (
         db.query(models.BookingWorker)
         .filter(
             models.BookingWorker.booking_id == booking_id,
             models.BookingWorker.worker_id == current_user.id,
         )
         .first()
-        is not None
     )
+    is_participant = participant is not None
 
     if booking.worker_id != current_user.id and not is_participant:
         raise HTTPException(
@@ -478,6 +480,11 @@ def get_worker_booking(
     return _build_worker_booking_detail_response(
         booking,
         db,
+        viewer_status=(
+            participant.status
+            if participant
+            else booking.status
+        ),
     )
 
 
@@ -516,6 +523,7 @@ def get_sent_worker_booking(
     return _build_worker_booking_detail_response(
         booking,
         db,
+        viewer_status=booking.status,
     )
 
 

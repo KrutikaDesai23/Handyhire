@@ -1,370 +1,222 @@
-/* =========================================================
-   HandyHire - Pre-booking Home JavaScript
-   Variant of the Customer Home that only renders workers
-   offering pre-booking services. Reuses css/home.css.
-   ========================================================= */
-
+/* Customer Pre-booking discovery — premium flow */
 (function () {
     'use strict';
 
-    /**
-     * Number of worker cards shown initially before the list is
-     * expanded via the "View All" toggle.
-     */
-    const DISPLAY_LIMIT = 4;
+    var allWorkers = [];
+    var currentSearch = '';
+    var currentSort = '';
 
-    /**
-     * The currently displayed worker list. Kept in full so the
-     * "View All" toggle can reveal every card without refetching.
-     */
-    let displayList = [];
+    function getApi() { return window.HandyHireAPI || null; }
 
-    /**
-     * Whether the full list is currently expanded.
-     */
-    let isExpanded = false;
-
-    /**
-     * Routes for the filter chips. "Pre-booking" is the active chip
-     * and has no target - the user is already on this page.
-     */
-    const CHIP_ROUTES = {
-        'all': 'home.html',
-        'on-spot': 'home-onspot.html',
-        'near-me': 'home-nearme.html',
-        'budget': 'home-budget.html',
-    };
-
-    /**
-     * Convert a worker name into a URL-safe slug used by
-     * job-hire.html. Each card carries its slug as
-     * data-worker-slug so the click delegate knows which
-     * worker was selected.
-     * @param {string} name
-     * @returns {string}
-     */
-    function makeSlug(name) {
-        return String(name || '')
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-+|-+$/g, '');
-    }
-
-    /**
-     * Generate a placeholder avatar data URL so cards render
-     * without any external image dependency.
-     * @param {string} name
-     * @returns {string} CSS background value
-     */
-    function getAvatarStyle(name) {
-        const initials = name
-            .split(' ')
-            .map((part) => part.charAt(0).toUpperCase())
-            .slice(0, 2)
-            .join('');
-
-        const hue = Array.from(name).reduce((sum, ch) => sum + ch.charCodeAt(0), 0) % 360;
-
-        const svg = `
-            <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 72'>
-                <defs>
-                    <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
-                        <stop offset='0%' stop-color='hsl(${hue}, 35%, 70%)'/>
-                        <stop offset='100%' stop-color='hsl(${(hue + 40) % 360}, 30%, 55%)'/>
-                    </linearGradient>
-                </defs>
-                <rect width='72' height='72' fill='url(#g)'/>
-                <text x='50%' y='54%' text-anchor='middle' font-family='Inter, sans-serif'
-                      font-size='28' font-weight='700' fill='#ffffff' dominant-baseline='middle'>
-                    ${initials}
-                </text>
-            </svg>
-        `.trim();
-
-        return `url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}")`;
-    }
-
-    /**
-     * Render the pre-booking service grid into the DOM from
-     * backend data.
-     * @param {HTMLElement} container
-     * @param {Array} workers  backend WorkerResponse objects
-     */
-    function renderWorkers(container, workers) {
-        if (!container) return;
-        displayList = Array.isArray(workers) ? workers : [];
-        renderDisplay(container);
-    }
-
-    /**
-     * Get (or lazily create) the View All / Show Less toggle button
-     * placed directly below the service grid.
-     * @param {HTMLElement} container
-     * @returns {HTMLElement}
-     */
-    function getViewAllButton(container) {
-        const section = container.closest('.service-section');
-        if (!section) return null;
-        let btn = section.querySelector('[data-view-all]');
-        if (btn) return btn;
-        btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'view-all-btn';
-        btn.dataset.viewAll = 'true';
-        btn.addEventListener('click', function () {
-            isExpanded = !isExpanded;
-            renderDisplay(container);
-        });
-        container.parentNode.insertBefore(btn, container.nextSibling);
-        return btn;
-    }
-
-    /**
-     * Render the current display list, constrained to the first
-     * DISPLAY_LIMIT cards unless expanded, and keep the toggle in sync.
-     * @param {HTMLElement} container
-     */
-    function renderDisplay(container) {
-        if (!container) return;
-
-        const btn = getViewAllButton(container);
-
-        if (!displayList.length) {
-            container.innerHTML = `
-                <p class="empty-state" style="grid-column: 1 / -1; text-align: center; color: var(--color-text-muted); padding: 32px 0;">
-                    No pre-booking professionals available right now.
-                </p>
-            `;
-            if (btn) btn.hidden = true;
-            return;
+    function requireAuth() {
+        var api = getApi();
+        if (!api) {
+            window.location.href = 'login.html';
+            return false;
         }
-
-        const shown = isExpanded ? displayList : displayList.slice(0, DISPLAY_LIMIT);
-
-        const html = shown.map((worker) => {
-            const card = window.HandyHireWorkers.toCard(worker);
-            const name = window.HandyHireWorkers.escapeHtml(card.name);
-            const profession = window.HandyHireWorkers.escapeHtml(card.profession);
-            const avatar = card.profileImage
-                ? 'url("' + card.profileImage + '")'
-                : getAvatarStyle(card.name);
-
-            return `
-                <article class="worker-card" tabindex="0"
-                         data-worker-id="${card.id}"
-                         data-worker-slug="${window.HandyHireWorkers.escapeHtml(card.slug)}"
-                         data-worker-name="${name}"
-                         aria-label="${name}, ${profession}, rated ${card.rating.toFixed(1)} out of 5, ${card.priceText}">
-                    <div class="worker-avatar" style="background-image: ${avatar}" aria-hidden="true"></div>
-                    <h3 class="worker-name">${name}</h3>
-                    <p class="worker-profession">${profession}</p>
-                    <div class="worker-meta">
-                        <span class="worker-rating">
-                            <span class="star" aria-hidden="true">&#9733;</span>${card.rating.toFixed(1)}
-                        </span>
-                        <span class="worker-price">${card.priceText}</span>
-                    </div>
-                </article>
-            `;
-        }).join('');
-
-        container.innerHTML = html;
-
-        if (btn) {
-            btn.hidden = displayList.length <= DISPLAY_LIMIT;
-            btn.textContent = isExpanded ? 'Show Less' : 'View All';
-        }
+        return typeof api.requireRole === 'function' ? api.requireRole('customer') : true;
     }
 
-    /**
-     * Wire up the filter chips so they navigate to the right page
-     * based on the centralized CHIP_ROUTES map. The active chip
-     * (pre-booking) has no target and just stays in place.
-     */
-    function initFilterChips() {
-        const chips = document.querySelectorAll('.filter-chips .chip');
-        if (!chips.length) return;
-
-        chips.forEach((chip) => {
-            chip.addEventListener('click', function () {
-                const filter = chip.dataset.filter;
-
-                // If the clicked chip has a route, navigate to it
-                if (CHIP_ROUTES[filter]) {
-                    window.location.href = CHIP_ROUTES[filter];
-                    return;
-                }
-
-                // Otherwise, the chip is the active one - just scroll to top
-                chips.forEach((c) => {
-                    c.classList.remove('is-active');
-                    c.setAttribute('aria-pressed', 'false');
-                });
-                chip.classList.add('is-active');
-                chip.setAttribute('aria-pressed', 'true');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            });
-        });
+    function normalizeAvailability(value) {
+        var normalized = String(value || '').toLowerCase().trim().replace(/_/g, '-').replace(/\s+/g, '-');
+        if (normalized === 'prebooking') return 'pre-booking';
+        if (normalized === 'onspot') return 'on-spot';
+        return normalized;
     }
 
-    /**
-     * Wire up the top navigation tabs that don't yet have a page.
-     */
-    function initTopNav() {
-        const activityTab = document.getElementById('activityTab');
-
-        if (activityTab) {
-            activityTab.addEventListener('click', function (event) {
-                event.preventDefault();
-                window.location.href = 'activity.html';
-            });
-        }
+    function normalizeWorker(record) {
+        var item = record || {};
+        var profile = item.worker_profile || item.profile || {};
+        var user = item.user || profile.user || {};
+        return {
+            id: item.id || item.worker_id || profile.worker_id || user.id || '',
+            fullName: item.full_name || profile.full_name || user.full_name || user.name || 'Professional',
+            profession: item.profession || profile.profession || item.service || 'Professional',
+            location: item.location || profile.location || 'Location not specified',
+            price: item.price != null ? item.price : profile.price,
+            availability: item.availability || profile.availability || item.booking_type || item.service_type || '',
+            rating: item.average_rating != null ? item.average_rating : (profile.average_rating != null ? profile.average_rating : item.rating),
+            profileImage: item.profile_image || profile.profile_image || user.profile_image || ''
+        };
     }
 
-    /**
-     * Make worker cards clickable so tapping a professional
-     * opens the Job Hire (worker details) page for that
-     * specific worker. The selected worker is resolved via
-     * ?worker=<slug>. job-hire.js reads the slug and
-     * populates the page with the correct record.
-     */
-    function initWorkerCards() {
-        const grid = document.getElementById('serviceGrid');
+    function getInitials(name) {
+        return String(name || 'P').trim().split(/\s+/).filter(Boolean).map(function (part) {
+            return part.charAt(0).toUpperCase();
+        }).slice(0, 2).join('') || 'P';
+    }
+
+    function isPrebookable(worker) {
+        var value = normalizeAvailability(worker && worker.availability);
+        return value === 'pre-booking' || value === 'both';
+    }
+
+    function showState(type, title, copy) {
+        var grid = document.getElementById('serviceGrid');
         if (!grid) return;
+        grid.innerHTML = '';
+        var state = document.createElement('div');
+        state.className = type + '-state';
+        var icon = document.createElement('span');
+        icon.className = 'state-icon';
+        icon.textContent = type === 'loading' ? '…' : (type === 'error' ? '!' : '✓');
+        var heading = document.createElement('p');
+        heading.className = 'state-title';
+        heading.textContent = title;
+        var paragraph = document.createElement('p');
+        paragraph.className = 'state-copy';
+        paragraph.textContent = copy;
+        state.appendChild(icon);
+        state.appendChild(heading);
+        state.appendChild(paragraph);
+        grid.appendChild(state);
+    }
 
-        function navigate(card) {
-            const workerId = card.getAttribute('data-worker-id');
-            const slug = card.getAttribute('data-worker-slug')
-                || card.getAttribute('data-worker-name');
-            if (!workerId) return;
-            const url = 'job-hire.html?worker_id='
-                + encodeURIComponent(workerId);
-            try {
-                if (slug) {
-                    sessionStorage.setItem('handyhire.selectedWorkerSlug', slug);
-                }
-                sessionStorage.setItem('handyhire.selectedWorkerId', workerId);
-                sessionStorage.setItem('handyhire.customer.previousPage', 'home-prebooking.html');
-            } catch (e) {
-                // Ignore storage errors.
-            }
-            window.location.href = url;
+    function openWorker(worker) {
+        if (!worker || !worker.id) return;
+        try {
+            sessionStorage.setItem('handyhire.selectedWorkerId', String(worker.id));
+            sessionStorage.setItem('handyhire.selectedWorker', String(worker.fullName || 'Professional'));
+            sessionStorage.setItem('handyhire.customer.previousPage', 'home-prebooking.html');
+        } catch (error) {}
+        window.location.href = 'job-hire.html?worker_id=' + encodeURIComponent(String(worker.id));
+    }
+
+    function createWorkerCard(worker) {
+        var card = document.createElement('article');
+        card.className = 'worker-card';
+        card.tabIndex = 0;
+        card.setAttribute('role', 'button');
+        card.setAttribute('aria-label', 'View ' + worker.fullName + ', ' + worker.profession);
+
+        var avatar = document.createElement('div');
+        avatar.className = 'worker-avatar';
+        avatar.setAttribute('aria-hidden', 'true');
+        if (worker.profileImage) {
+            avatar.style.backgroundImage = 'url("' + String(worker.profileImage).replace(/"/g, '%22') + '")';
+        } else {
+            avatar.textContent = getInitials(worker.fullName);
         }
 
-        grid.addEventListener('click', function (event) {
-            const card = event.target.closest('.worker-card');
-            if (!card || !grid.contains(card)) return;
-            navigate(card);
-        });
+        var name = document.createElement('h3');
+        name.className = 'worker-name';
+        name.textContent = worker.fullName;
 
-        grid.addEventListener('keydown', function (event) {
-            const card = event.target.closest('.worker-card');
-            if (!card || !grid.contains(card)) return;
+        var profession = document.createElement('p');
+        profession.className = 'worker-profession';
+        profession.textContent = worker.profession;
+
+        var location = document.createElement('p');
+        location.className = 'worker-location';
+        location.textContent = worker.location;
+
+        var availability = document.createElement('span');
+        availability.className = 'worker-availability';
+        availability.textContent = normalizeAvailability(worker.availability) === 'both' ? 'Pre-booking + On-spot' : 'Pre-booking';
+
+        var meta = document.createElement('div');
+        meta.className = 'worker-meta';
+
+        var rating = document.createElement('span');
+        rating.className = 'worker-rating';
+        var ratingNumber = Number(worker.rating);
+        rating.textContent = Number.isFinite(ratingNumber) && ratingNumber > 0 ? '★ ' + ratingNumber.toFixed(1) : '★ New';
+
+        var price = document.createElement('span');
+        price.className = 'worker-price';
+        var priceNumber = Number(worker.price);
+        price.innerHTML = Number.isFinite(priceNumber) && priceNumber > 0
+            ? '₹' + Math.round(priceNumber) + '<small>/ hour</small>'
+            : 'Rate unavailable';
+
+        meta.appendChild(rating);
+        meta.appendChild(price);
+        card.appendChild(avatar);
+        card.appendChild(name);
+        card.appendChild(profession);
+        card.appendChild(location);
+        card.appendChild(availability);
+        card.appendChild(meta);
+        card.addEventListener('click', function () { openWorker(worker); });
+        card.addEventListener('keydown', function (event) {
             if (event.key === 'Enter' || event.key === ' ') {
                 event.preventDefault();
-                navigate(card);
+                openWorker(worker);
             }
         });
+        return card;
     }
 
-    /**
-     * Make the package tiles near the bottom of the Home
-     * page keyboard-accessible. Browsers fire Enter on
-     * <a> natively, but not Space, so we add a Space
-     * delegation here. Click / Enter are already handled
-     * by the browser via the href.
-     */
-    function initPackageTiles() {
-        const section = document.querySelector('.pkg-section');
-        if (!section) return;
-
-        function storePreviousPage() {
-            try {
-                sessionStorage.setItem('handyhire.customer.previousPage', 'home-prebooking.html');
-            } catch (e) {}
+    function sortWorkers(workers) {
+        var list = workers.slice();
+        if (currentSort === 'rating') {
+            list.sort(function (a, b) { return Number(b.rating || 0) - Number(a.rating || 0); });
+        } else if (currentSort === 'price_asc') {
+            list.sort(function (a, b) { return Number(a.price || 0) - Number(b.price || 0); });
+        } else if (currentSort === 'price_desc') {
+            list.sort(function (a, b) { return Number(b.price || 0) - Number(a.price || 0); });
+        } else if (currentSort === 'name') {
+            list.sort(function (a, b) { return String(a.fullName).localeCompare(String(b.fullName)); });
         }
-
-        section.addEventListener('click', function (event) {
-            const tile = event.target.closest('.pkg-tile');
-            if (!tile || !section.contains(tile)) return;
-            storePreviousPage();
-        });
-
-        section.addEventListener('keydown', function (event) {
-            if (event.key !== ' ') return;
-            const tile = event.target.closest('.pkg-tile');
-            if (!tile || !section.contains(tile)) return;
-            event.preventDefault();
-            storePreviousPage();
-            const href = tile.getAttribute('href');
-            if (href) window.location.href = href;
-        });
+        return list;
     }
 
-    /**
-     * Load workers from the backend and render them into the
-     * grid. Shows a loading state, then renders real data or
-     * a friendly error/empty message.
-     */
-    function loadWorkers(container) {
-        if (!container) return;
-        container.innerHTML = `
-            <p class="empty-state" style="grid-column: 1 / -1; text-align: center; color: var(--color-text-muted); padding: 32px 0;">
-                Loading professionals...
-            </p>
-        `;
-
-        const api = window.HandyHireWorkers
-            ? window.HandyHireWorkers.fetchWorkers
-            : null;
-        if (!api) {
-            container.innerHTML = `
-                <p class="empty-state" style="grid-column: 1 / -1; text-align: center; color: var(--color-text-muted); padding: 32px 0;">
-                    Unable to load professionals.
-                </p>
-            `;
+    function renderWorkers() {
+        var grid = document.getElementById('serviceGrid');
+        if (!grid) return;
+        var query = currentSearch.trim().toLowerCase();
+        var filtered = allWorkers.filter(function (worker) {
+            if (!query) return true;
+            return [worker.fullName, worker.profession, worker.location].some(function (value) {
+                return String(value || '').toLowerCase().includes(query);
+            });
+        });
+        filtered = sortWorkers(filtered);
+        if (!filtered.length) {
+            showState('empty', currentSearch ? 'No matching professionals' : 'No pre-booking professionals yet', currentSearch ? 'Try another name, profession or location.' : 'When professionals enable scheduled bookings, they will appear here.');
             return;
         }
+        grid.innerHTML = '';
+        filtered.forEach(function (worker) { grid.appendChild(createWorkerCard(worker)); });
+    }
 
-        api()
-            .then((workers) => {
-                const filtered = workers.filter(function (worker) {
-                    const raw = worker.raw || worker;
-                    const availability = String(raw.availability || '')
-                        .toLowerCase()
-                        .trim();
-                    return (
-                        availability === 'pre-booking' ||
-                        availability === 'both'
-                    );
-                });
-                renderWorkers(container, filtered);
-            })
-            .catch(() => {
-                container.innerHTML = `
-                    <p class="empty-state" style="grid-column: 1 / -1; text-align: center; color: var(--color-text-muted); padding: 32px 0;">
-                        Unable to load professionals right now. Please try again later.
-                    </p>
-                `;
+    async function loadWorkers() {
+        var api = getApi();
+        showState('loading', 'Finding professionals', 'Loading professionals who accept scheduled bookings…');
+        try {
+            if (!api || typeof api.apiFetch !== 'function') throw new Error('API helper unavailable');
+            var response = await api.apiFetch('/api/workers');
+            if (response.status === 401) {
+                if (typeof api.clearAuth === 'function') api.clearAuth();
+                window.location.href = 'login.html';
+                return;
+            }
+            if (!response.ok) throw new Error('Unable to load professionals');
+            var data = await response.json();
+            var records = Array.isArray(data) ? data : (data.workers || data.items || data.results || data.data || []);
+            allWorkers = (Array.isArray(records) ? records : []).map(normalizeWorker).filter(function (worker) {
+                return worker.id && isPrebookable(worker);
             });
+            renderWorkers();
+        } catch (error) {
+            console.error('Failed to load pre-booking professionals:', error);
+            showState('error', 'Couldn’t load professionals', 'Please check your connection and try again.');
+        }
     }
 
-    /**
-     * Initialize the pre-booking home page.
-     */
+    function initControls() {
+        var search = document.getElementById('prebookSearch');
+        var sort = document.getElementById('prebookSort');
+        if (search) search.addEventListener('input', function () { currentSearch = search.value || ''; renderWorkers(); });
+        if (sort) sort.addEventListener('change', function () { currentSort = sort.value || ''; renderWorkers(); });
+    }
+
     function init() {
-        if (!(window.HandyHireAPI && window.HandyHireAPI.requireRole('customer'))) return;
-        loadWorkers(document.getElementById('serviceGrid'));
-        initFilterChips();
-        initWorkerCards();
-        initPackageTiles();
-        initTopNav();
+        if (!requireAuth()) return;
+        initControls();
+        loadWorkers();
     }
 
-    // Run after DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
 })();

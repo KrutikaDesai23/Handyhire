@@ -2,109 +2,93 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="HandyHire - Your booking request was sent successfully." />
+    <meta name="theme-color" content="#173f2b" />
+    <title>Booking Request Sent | HandyHire</title>
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-    />
-
-    <meta
-        name="description"
-        content="HandyHire - Your booking request was sent."
-    />
-
-    <meta
-        name="theme-color"
-        content="#68865C"
-    />
-
-    <title>
-        Booking Request Sent | HandyHire
-    </title>
-
-    <link
-        rel="preconnect"
-        href="https://fonts.googleapis.com"
-    />
-
-    <link
-        rel="preconnect"
-        href="https://fonts.gstatic.com"
-        crossorigin
-    />
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet"
-    />
-
-    <link
-        rel="stylesheet"
-        href="../css/provider-booking-success.css"
-    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../css/provider-booking-success.css" />
 </head>
-
 <body>
-    <main
-        class="success-page"
-        role="main"
-    >
-        <section
-            class="success-card"
-            aria-labelledby="successTitle"
-        >
-            <div
-                class="check-wrap"
-                aria-hidden="true"
-            >
-                <span class="check-circle">
-                    <span class="check-mark">
-                        &#10003;
-                    </span>
-                </span>
+    <header class="success-topbar" role="banner">
+        <div class="success-topbar-inner">
+            <a href="provider-home.html" class="success-brand" aria-label="HandyHire provider home">
+                <span class="success-brand-logo"><img src="../Images/Hamor.jpeg" alt="" /></span>
+                <span class="success-brand-name">HandyHire</span>
+            </a>
+            <span class="success-topbar-pill">REQUEST SENT</span>
+        </div>
+    </header>
+
+    <main class="success-page" role="main">
+        <section class="success-shell" aria-labelledby="successTitle">
+            <div class="success-celebration">
+                <div class="success-grid-lines" aria-hidden="true"></div>
+                <div class="success-check-wrap" aria-hidden="true">
+                    <span class="success-check-ring"><svg viewBox="0 0 24 24" fill="none"><path d="m6.5 12.5 3.4 3.4L18 7.8" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                </div>
+
+                <span class="success-eyebrow">BOOKING REQUEST CREATED</span>
+                <h1 class="success-title" id="successTitle">Booking Request Sent</h1>
+                <p class="success-subtitle" id="successSubtitle">The worker will review your request.</p>
+
+                <div class="success-timeline" aria-label="Booking status">
+                    <div class="success-timeline-item is-complete">
+                        <span class="success-timeline-dot" aria-hidden="true">✓</span>
+                        <div><strong>Request sent</strong><small>Your booking has been created.</small></div>
+                    </div>
+                    <span class="success-timeline-line" aria-hidden="true"></span>
+                    <div class="success-timeline-item">
+                        <span class="success-timeline-dot" aria-hidden="true">2</span>
+                        <div><strong>Awaiting response</strong><small>The professional can accept or reject the request.</small></div>
+                    </div>
+                </div>
             </div>
 
-            <h1
-                class="success-title"
-                id="successTitle"
-            >
-                Booking Request Sent
-            </h1>
+            <div class="success-details-panel">
+                <div class="success-details-heading">
+                    <div>
+                        <span class="success-section-kicker">BOOKING SUMMARY</span>
+                        <h2>Your request details</h2>
+                        <p>Everything you need to track this booking in one place.</p>
+                    </div>
+                </div>
 
-            <p
-                class="success-subtitle"
-                id="successSubtitle"
-            >
-                The worker will review your request.
-            </p>
+                <div class="success-summary-card">
+                    <div class="success-summary-row">
+                        <span class="success-summary-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M7 4h10a2 2 0 0 1 2 2v12H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8"/><path d="M9 8h6M9 12h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+                        <div class="success-summary-copy"><span>Booking reference</span><strong id="successBookingId">Booking ID: --</strong></div>
+                    </div>
+                    <div class="success-summary-row">
+                        <span class="success-summary-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/><path d="M5 20c.8-4 3.1-6 7-6s6.2 2 7 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+                        <div class="success-summary-copy"><span>Professional / package</span><strong id="successWorker">Worker: --</strong></div>
+                    </div>
+                    <div class="success-summary-row">
+                        <span class="success-summary-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="15" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 3v4M16 3v4M4 10h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+                        <div class="success-summary-copy"><span>Schedule</span><strong id="successSchedule">Schedule: --</strong></div>
+                    </div>
+                    <div class="success-summary-row success-summary-row--amount">
+                        <span class="success-summary-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M8 5h8M8 9h8M10 5c4 0 5.5 2 5.5 4S14 13 10 13H8l7 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                        <div class="success-summary-copy"><span>Estimated total</span><strong id="successAmount">Total: ₹0</strong></div>
+                    </div>
+                </div>
 
-            <p
-                class="success-subtitle"
-                id="successBookingId"
-            ></p>
+                <div class="success-note">
+                    <span class="success-note-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z" stroke="currentColor" stroke-width="1.8"/><path d="M12 10v6M12 7h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+                    <div><strong>What happens next?</strong><p>You can track the request from Activity. Once accepted, the booking status will update automatically.</p></div>
+                </div>
 
-            <p
-                class="success-subtitle"
-                id="successWorker"
-            ></p>
-
-            <p
-                class="success-subtitle"
-                id="successSchedule"
-            ></p>
-
-            <p
-                class="success-subtitle"
-                id="successAmount"
-            ></p>
-
-            <a
-                href="provider-home.html"
-                class="home-btn"
-                role="button"
-            >
-                Home
-            </a>
+                <div class="success-actions">
+                    <a href="provider-activity.html" class="success-btn success-btn--primary">
+                        View activity
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </a>
+                    <a href="provider-home.html" class="success-btn success-btn--secondary">Back to Home</a>
+                </div>
+            </div>
         </section>
     </main>
 

@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="description" content="HandyHire - Multitasking service packages for combined professional work." />
-    <meta name="theme-color" content="#68865C" />
+    <meta name="description" content="HandyHire - Explore and manage multitasking service packages." />
+    <meta name="theme-color" content="#173f2b" />
     <title>Multitasking Packages | HandyHire</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -12,62 +12,91 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="../css/provider-multitasking-package.css" />
+    <link rel="stylesheet" href="../css/provider-shell-lock.css" />
+    <link rel="stylesheet" href="../css/provider-page-back.css" />
+    <link rel="stylesheet" href="../css/provider-subpage-header.css" />
 </head>
 <body>
-    <!-- ========== TOP BAR ========== -->
-    <header class="pkg-topbar" role="banner">
-        <a href="provider-home.html" class="brand-mark" aria-label="HandyHire home">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M14.7 6.3a4 4 0 0 1-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 1 5.4-5.4l-1.4 1.4-2.6-2.6 1.4-1.4Z" />
-            </svg>
-        </a>
-        <span class="icon-btn-spacer" aria-hidden="true"></span>
+    <header class="subpage-header" role="banner">
+        <div class="subpage-header-inner">
+            <a href="provider-home.html" class="subpage-brand" aria-label="HandyHire provider home">
+                <span class="subpage-brand-logo-shell">
+                    <img src="../Images/Hamor.jpeg" alt="" class="subpage-brand-logo" />
+                </span>
+                <span>HandyHire</span>
+            </a>
+        </div>
     </header>
 
-    <main class="pkg-page" role="main">
-        <!-- ========== BACK ROW ========== -->
-        <section class="back-search-row" aria-label="Back and search">
-            <a href="provider-home.html" class="back-btn" aria-label="Back to home">
-                <span class="back-icon" aria-hidden="true">&#8592;</span>
-            </a>
+    <main class="app-main pkg-page" role="main">
+        <a class="page-back" href="provider-home.html" aria-label="Back to provider home">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m15 18-6-6 6-6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            <span>Back to Home</span>
+        </a>
 
-            <label class="visually-hidden" for="packageSearch">Search packages</label>
-            <div class="search-wrap">
-                <span class="search-icon" aria-hidden="true">&#128269;</span>
-                <input
-                    type="search"
-                    id="packageSearch"
-                    class="search-input"
-                    placeholder="Search packages"
-                    autocomplete="off"
-                />
+        <section class="package-hero" aria-labelledby="packagePageTitle">
+            <div class="package-hero-copy">
+                <span class="package-eyebrow">MULTI-SKILL PACKAGES</span>
+                <h1 id="packagePageTitle">One professional. <span>More ways to help.</span></h1>
+                <p>Explore curated service bundles from HandyHire professionals, or build and manage your own multitasking package.</p>
+
+                <div class="package-hero-points" aria-label="Package benefits">
+                    <span><i aria-hidden="true">✓</i> Multiple services</span>
+                    <span><i aria-hidden="true">✓</i> One professional</span>
+                    <span><i aria-hidden="true">✓</i> Simple booking</span>
+                </div>
+            </div>
+
+            <div class="package-hero-art" aria-hidden="true">
+                <div class="hero-tool-card hero-tool-card--main">
+                    <span class="hero-tool-icon">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M7 4h10a2 2 0 0 1 2 2v3H5V6a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+                            <path d="M5 11h14v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+                            <path d="M9 7h6M9 15h6M12 12v6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                        </svg>
+                    </span>
+                    <div><strong>Bundle your skills</strong><small>Offer more in one package</small></div>
+                </div>
+                <div class="hero-tool-card hero-tool-card--mini"><span>2+</span><small>services per package</small></div>
             </div>
         </section>
 
-        <!-- ========== TABS ========== -->
-        <nav class="tab-nav" aria-label="Package views">
-            <button type="button" class="tab-btn is-active" data-tab="explore" id="tabExplore">Explore Packages</button>
-            <button type="button" class="tab-btn" data-tab="mine" id="tabMine">My Packages</button>
-        </nav>
+        <section class="package-workspace" aria-label="Multitasking package marketplace">
+            <div class="workspace-heading">
+                <div>
+                    <span class="section-kicker">PACKAGE MARKETPLACE</span>
+                    <h2>Explore or manage packages</h2>
+                    <p>Browse packages from other professionals or switch to My Packages to manage your own.</p>
+                </div>
 
-        <!-- ========== CREATE BUTTON ========== -->
-        <div class="create-row" id="createRow">
-            <a href="provider-create-package.html?type=multitasking" class="btn-create-package" id="createPackageBtn">
-                + Create Package
-            </a>
-        </div>
+                <div class="create-row" id="createRow">
+                    <a href="provider-create-package.html?type=multitasking" class="btn-create-package" id="createPackageBtn">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+                        Create Package
+                    </a>
+                </div>
+            </div>
 
-        <!-- ========== PACKAGE LIST ========== -->
-        <section class="packages-section" aria-label="Available packages">
-            <div class="loading-state" id="loadingState" hidden>Loading packages...</div>
-            <div class="error-state" id="errorState" hidden>Unable to load packages. Please try again.</div>
-            <ul class="package-list" id="packageList">
-                <!-- Cards rendered by js/provider-multitasking-package.js -->
-            </ul>
+            <div class="workspace-toolbar">
+                <nav class="tab-nav" aria-label="Package views">
+                    <button type="button" class="tab-btn is-active" data-tab="explore" id="tabExplore">Explore Packages</button>
+                    <button type="button" class="tab-btn" data-tab="mine" id="tabMine">My Packages</button>
+                </nav>
 
-            <p class="empty-state" id="emptyState" hidden>
-                No packages match your search.
-            </p>
+                <label class="visually-hidden" for="packageSearch">Search packages</label>
+                <div class="search-wrap">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8" /><path d="m16.2 16.2 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+                    <input type="search" id="packageSearch" class="search-input" placeholder="Search packages, services or skills" autocomplete="off" />
+                </div>
+            </div>
+
+            <section class="packages-section" aria-label="Available packages">
+                <div class="loading-state" id="loadingState" hidden>Loading packages...</div>
+                <div class="error-state" id="errorState" hidden>Unable to load packages. Please try again.</div>
+                <ul class="package-list" id="packageList"><!-- Cards rendered by js/provider-multitasking-package.js --></ul>
+                <p class="empty-state" id="emptyState" hidden>No packages match your search.</p>
+            </section>
         </section>
     </main>
 

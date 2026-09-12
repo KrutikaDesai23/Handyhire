@@ -3,122 +3,101 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="description" content="HandyHire - View worker details and book a service professional." />
-    <meta name="theme-color" content="#68865C" />
-    <title>Job Hire | HandyHire</title>
-
+    <meta name="description" content="HandyHire - Professional details and booking." />
+    <meta name="theme-color" content="#173f2b" />
+    <title>Professional Details | HandyHire</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-
     <link rel="stylesheet" href="../css/job-hire.css" />
+    <link rel="stylesheet" href="../css/customer-flow-header.css" />
 </head>
 <body>
-    <!-- ========== TOP BAR ========== -->
-    <header class="hire-topbar" role="banner">
-        <a href="home.html" class="brand-mark" aria-label="HandyHire home">
-            <img src="../Images/Hamor.jpeg" alt="HandyHire Logo" class="brand-logo">
-        </a>
-
-        <nav class="app-nav" aria-label="Primary navigation">
-            <a href="home.html" class="nav-tab">Home</a>
-            <a href="activity.html" class="nav-tab">Activity</a>
-            <a href="profile.html" class="nav-tab">Profile</a>
-        </nav>
-
-        <span class="icon-btn-spacer" aria-hidden="true"></span>
+    <header class="flow-topbar hire-topbar" role="banner">
+        <div class="flow-topbar-inner">
+            <a href="home.html" class="flow-brand brand-mark" aria-label="HandyHire home">
+                <span class="flow-brand-logo"><img src="../Images/Hamor.jpeg" alt="" /></span>
+                <span class="flow-brand-name">HandyHire</span>
+            </a>
+        </div>
     </header>
 
     <main class="hire-page" role="main">
-        <section class="hire-card" aria-label="Worker profile and booking">
+        <div class="flow-back-row">
+            <a href="home-prebooking.html" class="flow-page-back" id="backLink" aria-label="Go back">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m15 18-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>Back</span>
+            </a>
+            <a href="team-page.html" class="flow-page-back flow-page-back--secondary" id="backToTeamBtn" hidden>Back to Team</a>
+        </div>
 
-            <!-- ========== AVAILABILITY STRIP ========== -->
-            <div class="availability-strip" id="availabilityStrip" role="status">
-                <span class="availability-dot" aria-hidden="true"></span>
-                <span class="availability-text" id="availabilityText">Available today</span>
+        <section class="profile-hero-card" aria-label="Professional overview">
+            <div class="profile-hero-main">
+                <div class="availability-strip" id="availabilityStrip" role="status">
+                    <span class="availability-dot" aria-hidden="true"></span>
+                    <span class="availability-text" id="availabilityText">Available today</span>
+                </div>
+                <section class="hero-profile" aria-label="Professional profile">
+                    <div class="hero-avatar" id="heroAvatar" aria-hidden="true"></div>
+                    <div class="hero-profile-copy">
+                        <span class="profile-kicker">TRUSTED PROFESSIONAL</span>
+                        <h1 class="hero-name" id="heroName">Loading...</h1>
+                        <p class="hero-profession" id="heroProfession">Profession</p>
+                        <p class="hero-bio" id="heroBio">Professional details will appear here.</p>
+                        <div class="hero-rating" id="heroRating" aria-label="Overall rating">
+                            <span class="hero-stars" id="heroStars" aria-hidden="true">★★★★★</span>
+                            <span class="hero-rating-value" id="heroRatingValue">0.0</span>
+                            <span class="hero-rating-divider" aria-hidden="true">•</span>
+                            <span class="hero-rating-count" id="heroRatingCount">0 reviews</span>
+                        </div>
+                    </div>
+                </section>
             </div>
 
-            <!-- ========== HERO PROFILE ========== -->
-            <section class="hero-profile" aria-label="Professional profile">
-                <div class="hero-avatar" id="heroAvatar" aria-hidden="true"></div>
-
-                <h1 class="hero-name" id="heroName">Loading...</h1>
-                <p class="hero-profession" id="heroProfession">Profession</p>
-                <p class="hero-bio" id="heroBio">Professional details will appear here.</p>
-
-                <div class="hero-rating" id="heroRating" aria-label="Overall rating">
-                    <span class="hero-stars" id="heroStars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
-                    <span class="hero-rating-value" id="heroRatingValue">0.0</span>
-                    <span class="hero-rating-divider" aria-hidden="true">&middot;</span>
-                    <span class="hero-rating-count" id="heroRatingCount">0 reviews</span>
+            <aside class="hero-cta-card" aria-label="Booking action">
+                <span class="profile-kicker">READY TO BOOK?</span>
+                <h2>Book this professional</h2>
+                <p>Choose your preferred date, time and job details on the next step.</p>
+                <div class="cta-trust-list" aria-hidden="true">
+                    <span><i>✓</i> Clear request</span><span><i>✓</i> Flexible schedule</span><span><i>✓</i> Track in Activity</span>
                 </div>
-            </section>
-
-            <!-- ========== QUICK INFO ========== -->
-            <section class="quick-info-section" aria-label="Quick info">
-                <h2 class="section-title">Quick Info</h2>
-                <div class="info-grid" id="infoGrid">
-                    <!-- Filled by js/job-hire.js -->
-                </div>
-            </section>
-
-            <!-- ========== ABOUT PROFESSIONAL ========== -->
-            <section class="about-section" aria-label="About professional">
-                <h2 class="section-title">About Professional</h2>
-                <p class="about-text" id="aboutText">Professional details will appear here.</p>
-
-                <h3 class="services-title">Services Offered</h3>
-                <ul class="services-pills" id="servicesPills" aria-label="Services offered">
-                    <!-- Pills injected by js/job-hire.js -->
-                </ul>
-            </section>
-
-            <!-- ========== PREVIOUS WORK ========== -->
-            <section class="portfolio-section" aria-label="Previous work">
-                <h2 class="section-title">Previous Work</h2>
-                <p class="portfolio-empty" id="portfolioEmpty" hidden>
-                    No work photos yet.
-                </p>
-                <ul class="portfolio-grid" id="portfolioGrid">
-                    <!-- Injected by js/job-hire.js -->
-                </ul>
-            </section>
-
-            <!-- ========== RATING & REVIEWS ========== -->
-            <section class="reviews-section" aria-label="Rating and Reviews">
-                <h2 class="section-title">Rating &amp; Reviews</h2>
-
-                <div class="reviews-summary">
-                    <div class="reviews-summary-left">
-                        <span class="reviews-summary-score" id="reviewsScore">0.0</span>
-                        <span class="reviews-summary-info">
-                            <span class="reviews-summary-stars" id="reviewsSummaryStars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
-                            <span class="reviews-summary-count" id="reviewsSummaryCount">Based on 0 reviews</span>
-                        </span>
-                    </div>
-                </div>
-
-                <ul class="reviews-list" id="reviewsList">
-                    <!-- Reviews injected by js/job-hire.js -->
-                </ul>
-
-                <p class="reviews-empty" id="reviewsEmpty" hidden>
-                    No reviews yet for this professional.
-                </p>
-            </section>
-
-            <!-- ========== BOOK NOW CTA ========== -->
-            <button type="button" class="book-now-btn" id="bookNowBtn">
-                Book Now
-            </button>
-
-            <!-- ========== BACK CONTROLS ========== -->
-            <a href="home.html" class="secondary-link back-link" id="backLink">Back</a>
-
-            <a href="team-page.html" class="secondary-link back-to-team-link" id="backToTeamBtn" hidden>
-                Back to Team
-            </a>
+                <button type="button" class="book-now-btn" id="bookNowBtn">Continue to booking <span aria-hidden="true">→</span></button>
+            </aside>
         </section>
+
+        <div class="details-layout">
+            <div class="details-main-column">
+                <section class="content-card quick-info-section" aria-label="Quick info">
+                    <div class="section-heading"><span class="section-kicker">AT A GLANCE</span><h2 class="section-title">Professional details</h2><p>Everything you need before making a booking decision.</p></div>
+                    <div class="info-grid" id="infoGrid"></div>
+                </section>
+
+                <section class="content-card about-section" aria-label="About professional">
+                    <div class="section-heading"><span class="section-kicker">ABOUT</span><h2 class="section-title">About this professional</h2></div>
+                    <p class="about-text" id="aboutText">Professional details will appear here.</p>
+                    <div class="services-block"><h3 class="services-title">Services offered</h3><ul class="services-pills" id="servicesPills"></ul></div>
+                </section>
+
+                <section class="content-card portfolio-section" aria-label="Previous work">
+                    <div class="section-heading"><span class="section-kicker">PORTFOLIO</span><h2 class="section-title">Previous work</h2></div>
+                    <p class="portfolio-empty" id="portfolioEmpty" hidden>No work photos yet.</p>
+                    <ul class="portfolio-grid" id="portfolioGrid"></ul>
+                </section>
+            </div>
+
+            <aside class="details-side-column">
+                <section class="content-card reviews-section" aria-label="Rating and Reviews">
+                    <div class="section-heading"><span class="section-kicker">CUSTOMER TRUST</span><h2 class="section-title">Rating &amp; reviews</h2></div>
+                    <div class="reviews-summary">
+                        <span class="reviews-summary-score" id="reviewsScore">0.0</span>
+                        <span class="reviews-summary-info"><span class="reviews-summary-stars" id="reviewsSummaryStars">★★★★★</span><span class="reviews-summary-count" id="reviewsSummaryCount">Based on 0 reviews</span></span>
+                    </div>
+                    <ul class="reviews-list" id="reviewsList"></ul>
+                    <p class="reviews-empty" id="reviewsEmpty" hidden>No reviews yet for this professional.</p>
+                </section>
+                <section class="confidence-card" aria-label="Booking reassurance"><span class="confidence-icon">✓</span><div><strong>Book with confidence</strong><p>Your booking stays visible in HandyHire Activity and Booking Details.</p></div></section>
+            </aside>
+        </div>
     </main>
 
     <script src="../js/api.js"></script>
