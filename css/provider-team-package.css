@@ -583,6 +583,11 @@ ul { list-style: none; padding: 0; }
     border-color: #e9c8c4;
     background: var(--team-danger-soft);
 }
+.loading-state[hidden],
+.error-state[hidden],
+.empty-state[hidden] {
+    display: none !important;
+}
 
 .tab-btn:focus-visible,
 .search-input:focus-visible,
