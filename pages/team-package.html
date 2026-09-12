@@ -12,14 +12,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="../css/provider-team-package.css" />
-    <link rel="stylesheet" href="../css/customer-team-package-overrides.css" />
     <link rel="stylesheet" href="../css/provider-page-back.css" />
     <link rel="stylesheet" href="../css/provider-subpage-header.css" />
 </head>
 <body>
     <header class="subpage-header" role="banner">
         <div class="subpage-header-inner">
-            <a href="home.html" class="subpage-brand" aria-label="HandyHire home">
+            <a href="home.html" class="subpage-brand" aria-label="HandyHire customer home">
                 <span class="subpage-brand-logo-shell">
                     <img src="../Images/Hamor.jpeg" alt="" class="subpage-brand-logo" />
                 </span>
@@ -29,7 +28,7 @@
     </header>
 
     <main class="pkg-page" role="main">
-        <a class="page-back" href="home.html" id="backLink" aria-label="Back to home">
+        <a class="page-back" href="home.html" id="backLink" aria-label="Back to customer home">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m15 18-6-6 6-6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" /></svg>
             <span>Back to Home</span>
         </a>
@@ -38,12 +37,12 @@
             <div class="package-hero-copy">
                 <span class="package-eyebrow">TEAM PACKAGES</span>
                 <h1 id="packagePageTitle">One booking. <span>A coordinated crew.</span></h1>
-                <p>Choose a ready-made team for larger jobs that need multiple professionals working together.</p>
+                <p>Explore ready-made teams from HandyHire professionals and book the whole crew together for larger jobs.</p>
 
                 <div class="package-hero-points" aria-label="Team package benefits">
                     <span><i aria-hidden="true">✓</i> Multiple professionals</span>
                     <span><i aria-hidden="true">✓</i> Coordinated skills</span>
-                    <span><i aria-hidden="true">✓</i> One booking</span>
+                    <span><i aria-hidden="true">✓</i> One simple booking</span>
                 </div>
             </div>
 
@@ -63,15 +62,27 @@
                 <div>
                     <span class="section-kicker">TEAM MARKETPLACE</span>
                     <h2>Explore coordinated teams</h2>
-                    <p>Search by team or category and filter by crew size before opening the full team details.</p>
+                    <p>Browse published teams, filter by crew size and open a package to review the complete team.</p>
+                </div>
+
+                <div class="create-row" aria-hidden="true">
+                    <span class="btn-create-package">
+                        <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        Ready to Book
+                    </span>
                 </div>
             </div>
 
-            <div class="workspace-toolbar customer-team-toolbar">
+            <div class="workspace-toolbar">
+                <nav class="tab-nav" aria-label="Package view">
+                    <button type="button" class="tab-btn is-active" aria-current="page">Explore Packages</button>
+                    <button type="button" class="tab-btn" tabindex="-1" aria-hidden="true">Customer View</button>
+                </nav>
+
                 <label class="visually-hidden" for="packageSearch">Search packages</label>
                 <div class="search-wrap">
                     <svg class="search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><path d="m16.2 16.2 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                    <input type="search" id="packageSearch" class="search-input" placeholder="Search teams or categories" autocomplete="off" />
+                    <input type="search" id="packageSearch" class="search-input" placeholder="Search packages, services or teams" autocomplete="off" />
                 </div>
 
                 <section class="filter-section" aria-label="Team size">
@@ -90,6 +101,8 @@
             </div>
 
             <section class="packages-section" aria-label="Available team packages">
+                <div class="loading-state" id="loadingState" hidden>Loading team packages...</div>
+                <div class="error-state" id="errorState" hidden>Unable to load team packages. Please try again.</div>
                 <ul class="package-list" id="packageList"><!-- Cards rendered by js/team-package.js --></ul>
                 <p class="empty-state" id="emptyState" hidden>No packages match your filters.</p>
             </section>
