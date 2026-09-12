@@ -1,185 +1,164 @@
 /* Shared provider flow header
-   Canonical layout for pages that need a Back action:
-   Back button left • HandyHire brand centered • balanced right slot.
+   Canonical layout for Pre-booking -> Professional -> Booking:
+   HandyHire brand on the RIGHT in the sticky top bar.
+   Back action BELOW the top bar, inside page content.
 */
 
 .flow-header,
 .hire-topbar,
 .booking-topbar,
-.app-header {
-    position: sticky;
-    top: 0;
-    z-index: 90;
-    width: 100%;
-    background: rgba(255,255,255,.94);
-    border-bottom: 1px solid rgba(18,53,35,.08);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
+body:has(.prebook-page) .app-header {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 90 !important;
+    width: 100% !important;
+    background: rgba(255,255,255,.94) !important;
+    border-bottom: 1px solid rgba(18,53,35,.08) !important;
+    box-shadow: none !important;
+    backdrop-filter: blur(18px) !important;
+    -webkit-backdrop-filter: blur(18px) !important;
 }
 
-/* Booking page */
-.booking-topbar-inner {
+/* One simple bar: brand on the right only. */
+.booking-topbar-inner,
+.hire-topbar .topbar-inner,
+body:has(.prebook-page) .app-header .header-inner {
     width: min(calc(100% - 32px), 1180px) !important;
     min-height: 72px !important;
     margin: 0 auto !important;
-    display: grid !important;
-    grid-template-columns: 1fr auto 1fr !important;
+    padding: 0 !important;
+    display: flex !important;
     align-items: center !important;
-    gap: 18px !important;
+    justify-content: flex-end !important;
+    gap: 12px !important;
 }
 
-.booking-topbar .back-btn {
-    justify-self: start !important;
-    min-height: 42px !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 7px !important;
-    padding: 0 13px !important;
-    border-radius: 999px !important;
-    color: #607067 !important;
-    background: #f5f7f3 !important;
-    border: 1px solid #e7ece6 !important;
-    font-size: 13px !important;
-    font-weight: 700 !important;
-    box-shadow: none !important;
+/* Pre-booking is a flow page, so hide the full provider nav in this header. */
+body:has(.prebook-page) .app-header .app-nav,
+body:has(.prebook-page) .app-header .header-accent {
+    display: none !important;
 }
 
-.booking-topbar .back-icon {
-    width: 18px !important;
-    height: 18px !important;
-}
-
+/* Canonical HandyHire brand treatment on the right. */
+.hire-topbar .brand-mark,
+body:has(.prebook-page) .app-header .brand-mark,
 .booking-brand {
-    justify-self: center !important;
+    margin-left: auto !important;
+    justify-self: auto !important;
     width: auto !important;
     height: auto !important;
     display: inline-flex !important;
     align-items: center !important;
+    justify-content: flex-end !important;
     gap: 10px !important;
     overflow: visible !important;
     border-radius: 0 !important;
     background: transparent !important;
     box-shadow: none !important;
+    color: #173f2b !important;
     text-decoration: none !important;
     font-weight: 800 !important;
     letter-spacing: -.03em !important;
 }
 
+.hire-topbar .brand-logo-shell,
+body:has(.prebook-page) .brand-logo-shell,
 .booking-brand-logo {
-    width: 42px;
-    height: 42px;
-    display: grid;
-    place-items: center;
-    overflow: hidden;
-    flex: 0 0 42px;
-    border-radius: 13px;
-    background: #173f2b;
-    box-shadow: 0 7px 18px rgba(23,63,43,.22);
-}
-
-.booking-brand-logo img {
-    width: 100%;
-    height: 100%;
-    display: block;
-    object-fit: cover;
-}
-
-.booking-brand-name {
-    color: #173f2b;
-    font-size: 18px;
-    font-weight: 800;
-    white-space: nowrap;
-}
-
-.booking-topbar-spacer {
-    justify-self: end;
-    width: 82px;
-    height: 42px;
-}
-
-/* Professional details page — normalize to the same geometry. */
-.hire-topbar .topbar-inner {
-    width: min(calc(100% - 32px), 1180px) !important;
-    min-height: 72px !important;
-    margin: 0 auto !important;
-    display: grid !important;
-    grid-template-columns: 1fr auto 1fr !important;
-    align-items: center !important;
-    gap: 18px !important;
-}
-
-.hire-topbar .topbar-back {
-    justify-self: start !important;
-    min-height: 42px !important;
-    padding: 0 13px !important;
-    border-radius: 999px !important;
-    color: #607067 !important;
-    background: #f5f7f3 !important;
-    border: 1px solid #e7ece6 !important;
-    font-size: 13px !important;
-    font-weight: 700 !important;
-}
-
-.hire-topbar .brand-mark {
-    justify-self: center !important;
-}
-
-.hire-topbar .topbar-spacer {
-    justify-self: end !important;
-    width: 82px !important;
+    width: 42px !important;
     height: 42px !important;
-}
-
-/* Pre-booking page: reuse its existing app header, but convert it into the same flow header. */
-body:has(.prebook-page) .app-header .header-inner {
-    width: min(calc(100% - 32px), 1180px) !important;
-    min-height: 72px !important;
-    margin: 0 auto !important;
+    min-width: 42px !important;
+    min-height: 42px !important;
+    flex: 0 0 42px !important;
     display: grid !important;
-    grid-template-columns: 1fr auto 1fr !important;
-    align-items: center !important;
-    gap: 18px !important;
+    place-items: center !important;
+    overflow: hidden !important;
+    border-radius: 13px !important;
+    background: #173f2b !important;
+    box-shadow: 0 7px 18px rgba(23,63,43,.20) !important;
 }
 
-body:has(.prebook-page) .app-header .brand-mark {
-    grid-column: 2 !important;
-    justify-self: center !important;
+.hire-topbar .brand-logo,
+body:has(.prebook-page) .brand-logo,
+.booking-brand-logo img {
+    width: 100% !important;
+    height: 100% !important;
+    display: block !important;
+    object-fit: cover !important;
+    object-position: center !important;
 }
 
-body:has(.prebook-page) .app-header .app-nav {
-    display: none !important;
+.hire-topbar .brand-name,
+body:has(.prebook-page) .brand-name,
+.booking-brand-name {
+    display: inline-block !important;
+    color: #173f2b !important;
+    font-size: 18px !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
 }
 
-body:has(.prebook-page) .app-header .header-accent {
-    grid-column: 3 !important;
-    justify-self: end !important;
-    visibility: hidden !important;
-    width: 82px !important;
+/* Back belongs to the page, not the navigation bar. */
+.flow-back-row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 0 0 16px;
 }
 
+.flow-page-back,
 body:has(.prebook-page) .prebook-page > .page-back {
-    position: fixed !important;
-    top: 15px !important;
-    left: max(16px, calc((100vw - 1180px) / 2)) !important;
-    z-index: 110 !important;
+    position: static !important;
+    inset: auto !important;
+    z-index: auto !important;
+    width: fit-content !important;
+    min-width: 0 !important;
     min-height: 42px !important;
     margin: 0 !important;
-    padding: 0 13px !important;
+    padding: 0 14px 0 10px !important;
     display: inline-flex !important;
     align-items: center !important;
+    justify-content: center !important;
     gap: 7px !important;
+    border: 1px solid #dfe8e1 !important;
     border-radius: 999px !important;
-    color: #607067 !important;
-    background: #f5f7f3 !important;
-    border: 1px solid #e7ece6 !important;
-    font-size: 13px !important;
-    font-weight: 700 !important;
+    color: #315a42 !important;
+    background: #f4f8f4 !important;
     box-shadow: none !important;
+    text-decoration: none !important;
+    font-size: 13px !important;
+    font-weight: 750 !important;
+    line-height: 1 !important;
+    transition: transform 180ms ease, background 180ms ease, border-color 180ms ease !important;
 }
 
+.flow-page-back:hover,
+body:has(.prebook-page) .prebook-page > .page-back:hover {
+    transform: translateX(-2px) !important;
+    color: #173f2b !important;
+    background: #eaf3ec !important;
+    border-color: #cddfd1 !important;
+}
+
+.flow-page-back svg,
 body:has(.prebook-page) .prebook-page > .page-back svg {
     width: 18px !important;
     height: 18px !important;
+    flex: 0 0 auto !important;
+}
+
+.flow-page-back--secondary {
+    padding-left: 14px !important;
+    color: #68756c !important;
+    background: #fff !important;
+}
+
+/* Remove old balancing elements left over from the centered-header version. */
+.booking-topbar-spacer,
+.hire-topbar .topbar-spacer {
+    display: none !important;
 }
 
 @media (max-width: 767px) {
@@ -188,51 +167,33 @@ body:has(.prebook-page) .prebook-page > .page-back svg {
     body:has(.prebook-page) .app-header .header-inner {
         width: calc(100% - 24px) !important;
         min-height: 62px !important;
-        gap: 10px !important;
     }
 
-    .booking-topbar .back-btn,
-    .hire-topbar .topbar-back,
-    body:has(.prebook-page) .prebook-page > .page-back {
-        width: 38px !important;
-        min-width: 38px !important;
-        height: 38px !important;
-        min-height: 38px !important;
-        padding: 0 !important;
-        justify-content: center !important;
-        border-radius: 50% !important;
-    }
-
-    .booking-topbar .back-label,
-    .hire-topbar .topbar-back > span,
-    body:has(.prebook-page) .prebook-page > .page-back > span {
-        display: none !important;
-    }
-
-    .booking-brand-logo,
     .hire-topbar .brand-logo-shell,
-    body:has(.prebook-page) .brand-logo-shell {
+    body:has(.prebook-page) .brand-logo-shell,
+    .booking-brand-logo {
         width: 38px !important;
         height: 38px !important;
+        min-width: 38px !important;
+        min-height: 38px !important;
         flex-basis: 38px !important;
         border-radius: 12px !important;
     }
 
-    .booking-brand-name,
     .hire-topbar .brand-name,
-    body:has(.prebook-page) .brand-name {
+    body:has(.prebook-page) .brand-name,
+    .booking-brand-name {
         font-size: 16px !important;
     }
 
-    .booking-topbar-spacer,
-    .hire-topbar .topbar-spacer,
-    body:has(.prebook-page) .app-header .header-accent {
-        width: 38px !important;
-        height: 38px !important;
+    .flow-back-row {
+        margin-bottom: 13px;
     }
 
+    .flow-page-back,
     body:has(.prebook-page) .prebook-page > .page-back {
-        top: 12px !important;
-        left: 12px !important;
+        min-height: 40px !important;
+        padding: 0 13px 0 9px !important;
+        font-size: 12px !important;
     }
 }
