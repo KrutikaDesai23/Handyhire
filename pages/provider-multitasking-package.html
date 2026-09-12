@@ -14,23 +14,17 @@
     <link rel="stylesheet" href="../css/provider-multitasking-package.css" />
     <link rel="stylesheet" href="../css/provider-shell-lock.css" />
     <link rel="stylesheet" href="../css/provider-page-back.css" />
+    <link rel="stylesheet" href="../css/provider-subpage-header.css" />
 </head>
 <body>
-    <header class="app-header" role="banner">
-        <div class="header-inner">
-            <a href="provider-home.html" class="brand-mark" aria-label="HandyHire provider home">
-                <span class="brand-logo-shell"><img src="../Images/Hamor.jpeg" alt="" class="brand-logo" /></span>
-                <span class="brand-name">HandyHire</span>
+    <header class="subpage-header" role="banner">
+        <div class="subpage-header-inner">
+            <a href="provider-home.html" class="subpage-brand" aria-label="HandyHire provider home">
+                <span class="subpage-brand-logo-shell">
+                    <img src="../Images/Hamor.jpeg" alt="" class="subpage-brand-logo" />
+                </span>
+                <span>HandyHire</span>
             </a>
-
-            <nav class="app-nav" aria-label="Primary navigation">
-                <a href="provider-home.html" class="nav-tab is-active" aria-current="page">Home</a>
-                <a href="provider-request.html" class="nav-tab" id="requestTab">Requests<span class="nav-count" data-request-count hidden>0</span></a>
-                <a href="provider-activity.html" class="nav-tab">Activity</a>
-                <a href="provider-worker-profile.html" class="nav-tab">Profile</a>
-            </nav>
-
-            <span class="header-accent" aria-hidden="true"></span>
         </div>
     </header>
 
@@ -106,39 +100,7 @@
         </section>
     </main>
 
-    <nav class="bottom-nav" aria-label="Bottom navigation">
-        <a href="provider-home.html" class="bottom-nav-item is-active" aria-current="page"><span class="bottom-nav-icon" aria-hidden="true">⌂</span><span>Home</span></a>
-        <a href="provider-request.html" class="bottom-nav-item" id="requestTabBottom"><span class="bottom-nav-icon" aria-hidden="true">□</span><span>Requests</span><span class="bottom-nav-count" data-request-count hidden>0</span></a>
-        <a href="provider-activity.html" class="bottom-nav-item"><span class="bottom-nav-icon" aria-hidden="true">⌁</span><span>Activity</span></a>
-        <a href="provider-worker-profile.html" class="bottom-nav-item"><span class="bottom-nav-icon" aria-hidden="true">○</span><span>Profile</span></a>
-    </nav>
-
     <script src="../js/api.js"></script>
-    <script>
-    (function () {
-        async function syncProviderRequestBadge() {
-            var api = window.HandyHireAPI;
-            if (!api || typeof api.apiFetch !== 'function') return;
-            try {
-                var response = await api.apiFetch('/api/worker/requests');
-                if (!response.ok) return;
-                var data = await response.json();
-                var pending = (Array.isArray(data) ? data : []).filter(function (item) {
-                    return String(item && item.status || 'pending').toLowerCase() === 'pending';
-                }).length;
-                document.querySelectorAll('[data-request-count]').forEach(function (badge) {
-                    badge.textContent = String(pending);
-                    if (pending > 0) badge.removeAttribute('hidden');
-                    else badge.setAttribute('hidden', '');
-                });
-            } catch (error) {
-                /* Badge is non-blocking. */
-            }
-        }
-        syncProviderRequestBadge();
-        window.addEventListener('focus', syncProviderRequestBadge);
-    })();
-    </script>
     <script src="../js/provider-multitasking-package.js"></script>
 </body>
 </html>
