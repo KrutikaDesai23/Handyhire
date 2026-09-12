@@ -1,0 +1,120 @@
+.package-card .package-avatar {
+    width: 54px;
+    height: 54px;
+    flex: 0 0 54px;
+    border-radius: 16px;
+    background-size: cover;
+    background-position: center;
+    border: 1px solid #e1e8e2;
+    box-shadow: 0 6px 16px rgba(18,53,35,.08);
+}
+
+.package-card .package-text {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.package-card .package-name {
+    margin: 0;
+    color: var(--team-text);
+    font-size: 18px;
+    line-height: 1.2;
+    letter-spacing: -.025em;
+    font-weight: 800;
+}
+
+.package-card .package-description {
+    margin: -3px 0 0;
+    color: var(--team-muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.package-card .package-section-label {
+    margin: 1px 0 -4px;
+    color: #9a651f;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+}
+
+.package-card .package-members {
+    display: grid;
+    gap: 4px;
+    padding: 11px 13px;
+    border: 1px solid #f1dfc7;
+    border-radius: 14px;
+    background: #fff9f1;
+    color: #6d5436;
+    font-size: 12px;
+    line-height: 1.45;
+    list-style: none;
+}
+
+.package-card .package-members li::before {
+    content: '✓';
+    margin-right: 7px;
+    color: #b36a1e;
+    font-weight: 900;
+}
+
+.package-card .package-price-row {
+    margin: 0;
+}
+
+.package-card .package-price-label {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    padding: 0 10px;
+    border-radius: 999px;
+    color: var(--team-green-900);
+    background: var(--team-green-50);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.package-card .package-book-cta {
+    min-height: 38px;
+    width: fit-content;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 15px;
+    border: 1px solid #d8e8dc;
+    border-radius: 999px;
+    color: var(--team-green-900);
+    background: var(--team-green-50);
+    font: inherit;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 200ms ease, background 200ms ease, color 200ms ease;
+}
+
+.package-card .package-book-cta:hover,
+.package-card .package-book-cta:focus-visible {
+    transform: translateY(-1px);
+    color: #fff;
+    background: var(--team-green-700);
+    outline: none;
+}
+
+.package-card:has(.package-book-cta)::after {
+    display: none;
+}
+
+@media (max-width: 767px) {
+    .package-card .package-avatar {
+        width: 48px;
+        height: 48px;
+        flex-basis: 48px;
+        border-radius: 14px;
+    }
+
+    .package-card .package-name { font-size: 16px; }
+    .package-card .package-book-cta { width: 100%; }
+}
