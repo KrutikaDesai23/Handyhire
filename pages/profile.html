@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="description" content="HandyHire - Customer profile." />
-    <meta name="theme-color" content="#68865C" />
+    <meta name="description" content="HandyHire - Manage your customer profile and account details." />
+    <meta name="theme-color" content="#173f2b" />
     <title>Profile | HandyHire</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -13,124 +13,115 @@
 
     <link rel="stylesheet" href="../css/tokens.css" />
     <link rel="stylesheet" href="../css/profile.css" />
+    <link rel="stylesheet" href="../css/customer-profile-premium.css" />
 </head>
 <body>
-    <!-- ========== TOP BAR ========== -->
     <header class="profile-topbar" role="banner">
-        <a href="home.html" class="brand-mark" aria-label="HandyHire home">
-    <img src="../Images/Hamor.jpeg" alt="HandyHire Logo" class="brand-logo">
-</a>
+        <div class="header-inner">
+            <a href="home.html" class="brand-mark" aria-label="HandyHire home">
+                <span class="brand-logo-shell"><img src="../Images/Hamor.jpeg" alt="" class="brand-logo" /></span>
+                <span class="brand-name">HandyHire</span>
+            </a>
 
-        <nav class="app-nav" aria-label="Primary navigation">
-            <a href="home.html" class="nav-tab">Home</a>
-            <a href="activity.html" class="nav-tab">Activity</a>
-            <a href="profile.html" class="nav-tab is-active" aria-current="page">Profile</a>
-        </nav>
+            <nav class="app-nav" aria-label="Primary navigation">
+                <a href="home.html" class="nav-tab">Home</a>
+                <a href="activity.html" class="nav-tab">Activity</a>
+                <a href="profile.html" class="nav-tab is-active" aria-current="page">Profile</a>
+            </nav>
 
-        <span class="icon-btn-spacer" aria-hidden="true"></span>
+            <span class="header-accent" aria-hidden="true"></span>
+        </div>
     </header>
 
     <main class="profile-page" role="main">
-
-        <!-- ========== PROFILE HERO ========== -->
-        <section class="profile-hero-card" aria-label="Profile header">
+        <section class="profile-hero-card" aria-label="Profile overview">
             <div class="profile-hero-avatar" id="profileHeroAvatar" aria-hidden="true"></div>
             <h1 class="profile-hero-name" id="profileHeroName">Loading...</h1>
-            <span class="profile-hero-badge">CUSTOMER</span>
-            <p class="profile-hero-tagline">Manage your HandyHire account &amp; services</p>
-        </section>
-
-
-        <!-- ========== PERSONAL INFORMATION ========== -->
-        <section class="profile-section" aria-label="Personal information">
-            <h2 class="section-title">Personal Information</h2>
-            <div class="info-card-list">
-                <div class="info-card">
-                    <span class="info-card-icon" aria-hidden="true">&#128100;</span>
-                    <div class="info-card-text">
-                        <p class="info-card-label">Full Name</p>
-                        <p class="info-card-value" id="infoFullName">--</p>
-                    </div>
-                </div>
-                <div class="info-card">
-                    <span class="info-card-icon" aria-hidden="true">&#128241;</span>
-                    <div class="info-card-text">
-                        <p class="info-card-label">Mobile Number</p>
-                        <p class="info-card-value" id="infoMobile">--</p>
-                    </div>
-                </div>
-                <div class="info-card">
-                    <span class="info-card-icon" aria-hidden="true">&#9993;</span>
-                    <div class="info-card-text">
-                        <p class="info-card-label">Email</p>
-                        <p class="info-card-value" id="infoEmail">--</p>
-                    </div>
-                </div>
-                <div class="info-card">
-                    <span class="info-card-icon" aria-hidden="true">&#127968;</span>
-                    <div class="info-card-text">
-                        <p class="info-card-label">Address</p>
-                        <p class="info-card-value" id="infoAddress">--</p>
-                    </div>
-                </div>
-                <div class="info-card">
-                    <span class="info-card-icon" aria-hidden="true">&#127970;</span>
-                    <div class="info-card-text">
-                        <p class="info-card-label">City</p>
-                        <p class="info-card-value" id="infoCity">--</p>
-                    </div>
-                </div>
+            <span class="profile-hero-badge">CUSTOMER ACCOUNT</span>
+            <p class="profile-hero-tagline" id="profileHeroTagline">Manage your contact details and keep your HandyHire account ready for every booking.</p>
+            <div class="profile-trust-points" aria-label="Profile benefits">
+                <span><i aria-hidden="true">✓</i> Booking-ready contact details</span>
+                <span><i aria-hidden="true">✓</i> One account for every service</span>
+                <span><i aria-hidden="true">✓</i> Easy profile updates</span>
             </div>
         </section>
 
-        <!-- ========== EDIT PROFILE ========== -->
-        <section class="profile-section" aria-label="Edit profile">
-            <button type="button" class="edit-profile-btn" id="editProfileBtn">Edit Profile</button>
-
-            <form class="edit-form" id="editProfileForm" hidden>
-                <div class="field">
-                    <label for="editFullName">Full Name</label>
-                    <input type="text" id="editFullName" name="full_name" autocomplete="name" />
-                </div>
-                <div class="field">
-                    <label for="editEmail">Email</label>
-                    <input type="email" id="editEmail" name="email" />
-                </div>
-                <div class="field">
-                    <label for="editMobile">Mobile Number</label>
-                    <input type="text" id="editMobile" name="mobile_number" />
-                </div>
-                <div class="field">
-                    <label for="editAddress">Address</label>
-                    <input type="text" id="editAddress" name="address" />
-                </div>
-                <div class="field">
-                    <label for="editCity">City</label>
-                    <input type="text" id="editCity" name="city" />
+        <div class="profile-content">
+            <section class="profile-section" aria-label="Personal information">
+                <div class="profile-section-heading">
+                    <div>
+                        <span class="profile-section-kicker">ACCOUNT DETAILS</span>
+                        <h2>Personal information</h2>
+                    </div>
+                    <p>These details are used across your HandyHire bookings and service requests.</p>
                 </div>
 
-                <p class="edit-error" id="editError" hidden role="alert"></p>
-
-                <div class="edit-actions">
-                    <button type="button" class="btn-secondary" id="cancelEditBtn">Cancel</button>
-                    <button type="submit" class="btn-primary" id="saveProfileBtn">Save Changes</button>
+                <div class="info-card-list">
+                    <div class="info-card">
+                        <span class="info-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/><path d="M5 20c.8-4 3.1-6 7-6s6.2 2 7 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+                        <div class="info-card-text"><p class="info-card-label">Full Name</p><p class="info-card-value" id="infoFullName">--</p></div>
+                    </div>
+                    <div class="info-card">
+                        <span class="info-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8"/><path d="M10 18h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+                        <div class="info-card-text"><p class="info-card-label">Mobile Number</p><p class="info-card-value" id="infoMobile">--</p></div>
+                    </div>
+                    <div class="info-card">
+                        <span class="info-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="m4 7 8 6 8-6" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span>
+                        <div class="info-card-text"><p class="info-card-label">Email</p><p class="info-card-value" id="infoEmail">--</p></div>
+                    </div>
+                    <div class="info-card">
+                        <span class="info-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 10.5 12 4l8 6.5V20H4v-9.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 20v-6h6v6" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span>
+                        <div class="info-card-text"><p class="info-card-label">Address</p><p class="info-card-value" id="infoAddress">--</p></div>
+                    </div>
+                    <div class="info-card">
+                        <span class="info-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 21V7l7-4 7 4v14" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 10h.01M15 10h.01M9 14h.01M15 14h.01M10 21v-3h4v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+                        <div class="info-card-text"><p class="info-card-label">City</p><p class="info-card-value" id="infoCity">--</p></div>
+                    </div>
                 </div>
-            </form>
-        </section>
+            </section>
 
-        <!-- ========== MEMBER STATUS ========== -->
-        <section class="member-card" aria-label="Account status">
-            <span class="member-icon" aria-hidden="true">&#127942;</span>
-            <div class="member-text">
-                <p class="member-title">HandyHire Member</p>
-                <p class="member-desc">Your account is ready to book trusted professionals.</p>
-            </div>
-        </section>
+            <section class="profile-section" aria-label="Edit profile">
+                <div class="profile-section-heading">
+                    <div>
+                        <span class="profile-section-kicker">KEEP IT CURRENT</span>
+                        <h2>Edit profile</h2>
+                    </div>
+                    <button type="button" class="edit-profile-btn" id="editProfileBtn">Edit Profile</button>
+                </div>
 
-        <!-- ========== SIGN OUT ========== -->
-        <button type="button" class="signout-btn" id="signOutBtn">Sign Out</button>
+                <form class="edit-form" id="editProfileForm" hidden>
+                    <div class="field"><label for="editFullName">Full Name</label><input type="text" id="editFullName" name="full_name" autocomplete="name" /></div>
+                    <div class="field"><label for="editEmail">Email</label><input type="email" id="editEmail" name="email" /></div>
+                    <div class="field"><label for="editMobile">Mobile Number</label><input type="text" id="editMobile" name="mobile_number" /></div>
+                    <div class="field"><label for="editAddress">Address</label><input type="text" id="editAddress" name="address" /></div>
+                    <div class="field"><label for="editCity">City</label><input type="text" id="editCity" name="city" /></div>
 
+                    <p class="edit-error" id="editError" hidden role="alert"></p>
+
+                    <div class="edit-actions">
+                        <button type="button" class="btn-secondary" id="cancelEditBtn">Cancel</button>
+                        <button type="submit" class="btn-primary" id="saveProfileBtn">Save Changes</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="member-card" aria-label="Account status">
+                <span class="member-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3 14.5 8l5.5.8-4 3.9.9 5.5-4.9-2.6-4.9 2.6.9-5.5-4-3.9L9.5 8 12 3Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></span>
+                <div class="member-text"><p class="member-title">HandyHire Member</p><p class="member-desc">Your customer account is active and ready to book trusted professionals and service packages.</p></div>
+            </section>
+
+            <section class="profile-danger-zone" aria-label="Sign out">
+                <div class="profile-danger-copy"><strong>Finished for now?</strong><span>Sign out securely from this device.</span></div>
+                <button type="button" class="signout-btn" id="signOutBtn">Sign Out</button>
+            </section>
+        </div>
     </main>
+
+    <nav class="bottom-nav" aria-label="Customer mobile navigation">
+        <a href="home.html" class="bottom-nav-item"><span class="bottom-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3V10.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span><span>Home</span></a>
+        <a href="activity.html" class="bottom-nav-item"><span class="bottom-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12h4l2.1-5 3.6 10 2.1-5H20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Activity</span></a>
+        <a href="profile.html" class="bottom-nav-item is-active" aria-current="page"><span class="bottom-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.2" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 20c.7-4 3-6 6.5-6s5.8 2 6.5 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><span>Profile</span></a>
+    </nav>
 
     <script src="../js/api.js"></script>
     <script src="../js/profile.js"></script>
