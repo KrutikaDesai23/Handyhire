@@ -352,8 +352,10 @@
             addAfter.hidden = !canUploadAfter;
         }
 
-        const hasAny = before.length || after.length;
-        section.hidden = !hasAny && !canUploadAfter;
+        /* Job Proof is part of the booking record, so keep it visible even
+           after completion when no photos were uploaded. Only the upload
+           control is status-dependent. */
+        section.hidden = false;
     }
 
     function initAfterPhotoUpload() {
