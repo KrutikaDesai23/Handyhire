@@ -4,133 +4,35 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="HandyHire - Service Provider Registration Step 3. Verify your identity to start offering services." />
-    <meta name="theme-color" content="#68865C" />
+    <meta name="theme-color" content="#173f2b" />
     <title>Provider Registration - Step 3 | HandyHire</title>
-
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-
     <link rel="stylesheet" href="../css/provider-register-step3.css" />
 </head>
 <body>
     <main class="register-screen" role="main">
-        <!-- Top tagline above the card -->
-        <p class="brand-tagline" aria-hidden="true">we need to know you</p>
-
-        <!-- Registration Card -->
+        <a href="../index.html" class="auth-brand" aria-label="HandyHire home">
+            <span class="brand-logo-shell"><img src="../Images/Hamor.jpeg" alt="" class="brand-logo" /></span>
+            <span class="brand-name">HandyHire</span>
+        </a>
         <section class="register-card" aria-labelledby="cardTitle">
-            <h1 id="cardTitle" class="card-title">Verification</h1>
-
+            <div class="auth-card-heading">
+                <span class="auth-kicker">PROVIDER SETUP <b>3 / 3</b></span>
+                <h1 id="cardTitle" class="card-title">Verify your profile</h1>
+                <p class="card-subtitle">A verified profile helps customers feel confident when choosing a professional.</p>
+            </div>
             <form id="providerRegisterStep3Form" class="register-form" novalidate>
-                <!-- Upload Photo -->
-                <div class="form-group">
-                    <label for="uploadPhoto" class="form-label">Upload Photo</label>
-                    <div class="file-wrapper">
-                        <input
-                            type="file"
-                            id="uploadPhoto"
-                            name="uploadPhoto"
-                            class="file-input"
-                            accept="image/*"
-                            required
-                            aria-required="true"
-                            aria-describedby="uploadPhotoError uploadPhotoHint"
-                        />
-                        <label for="uploadPhoto" class="file-label" id="uploadPhotoLabel">
-                            <span class="file-icon" aria-hidden="true">&#128247;</span>
-                            <span class="file-text">Choose a photo</span>
-                        </label>
-                    </div>
-                    <span class="form-hint" id="uploadPhotoHint">JPG, PNG or WEBP. Max 2 MB.</span>
-                    <span class="form-error" id="uploadPhotoError" role="alert" aria-live="polite"></span>
-                </div>
-
-                <!-- Photo Identity (Identity Document) -->
-                <div class="form-group">
-                    <label for="photoIdentity" class="form-label">Photo Identity</label>
-                    <div class="file-wrapper">
-                        <input
-                            type="file"
-                            id="photoIdentity"
-                            name="photoIdentity"
-                            class="file-input"
-                            accept="image/*,application/pdf"
-                            required
-                            aria-required="true"
-                            aria-describedby="photoIdentityError photoIdentityHint"
-                        />
-                        <label for="photoIdentity" class="file-label" id="photoIdentityLabel">
-                            <span class="file-icon" aria-hidden="true">&#128196;</span>
-                            <span class="file-text">Choose identity document</span>
-                        </label>
-                    </div>
-                    <span class="form-hint" id="photoIdentityHint">Aadhaar, PAN, Passport or Driving Licence. PDF/JPG/PNG, max 5 MB.</span>
-                    <span class="form-error" id="photoIdentityError" role="alert" aria-live="polite"></span>
-                </div>
-
-                <!-- Identity Number -->
-                <div class="form-group">
-                    <label for="identityNumber" class="form-label">Identity Number</label>
-                    <input
-                        type="text"
-                        id="identityNumber"
-                        name="identityNumber"
-                        class="form-input"
-                        placeholder="Enter the document number"
-                        autocomplete="off"
-                        required
-                        aria-required="true"
-                        aria-describedby="identityNumberError"
-                    />
-                    <span class="form-error" id="identityNumberError" role="alert" aria-live="polite"></span>
-                </div>
-
-                <!-- Additional Documents (Optional) -->
-                <div class="form-group">
-                    <label for="additionalDocuments" class="form-label">Additional Documents <span class="optional-tag">(optional)</span></label>
-                    <div class="file-wrapper">
-                        <input
-                            type="file"
-                            id="additionalDocuments"
-                            name="additionalDocuments"
-                            class="file-input"
-                            accept="image/*,application/pdf"
-                            aria-describedby="additionalDocumentsError additionalDocumentsHint"
-                        />
-                        <label for="additionalDocuments" class="file-label" id="additionalDocumentsLabel">
-                            <span class="file-icon" aria-hidden="true">&#128206;</span>
-                            <span class="file-text">Choose additional document</span>
-                        </label>
-                    </div>
-                    <span class="form-hint" id="additionalDocumentsHint">Optional: certificates, licences, etc. Max 5 MB.</span>
-                    <span class="form-error" id="additionalDocumentsError" role="alert" aria-live="polite"></span>
-                </div>
-
-                <!-- Navigation Buttons -->
-                <div class="button-row">
-                    <button
-                        type="button"
-                        class="nav-btn back-btn"
-                        id="backBtn"
-                        aria-label="Go back to step 2"
-                    >
-                        &larr; Back
-                    </button>
-                    <button
-                        type="submit"
-                        class="nav-btn submit-btn"
-                        aria-label="Submit and go to provider dashboard"
-                    >
-                        Submit
-                    </button>
-                </div>
-
-                <span class="form-error" id="providerRegisterFormError" role="alert" aria-live="polite" style="text-align: center; margin-top: 8px;"></span>
+                <div class="form-group"><label for="uploadPhoto" class="form-label">Upload Photo</label><div class="file-wrapper"><input type="file" id="uploadPhoto" name="uploadPhoto" class="file-input" accept="image/*" required aria-required="true" aria-describedby="uploadPhotoError uploadPhotoHint" /><label for="uploadPhoto" class="file-label" id="uploadPhotoLabel"><span class="file-icon" aria-hidden="true">&#128247;</span><span class="file-text">Choose a photo</span></label></div><span class="form-hint" id="uploadPhotoHint">JPG, PNG or WEBP. Max 2 MB.</span><span class="form-error" id="uploadPhotoError" role="alert" aria-live="polite"></span></div>
+                <div class="form-group"><label for="photoIdentity" class="form-label">Photo Identity</label><div class="file-wrapper"><input type="file" id="photoIdentity" name="photoIdentity" class="file-input" accept="image/*,application/pdf" required aria-required="true" aria-describedby="photoIdentityError photoIdentityHint" /><label for="photoIdentity" class="file-label" id="photoIdentityLabel"><span class="file-icon" aria-hidden="true">&#128196;</span><span class="file-text">Choose identity document</span></label></div><span class="form-hint" id="photoIdentityHint">Aadhaar, PAN, Passport or Driving Licence. PDF/JPG/PNG, max 5 MB.</span><span class="form-error" id="photoIdentityError" role="alert" aria-live="polite"></span></div>
+                <div class="form-group form-group-wide"><label for="identityNumber" class="form-label">Identity Number</label><input type="text" id="identityNumber" name="identityNumber" class="form-input" placeholder="Enter the document number" autocomplete="off" required aria-required="true" aria-describedby="identityNumberError" /><span class="form-error" id="identityNumberError" role="alert" aria-live="polite"></span></div>
+                <div class="form-group form-group-wide"><label for="additionalDocuments" class="form-label">Additional Documents <span class="optional-tag">(optional)</span></label><div class="file-wrapper"><input type="file" id="additionalDocuments" name="additionalDocuments" class="file-input" accept="image/*,application/pdf" aria-describedby="additionalDocumentsError additionalDocumentsHint" /><label for="additionalDocuments" class="file-label" id="additionalDocumentsLabel"><span class="file-icon" aria-hidden="true">&#128206;</span><span class="file-text">Choose additional document</span></label></div><span class="form-hint" id="additionalDocumentsHint">Optional: certificates, licences, etc. Max 5 MB.</span><span class="form-error" id="additionalDocumentsError" role="alert" aria-live="polite"></span></div>
+                <div class="button-row form-action-wide"><button type="button" class="nav-btn back-btn" id="backBtn" aria-label="Go back to step 2">&larr; Back</button><button type="submit" class="nav-btn submit-btn" aria-label="Submit and go to provider dashboard">Submit</button></div>
+                <span class="form-error form-error-wide" id="providerRegisterFormError" role="alert" aria-live="polite"></span>
             </form>
         </section>
     </main>
-
     <script src="../js/api.js"></script>
     <script src="../js/provider-register-step3.js"></script>
 </body>
