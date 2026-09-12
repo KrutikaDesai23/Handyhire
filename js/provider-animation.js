@@ -1,53 +1,49 @@
 /* =========================================================
-   HandyHire - Provider Welcome Animation JavaScript
-   Auto-redirects to the Service Provider Registration Step 1
-   after a short delay. Kept fully separate from the
-   customer animation so neither flow can accidentally
-   fall into the other.
+   HandyHire - Provider Launch Sequence
+   Plays the branded intro, starts the exit wipe, then routes
+   to provider registration. Tap anywhere to skip immediately.
    ========================================================= */
-
 (function () {
     'use strict';
 
-    /**
-     * Destination of the auto-redirect - the first screen
-     * of the Service Provider flow.
-     */
     const NEXT_PAGE = 'provider-register-step1.html';
-
-    /**
-     * How long the animation plays before the redirect.
-     * Short enough to feel snappy, long enough for the
-     * CSS keyframes to finish their sequence.
-     */
-    const REDIRECT_DELAY_MS = 1200;
+    const EXIT_START_MS = 1500;
+    const REDIRECT_DELAY_MS = 1950;
 
     function initAutoRedirect() {
         const reduced = window.matchMedia &&
             window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        const delay = reduced ? 600 : REDIRECT_DELAY_MS;
+        const page = document.querySelector('.anim-page');
+        const exitDelay = reduced ? 350 : EXIT_START_MS;
+        const redirectDelay = reduced ? 650 : REDIRECT_DELAY_MS;
 
-        const timer = setTimeout(function () {
+        const exitTimer = setTimeout(function () {
+            if (page) page.classList.add('is-exiting');
+        }, exitDelay);
+
+        const redirectTimer = setTimeout(function () {
             window.location.href = NEXT_PAGE;
-        }, delay);
+        }, redirectDelay);
 
-        // Allow the user to cancel the redirect by interacting
-        // with the page (e.g. clicking the Skip link).
         window.__handyhireProviderCancelRedirect = function () {
-            clearTimeout(timer);
+            clearTimeout(exitTimer);
+            clearTimeout(redirectTimer);
         };
+    }
+
+    function goNow() {
+        if (typeof window.__handyhireProviderCancelRedirect === 'function') {
+            window.__handyhireProviderCancelRedirect();
+        }
+        window.location.href = NEXT_PAGE;
     }
 
     function initSkipLink() {
         const skip = document.querySelector('.anim-skip');
         if (!skip) return;
-        skip.addEventListener('click', function () {
-            // Cancel the pending redirect so it doesn't fire
-            // after the browser has already started navigating.
-            if (typeof window.__handyhireProviderCancelRedirect === 'function') {
-                window.__handyhireProviderCancelRedirect();
-            }
-            // Let the <a href> handle the actual navigation.
+        skip.addEventListener('click', function (event) {
+            event.preventDefault();
+            goNow();
         });
     }
 
@@ -55,12 +51,8 @@
         const stage = document.querySelector('.anim-stage');
         if (!stage) return;
         stage.addEventListener('click', function (event) {
-            // The Skip link handles its own navigation.
             if (event.target.closest('.anim-skip')) return;
-            if (typeof window.__handyhireProviderCancelRedirect === 'function') {
-                window.__handyhireProviderCancelRedirect();
-            }
-            window.location.href = NEXT_PAGE;
+            goNow();
         });
     }
 
