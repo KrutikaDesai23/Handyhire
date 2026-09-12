@@ -27,7 +27,7 @@
         var style = document.createElement('style');
         style.id = 'hhCollapsibleListStyles';
         style.textContent = [
-            '#activityFeed .booking-card[hidden],#activityFeed .section-group[hidden],#packageList>li[hidden]{display:none!important;}',
+            '#activityFeed .booking-card[hidden],#activityFeed .section-group[hidden],#packageList>li[hidden],.activity-feed>.empty-state[hidden],.packages-section>.empty-state[hidden],.loading-state[hidden],.error-state[hidden]{display:none!important;}',
             '@media(min-width:920px){#activityFeed .booking-card.hh-activity-span-full{grid-column:1/-1;}}',
             '.hh-list-toggle-wrap{display:flex;justify-content:center;padding:20px 0 4px;}',
             '.hh-list-toggle{min-width:148px;min-height:44px;padding:0 20px;border:1px solid rgba(23,63,43,.16);border-radius:999px;background:#fff;color:#173f2b;font:inherit;font-size:12px;font-weight:800;letter-spacing:.01em;cursor:pointer;box-shadow:0 7px 18px rgba(18,53,35,.07);transition:transform .2s ease,box-shadow .2s ease,background .2s ease,border-color .2s ease;}',
