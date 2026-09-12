@@ -16,6 +16,7 @@ from app.routers.customer import router as customer_router
 from app.routers.packages import router as packages_router
 from app.routers.reviews import router as reviews_router
 from app.routers.services import router as services_router
+from app.routers.team_package_bookings import router as team_package_bookings_router
 from app.routers.teams import router as teams_router
 from app.routers.worker_bookings import router as worker_bookings_router
 from app.routers.worker_dashboard import router as worker_dashboard_router
@@ -53,6 +54,7 @@ app.include_router(workers_router)
 app.include_router(services_router)
 app.include_router(packages_router)
 app.include_router(bookings_router)
+app.include_router(team_package_bookings_router)
 app.include_router(activity_router)
 app.include_router(teams_router)
 app.include_router(reviews_router)
