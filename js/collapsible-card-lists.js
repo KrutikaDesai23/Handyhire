@@ -28,6 +28,7 @@
         style.id = 'hhCollapsibleListStyles';
         style.textContent = [
             '#activityFeed .booking-card[hidden],#activityFeed .section-group[hidden],#packageList>li[hidden]{display:none!important;}',
+            '@media(min-width:920px){#activityFeed .booking-card.hh-activity-span-full{grid-column:1/-1;}}',
             '.hh-list-toggle-wrap{display:flex;justify-content:center;padding:20px 0 4px;}',
             '.hh-list-toggle{min-width:148px;min-height:44px;padding:0 20px;border:1px solid rgba(23,63,43,.16);border-radius:999px;background:#fff;color:#173f2b;font:inherit;font-size:12px;font-weight:800;letter-spacing:.01em;cursor:pointer;box-shadow:0 7px 18px rgba(18,53,35,.07);transition:transform .2s ease,box-shadow .2s ease,background .2s ease,border-color .2s ease;}',
             '.hh-list-toggle:hover{transform:translateY(-2px);background:#f1f7f1;border-color:rgba(23,63,43,.28);box-shadow:0 10px 24px rgba(18,53,35,.11);}',
@@ -55,12 +56,30 @@
         var sections = target.querySelectorAll('.section-group');
 
         Array.prototype.forEach.call(sections, function (section) {
-            var cards = section.querySelectorAll('.booking-card');
-            var hasVisibleCard = Array.prototype.some.call(cards, function (card) {
+            var cards = Array.prototype.slice.call(
+                section.querySelectorAll('.booking-card')
+            );
+
+            cards.forEach(function (card) {
+                card.classList.remove('hh-activity-span-full');
+            });
+
+            var visibleCards = cards.filter(function (card) {
                 return !card.hidden;
             });
 
-            section.hidden = !hasVisibleCard;
+            section.hidden = visibleCards.length === 0;
+
+            /*
+             * Desktop Activity is intentionally a two-column grid.
+             * If a date group has an odd number of visible cards,
+             * let the final card span both columns instead of leaving
+             * a large empty half-row beside it.
+             */
+            if (visibleCards.length % 2 === 1) {
+                visibleCards[visibleCards.length - 1]
+                    .classList.add('hh-activity-span-full');
+            }
         });
     }
 
