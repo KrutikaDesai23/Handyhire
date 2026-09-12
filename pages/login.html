@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="HandyHire - Log in to your account." />
-    <meta name="theme-color" content="#68865C" />
+    <meta name="theme-color" content="#173f2b" />
     <title>Log In | HandyHire</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -16,10 +16,17 @@
 </head>
 <body>
     <main class="register-screen" role="main">
-        <p class="brand-tagline" aria-hidden="true">welcome back</p>
+        <a href="../index.html" class="auth-brand" aria-label="HandyHire home">
+            <span class="brand-logo-shell"><img src="../Images/Hamor.jpeg" alt="" class="brand-logo" /></span>
+            <span class="brand-name">HandyHire</span>
+        </a>
 
-        <section class="register-card" aria-labelledby="cardTitle">
-            <h1 id="cardTitle" class="card-title">Log In</h1>
+        <section class="register-card auth-card-login" aria-labelledby="cardTitle">
+            <div class="auth-card-heading">
+                <span class="auth-kicker">WELCOME BACK</span>
+                <h1 id="cardTitle" class="card-title">Log in to HandyHire</h1>
+                <p class="card-subtitle">Book trusted help or manage your provider work from one place.</p>
+            </div>
 
             <form id="loginForm" class="register-form" novalidate>
                 <div class="form-group">
@@ -54,12 +61,10 @@
                     <span class="form-error" id="passwordError" role="alert" aria-live="polite"></span>
                 </div>
 
-                <button type="submit" class="next-btn" aria-label="Log in">
-                    Log In
-                </button>
+                <button type="submit" class="next-btn" aria-label="Log in">Log In</button>
 
                 <p class="auth-switch">
-                    Don't have an account? <a href="customer-register.html">Customer</a> &middot; <a href="provider-register-step1.html">Provider</a>
+                    New to HandyHire? <a href="customer-register.html">Customer signup</a> <span aria-hidden="true">•</span> <a href="provider-register-step1.html">Provider signup</a>
                 </p>
             </form>
         </section>
