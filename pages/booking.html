@@ -30,57 +30,140 @@
             </a>
         </div>
 
-        <section class="booking-heading">
+        <section class="booking-heading" aria-labelledby="bookingPageTitle">
             <span class="booking-eyebrow">ONE LAST STEP</span>
-            <h1>Set up the service</h1>
+            <h1 id="bookingPageTitle">Set up the service</h1>
             <p>Choose the schedule, share the job details and review your estimated total before sending the request.</p>
         </section>
 
         <div class="booking-layout">
             <aside class="booking-summary" aria-label="Booking subject">
                 <span class="summary-kicker">YOU'RE BOOKING</span>
+
                 <div class="worker-header">
-                    <div class="worker-avatar" id="workerAvatar" aria-hidden="true"></div>
+                    <div class="worker-avatar-wrap">
+                        <div class="worker-avatar" id="workerAvatar" aria-hidden="true"></div>
+                        <span class="worker-verified" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none"><path d="m7 12 3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </span>
+                    </div>
                     <div class="worker-copy">
                         <h2 class="worker-name" id="workerName">Loading booking...</h2>
                         <p class="worker-mode" id="workerMode" hidden>Booking</p>
                     </div>
+                    <hr class="worker-divider" aria-hidden="true" />
                 </div>
-                <div class="summary-points">
-                    <div class="summary-point"><span class="summary-point-icon">✓</span><div><strong>Clear request</strong><span>Your booking stays saved in HandyHire.</span></div></div>
-                    <div class="summary-point"><span class="summary-point-icon">◷</span><div><strong>You choose the time</strong><span>Pick the date, time and duration that suit you.</span></div></div>
-                    <div class="summary-point"><span class="summary-point-icon">□</span><div><strong>Share job context</strong><span>Notes and photos help the professional prepare.</span></div></div>
+
+                <div class="summary-points" aria-label="Booking benefits">
+                    <div class="summary-point">
+                        <span class="summary-point-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none"><path d="M12 3 5 6v5c0 4.5 2.8 8 7 10 4.2-2 7-5.5 7-10V6l-7-3Z" stroke="currentColor" stroke-width="1.8"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </span>
+                        <div><strong>Trusted booking</strong><span>Your request stays saved and traceable in HandyHire.</span></div>
+                    </div>
+                    <div class="summary-point">
+                        <span class="summary-point-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </span>
+                        <div><strong>You choose the time</strong><span>Select the date, start time and number of hours.</span></div>
+                    </div>
+                    <div class="summary-point">
+                        <span class="summary-point-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none"><path d="M5 5h14v14H5z" stroke="currentColor" stroke-width="1.8"/><path d="M8 15h8M8 11h5M8 8h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                        </span>
+                        <div><strong>Share job details</strong><span>Notes and photos help the professional arrive prepared.</span></div>
+                    </div>
                 </div>
             </aside>
 
             <form class="booking-form" id="bookingForm" novalidate>
-                <section class="form-section">
-                    <div class="form-section-heading"><span class="form-section-kicker">WHEN</span><h3>Schedule the service</h3><p>Choose when you want the professional to arrive.</p></div>
+                <section class="form-section" aria-labelledby="scheduleHeading">
+                    <div class="form-section-heading">
+                        <span class="form-section-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="5" width="17" height="15" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 3v4M16 3v4M3.5 9.5h17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                        </span>
+                        <div><span class="form-section-kicker">WHEN</span><h3 id="scheduleHeading">Schedule the service</h3><p>Choose when you want the professional to arrive.</p></div>
+                    </div>
+
                     <div class="schedule-grid">
-                        <div class="form-row"><label class="form-label" for="scheduleDate">Schedule Date</label><input type="date" id="scheduleDate" class="form-input" aria-describedby="scheduleHelp" required /><p class="form-help" id="scheduleHelp">Pick a date for the service.</p></div>
-                        <div class="form-row"><label class="form-label" for="bookingTime">Starting Time</label><input type="time" id="bookingTime" class="form-input" aria-describedby="timeHelp" required /><p class="form-help" id="timeHelp">Choose a convenient start time.</p></div>
-                        <div class="form-row"><label class="form-label" for="hoursSelect">Number of Hours</label><div class="select-wrap"><select id="hoursSelect" class="form-select"><option value="" selected disabled>Select hours</option><option value="1">1 hour</option><option value="2">2 hours</option><option value="3">3 hours</option><option value="4">4 hours</option><option value="5">5 hours</option><option value="6">6 hours</option><option value="8">8 hours</option></select></div><p class="form-help">Choose how long you need the professional.</p></div>
+                        <div class="form-row">
+                            <label class="form-label" for="scheduleDate">Schedule Date</label>
+                            <input type="date" id="scheduleDate" class="form-input" aria-describedby="scheduleHelp" required />
+                            <p class="form-help" id="scheduleHelp">Pick a date for the service.</p>
+                        </div>
+                        <div class="form-row">
+                            <label class="form-label" for="bookingTime">Starting Time</label>
+                            <input type="time" id="bookingTime" class="form-input" aria-describedby="timeHelp" required />
+                            <p class="form-help" id="timeHelp">Choose a convenient start time.</p>
+                        </div>
+                        <div class="form-row form-row--hours">
+                            <label class="form-label" for="hoursSelect">Number of Hours</label>
+                            <div class="select-wrap">
+                                <select id="hoursSelect" class="form-select">
+                                    <option value="" selected disabled>Select hours</option>
+                                    <option value="1">1 hour</option><option value="2">2 hours</option><option value="3">3 hours</option><option value="4">4 hours</option><option value="5">5 hours</option><option value="6">6 hours</option><option value="8">8 hours</option>
+                                </select>
+                                <svg class="select-caret" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m8 10 4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </div>
+                            <p class="form-help">Choose how long you need the professional.</p>
+                        </div>
                     </div>
                 </section>
 
-                <section class="form-section">
-                    <div class="form-section-heading"><span class="form-section-kicker">WHERE &amp; WHAT</span><h3>Service details</h3><p>Help the professional arrive prepared.</p></div>
-                    <div class="form-row"><label class="form-label" for="bookingAddress">Service Address</label><textarea id="bookingAddress" class="form-input form-textarea" rows="3" maxlength="500" placeholder="Enter the complete service address" required></textarea><p class="form-help" id="addressHelp">Where should the service take place?</p></div>
-                    <div class="form-row"><div class="label-row"><label class="form-label" for="bookingDescription">Work Details</label><span class="optional-pill">Optional</span></div><textarea id="bookingDescription" class="form-input form-textarea" rows="4" placeholder="Describe the work required, issue or access notes"></textarea><p class="form-help" id="descriptionHelp">Any details that help the professional prepare.</p></div>
+                <section class="form-section" aria-labelledby="detailsHeading">
+                    <div class="form-section-heading">
+                        <span class="form-section-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none"><path d="M12 21s6-5.2 6-11a6 6 0 1 0-12 0c0 5.8 6 11 6 11Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2" stroke="currentColor" stroke-width="1.8"/></svg>
+                        </span>
+                        <div><span class="form-section-kicker">WHERE &amp; WHAT</span><h3 id="detailsHeading">Service details</h3><p>Help the professional arrive prepared.</p></div>
+                    </div>
+
+                    <div class="form-row">
+                        <label class="form-label" for="bookingAddress">Service Address</label>
+                        <textarea id="bookingAddress" class="form-input form-textarea" rows="3" maxlength="500" placeholder="Enter the complete service address" autocomplete="street-address" required></textarea>
+                        <p class="form-help" id="addressHelp">Where should the service take place?</p>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="label-row"><label class="form-label" for="bookingDescription">Work Details</label><span class="optional-pill">Optional</span></div>
+                        <textarea id="bookingDescription" class="form-input form-textarea" rows="4" placeholder="Describe the work required, issue or access notes"></textarea>
+                        <p class="form-help" id="descriptionHelp">Any details that help the professional prepare.</p>
+                    </div>
                 </section>
 
-                <section class="form-section form-section--photos">
-                    <div class="form-section-heading"><span class="form-section-kicker">VISUAL CONTEXT</span><h3>Job photos <span class="heading-optional">Optional</span></h3><p>Photos can help the professional understand the job before arriving.</p></div>
-                    <div class="photo-upload" id="photoUpload"><label class="photo-upload-trigger" for="beforePhotoInput"><span class="photo-upload-icon">＋</span><span class="photo-upload-copy"><strong>Add before photos</strong><small>JPEG, PNG or WEBP • up to 5 MB each</small></span><span class="photo-upload-action">Choose files</span></label><input type="file" id="beforePhotoInput" class="photo-upload-input" accept="image/jpeg,image/png,image/webp" multiple hidden /><div class="photo-preview-grid" id="beforePhotoPreview" hidden></div><p class="photo-upload-error" id="photoUploadError" role="alert" hidden></p></div>
+                <section class="form-section form-section--photos" aria-labelledby="photosHeading">
+                    <div class="form-section-heading">
+                        <span class="form-section-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="5.5" width="17" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><circle cx="9" cy="10" r="1.6" stroke="currentColor" stroke-width="1.8"/><path d="m5.5 17 4.4-4.1 3.1 2.8 2.5-2.2 3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </span>
+                        <div><span class="form-section-kicker">VISUAL CONTEXT</span><h3 id="photosHeading">Job photos <span class="heading-optional">Optional</span></h3><p>Photos can help the professional understand the job before arriving.</p></div>
+                    </div>
+
+                    <div class="photo-upload" id="photoUpload">
+                        <label class="photo-upload-trigger" for="beforePhotoInput">
+                            <span class="photo-upload-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 16V5M8 9l4-4 4 4M5 14v5h14v-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                            <span class="photo-upload-copy"><strong>Add before photos</strong><small>JPEG, PNG or WEBP • up to 5 MB each</small></span>
+                            <span class="photo-upload-action">Choose files</span>
+                        </label>
+                        <input type="file" id="beforePhotoInput" class="photo-upload-input" accept="image/jpeg,image/png,image/webp" multiple hidden />
+                        <div class="photo-preview-grid" id="beforePhotoPreview" hidden></div>
+                        <p class="photo-upload-error" id="photoUploadError" role="alert" hidden></p>
+                    </div>
                 </section>
 
                 <section class="booking-checkout" aria-label="Booking total">
-                    <div><span class="checkout-label">Estimated total</span><p class="total-value" id="totalCost" aria-live="polite">—</p><p class="checkout-help" id="totalHelp">Select hours to see the estimated total.</p></div>
-                    <span class="checkout-badge">✓</span>
+                    <div class="checkout-copy">
+                        <span class="checkout-label">Estimated total</span>
+                        <p class="total-value" id="totalCost" aria-live="polite">—</p>
+                        <p class="checkout-help" id="totalHelp">Select hours to see the estimated total.</p>
+                    </div>
+                    <span class="checkout-badge" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none"><path d="M12 3 5 6v5c0 4.5 2.8 8 7 10 4.2-2 7-5.5 7-10V6l-7-3Z" stroke="currentColor" stroke-width="1.8"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>
                 </section>
 
                 <p class="booking-error" id="bookingError" role="alert" hidden></p>
-                <button type="submit" class="book-btn" id="bookBtn">Confirm booking <span aria-hidden="true">→</span></button>
+                <button type="submit" class="book-btn" id="bookBtn"><span>Confirm booking</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
                 <p class="booking-footnote">Your booking request will be sent to the selected professional for confirmation.</p>
             </form>
         </div>
