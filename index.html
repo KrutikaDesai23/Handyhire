@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="description" content="HandyHire - On-Demand Service Provider Hiring Platform. Connect with skilled professionals or offer your services." />
-    <meta name="theme-color" content="#68865C" />
+    <meta name="description" content="HandyHire - Find trusted local professionals or offer your services." />
+    <meta name="theme-color" content="#173f2b" />
     <title>Welcome | HandyHire</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -16,29 +16,65 @@
 </head>
 <body>
     <main class="welcome-screen" role="main">
-        <header class="welcome-header">
-            <h1 class="welcome-title">WELCOME</h1>
-            <p class="welcome-subtitle">Household Help, Hassle-Free.</p>
-        </header>
+        <section class="welcome-shell" aria-labelledby="welcomeTitle">
+            <div class="welcome-brand" aria-label="HandyHire">
+                <span class="brand-logo-shell">
+                    <img src="Images/Hamor.jpeg" alt="" class="brand-logo" />
+                </span>
+                <span class="brand-name">HandyHire</span>
+            </div>
 
-        <section class="welcome-actions" aria-label="Account selection">
-            <button
-                type="button"
-                class="action-btn"
-                id="provideServiceBtn"
-                aria-label="Provide a service - Continue as a service provider"
-            >
-                WORKER
-            </button>
+            <header class="welcome-header">
+                <span class="welcome-kicker">GET STARTED</span>
+                <h1 class="welcome-title" id="welcomeTitle">What brings you to HandyHire?</h1>
+                <p class="welcome-subtitle">Choose how you want to use HandyHire today. You can sign in or create an account next.</p>
+            </header>
 
-            <button
-                type="button"
-                class="action-btn"
-                id="acquireServiceBtn"
-                aria-label="Acquire a service - Continue as a customer"
-            >
-               USER
-            </button>
+            <section class="welcome-actions" aria-label="Choose how to use HandyHire">
+                <button
+                    type="button"
+                    class="action-btn action-btn--customer"
+                    id="acquireServiceBtn"
+                    aria-label="I need a service - continue as a customer"
+                >
+                    <span class="action-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M9 11.5 11.2 14 16 8.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12 2.8 19 6v5.2c0 4.4-2.8 7.7-7 10-4.2-2.3-7-5.6-7-10V6l7-3.2Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
+                    <span class="action-copy">
+                        <strong>I need a service</strong>
+                        <small>Find and book trusted professionals</small>
+                    </span>
+                    <span class="action-arrow" aria-hidden="true">→</span>
+                </button>
+
+                <button
+                    type="button"
+                    class="action-btn action-btn--provider"
+                    id="provideServiceBtn"
+                    aria-label="I provide a service - continue as a service provider"
+                >
+                    <span class="action-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M14.7 6.3a4 4 0 0 0-5 5L4 17l3 3 5.7-5.7a4 4 0 0 0 5-5l-2.2 2.2-3-3 2.2-2.2Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="m15.5 4.5 4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                        </svg>
+                    </span>
+                    <span class="action-copy">
+                        <strong>I provide a service</strong>
+                        <small>Offer your skills and manage your work</small>
+                    </span>
+                    <span class="action-arrow" aria-hidden="true">→</span>
+                </button>
+            </section>
+
+            <div class="welcome-trust" aria-label="HandyHire benefits">
+                <span><i aria-hidden="true">✓</i> Local professionals</span>
+                <span><i aria-hidden="true">✓</i> Flexible booking</span>
+                <span><i aria-hidden="true">✓</i> Simple setup</span>
+            </div>
         </section>
     </main>
 
