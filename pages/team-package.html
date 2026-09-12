@@ -3,75 +3,99 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="description" content="HandyHire - Team-based service packages grouped by category." />
-    <meta name="theme-color" content="#68865C" />
+    <meta name="description" content="HandyHire - Browse coordinated team packages for bigger jobs." />
+    <meta name="theme-color" content="#173f2b" />
     <title>Team Packages | HandyHire</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
-    <link rel="stylesheet" href="../css/team-package.css" />
-    <script src="../js/api.js"></script>
+    <link rel="stylesheet" href="../css/provider-team-package.css" />
+    <link rel="stylesheet" href="../css/provider-page-back.css" />
+    <link rel="stylesheet" href="../css/provider-subpage-header.css" />
 </head>
 <body>
-    <!-- ========== TOP BAR ========== -->
-    <header class="pkg-topbar" role="banner">
-        <a href="home.html" class="brand-mark" aria-label="HandyHire home">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M14.7 6.3a4 4 0 0 1-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 1 5.4-5.4l-1.4 1.4-2.6-2.6 1.4-1.4Z" />
-            </svg>
-        </a>
-        <span class="icon-btn-spacer" aria-hidden="true"></span>
+    <header class="subpage-header" role="banner">
+        <div class="subpage-header-inner">
+            <a href="home.html" class="subpage-brand" aria-label="HandyHire home">
+                <span class="subpage-brand-logo-shell">
+                    <img src="../Images/Hamor.jpeg" alt="" class="subpage-brand-logo" />
+                </span>
+                <span>HandyHire</span>
+            </a>
+        </div>
     </header>
 
     <main class="pkg-page" role="main">
-        <!-- ========== BACK + SEARCH ROW ========== -->
-        <section class="back-search-row" aria-label="Back and search">
-            <a href="home.html" class="back-btn" id="backLink" aria-label="Back to home">
-                <span class="back-icon" aria-hidden="true">&#8592;</span>
-            </a>
+        <a class="page-back" href="home.html" id="backLink" aria-label="Back to home">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m15 18-6-6 6-6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            <span>Back to Home</span>
+        </a>
 
-            <label class="visually-hidden" for="packageSearch">Search packages</label>
-            <div class="search-wrap">
-                <span class="search-icon" aria-hidden="true">&#128269;</span>
-                <input
-                    type="search"
-                    id="packageSearch"
-                    class="search-input"
-                    placeholder="Search for packages"
-                    autocomplete="off"
-                />
+        <section class="package-hero" aria-labelledby="packagePageTitle">
+            <div class="package-hero-copy">
+                <span class="package-eyebrow">TEAM PACKAGES</span>
+                <h1 id="packagePageTitle">One booking. <span>A coordinated crew.</span></h1>
+                <p>Choose a ready-made team for larger jobs that need multiple professionals working together.</p>
+
+                <div class="package-hero-points" aria-label="Team package benefits">
+                    <span><i aria-hidden="true">✓</i> Multiple professionals</span>
+                    <span><i aria-hidden="true">✓</i> Coordinated skills</span>
+                    <span><i aria-hidden="true">✓</i> One booking</span>
+                </div>
+            </div>
+
+            <div class="package-hero-art" aria-hidden="true">
+                <div class="hero-team-card hero-team-card--main">
+                    <span class="hero-team-icon">
+                        <svg viewBox="0 0 24 24" fill="none"><circle cx="8.5" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/><circle cx="16.5" cy="9" r="2.5" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 19c.7-3.4 2.5-5 5-5 2.8 0 4.7 1.7 5.3 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M14 15c.7-.7 1.6-1 2.8-1 2.2 0 3.6 1.2 4.1 3.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                    </span>
+                    <div><strong>Ready-made crews</strong><small>Skills that work together</small></div>
+                </div>
+                <div class="hero-team-card hero-team-card--mini"><span>2+</span><small>professionals per team</small></div>
             </div>
         </section>
 
-        <!-- ========== TEAM SIZE FILTER ========== -->
-        <section class="filter-section" aria-label="Team size">
-            <label class="filter-label" for="teamSizeSelect">Team Size</label>
-            <div class="select-wrap">
-                <select id="teamSizeSelect" class="team-select" aria-label="Filter packages by team size">
-                    <option value="all" selected>All team sizes</option>
-                    <option value="2">2 members</option>
-                    <option value="3">3 members</option>
-                    <option value="4">4 members</option>
-                    <option value="5">5+ members</option>
-                </select>
-                <span class="select-caret" aria-hidden="true">&#9662;</span>
+        <section class="package-workspace" aria-label="Team package marketplace">
+            <div class="workspace-heading">
+                <div>
+                    <span class="section-kicker">TEAM MARKETPLACE</span>
+                    <h2>Explore coordinated teams</h2>
+                    <p>Search by team or category and filter by crew size before opening the full team details.</p>
+                </div>
             </div>
-        </section>
 
-        <!-- ========== PACKAGE LIST ========== -->
-        <section class="packages-section" aria-label="Available packages">
-            <ul class="package-list" id="packageList">
-                <!-- Cards rendered by js/team-package.js -->
-            </ul>
+            <div class="workspace-toolbar" style="grid-template-columns:minmax(0,1fr) minmax(210px,.45fr);">
+                <label class="visually-hidden" for="packageSearch">Search packages</label>
+                <div class="search-wrap">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><path d="m16.2 16.2 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                    <input type="search" id="packageSearch" class="search-input" placeholder="Search teams or categories" autocomplete="off" />
+                </div>
 
-            <p class="empty-state" id="emptyState" hidden>
-                No packages match your filters.
-            </p>
+                <section class="filter-section" aria-label="Team size">
+                    <label class="filter-label" for="teamSizeSelect">Team Size</label>
+                    <div class="select-wrap">
+                        <select id="teamSizeSelect" class="team-select" aria-label="Filter packages by team size">
+                            <option value="all" selected>All team sizes</option>
+                            <option value="2">2 members</option>
+                            <option value="3">3 members</option>
+                            <option value="4">4 members</option>
+                            <option value="5">5+ members</option>
+                        </select>
+                        <svg class="select-caret" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 9 5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                </section>
+            </div>
+
+            <section class="packages-section" aria-label="Available team packages">
+                <ul class="package-list" id="packageList"><!-- Cards rendered by js/team-package.js --></ul>
+                <p class="empty-state" id="emptyState" hidden>No packages match your filters.</p>
+            </section>
         </section>
     </main>
 
+    <script src="../js/api.js"></script>
     <script src="../js/team-package.js"></script>
 </body>
 </html>
