@@ -3,90 +3,46 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="description" content="HandyHire - View your booking history and activity." />
-    <meta name="theme-color" content="#68865C" />
+    <meta name="description" content="HandyHire - Track your bookings and service history." />
+    <meta name="theme-color" content="#173f2b" />
     <title>Activity | HandyHire</title>
-
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-
     <link rel="stylesheet" href="../css/activity.css" />
 </head>
 <body>
-    <!-- ========== TOP NAVIGATION ========== -->
     <header class="app-header" role="banner">
-        <a href="home.html" class="brand-mark" aria-label="HandyHire home">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M14.7 6.3a4 4 0 0 1-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 1 5.4-5.4l-1.4 1.4-2.6-2.6 1.4-1.4Z" />
-            </svg>
-        </a>
-
-        <nav class="app-nav" aria-label="Primary navigation">
-            <a href="home.html" class="nav-tab">Home</a>
-            <a href="activity.html" class="nav-tab is-active" aria-current="page">Activity</a>
-            <a href="profile.html" class="nav-tab">Profile</a>
-        </nav>
-
-        <span class="icon-btn-spacer" aria-hidden="true"></span>
+        <div class="header-inner">
+            <a href="home.html" class="brand-mark" aria-label="HandyHire home"><span class="brand-logo-shell"><img src="../Images/Hamor.jpeg" alt="" class="brand-logo" /></span><span class="brand-name">HandyHire</span></a>
+            <nav class="app-nav" aria-label="Primary navigation"><a href="home.html" class="nav-tab">Home</a><a href="activity.html" class="nav-tab is-active" aria-current="page">Activity</a><a href="profile.html" class="nav-tab">Profile</a></nav>
+            <span class="header-accent" aria-hidden="true"></span>
+        </div>
     </header>
 
     <main class="app-main" role="main">
-        <!-- ========== SEARCH BAR ========== -->
-        <section class="search-section" aria-label="Search bookings">
-            <label class="visually-hidden" for="activitySearch">Search bookings</label>
-            <div class="search-wrap">
-                <span class="search-icon" aria-hidden="true">&#128269;</span>
-                <input
-                    type="search"
-                    id="activitySearch"
-                    class="search-input"
-                    placeholder="Search for ur preference"
-                    autocomplete="off"
-                />
-            </div>
+        <section class="activity-hero" aria-labelledby="activityTitle">
+            <div class="activity-hero-copy"><span class="activity-eyebrow">YOUR SERVICE JOURNEY</span><h1 id="activityTitle">Your activity</h1><p>Track requests, accepted bookings, completed work and reviews from one organised place.</p></div>
+            <div class="activity-hero-art" aria-hidden="true"><div class="activity-art-icon">↗</div><div><strong>Everything stays organised</strong><span>Open any booking to view its complete details and progress.</span></div></div>
         </section>
 
-        <!-- ========== BOOKING HISTORY ========== -->
-        <section class="activity-feed" aria-label="Booking history">
-            <div id="activityFeed">
-                <!-- Sections rendered by js/activity.js -->
-            </div>
-
-            <p class="empty-state" id="emptyState" hidden>
-                No bookings match your search.
-            </p>
+        <section class="activity-workspace" aria-label="Booking history">
+            <div class="activity-toolbar-copy"><div><span class="section-kicker">TRACK YOUR BOOKINGS</span><h2>Bookings &amp; service history</h2></div><p>Search by professional, service, status, date or location.</p></div>
+            <div class="activity-tools"><label class="visually-hidden" for="activitySearch">Search bookings</label><div class="search-wrap"><svg class="search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><path d="m16.2 16.2 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><input type="search" id="activitySearch" class="search-input" placeholder="Search bookings" autocomplete="off" /></div></div>
+            <section class="activity-feed" aria-label="Booking history"><div id="activityFeed"></div><p class="empty-state" id="emptyState" hidden>No bookings yet.</p></section>
         </section>
 
-        <!-- ========== REVIEW MODAL ========== -->
         <div class="review-modal-overlay" id="reviewModalOverlay" hidden>
             <div class="review-modal" role="dialog" aria-labelledby="reviewModalTitle" aria-modal="true">
-                <h2 class="review-modal-title" id="reviewModalTitle">Leave a Review</h2>
-
-                <div class="review-modal-body">
-                    <label class="review-rating-label">Rating <span class="required">*</span></label>
-                    <div class="star-rating" id="starRating" role="radiogroup" aria-label="Rating">
-                        <span class="star" data-value="1" role="radio" aria-checked="false" tabindex="0">★</span>
-                        <span class="star" data-value="2" role="radio" aria-checked="false" tabindex="0">★</span>
-                        <span class="star" data-value="3" role="radio" aria-checked="false" tabindex="0">★</span>
-                        <span class="star" data-value="4" role="radio" aria-checked="false" tabindex="0">★</span>
-                        <span class="star" data-value="5" role="radio" aria-checked="false" tabindex="0">★</span>
-                    </div>
-                    <p class="review-rating-error" id="reviewRatingError" hidden>Please select a rating.</p>
-
-                    <label for="reviewComment" class="review-comment-label">Comment</label>
-                    <textarea id="reviewComment" class="review-textarea" rows="3" placeholder="Share your experience (optional)"></textarea>
-                </div>
-
+                <div class="review-modal-head"><span class="section-kicker">YOUR EXPERIENCE</span><h2 class="review-modal-title" id="reviewModalTitle">Leave a Review</h2><p>Help other customers know what to expect.</p></div>
+                <div class="review-modal-body"><label class="review-rating-label">Rating <span class="required">*</span></label><div class="star-rating" id="starRating" role="radiogroup" aria-label="Rating"><span class="star" data-value="1" role="radio" aria-checked="false" tabindex="0">★</span><span class="star" data-value="2" role="radio" aria-checked="false" tabindex="0">★</span><span class="star" data-value="3" role="radio" aria-checked="false" tabindex="0">★</span><span class="star" data-value="4" role="radio" aria-checked="false" tabindex="0">★</span><span class="star" data-value="5" role="radio" aria-checked="false" tabindex="0">★</span></div><p class="review-rating-error" id="reviewRatingError" hidden>Please select a rating.</p><label for="reviewComment" class="review-comment-label">Comment</label><textarea id="reviewComment" class="review-textarea" rows="4" placeholder="Share your experience (optional)"></textarea></div>
                 <p class="review-error" id="reviewError" hidden role="alert"></p>
-
-                <div class="review-modal-footer">
-                    <button type="button" class="btn-secondary" id="cancelReviewBtn">Cancel</button>
-                    <button type="button" class="btn-primary" id="submitReviewBtn">Submit Review</button>
-                </div>
+                <div class="review-modal-footer"><button type="button" class="btn-secondary" id="cancelReviewBtn">Cancel</button><button type="button" class="btn-primary" id="submitReviewBtn">Submit Review</button></div>
             </div>
         </div>
     </main>
+
+    <nav class="mobile-bottom-nav" aria-label="Customer mobile navigation"><a href="home.html" class="mobile-nav-item"><span class="mobile-nav-icon">⌂</span><span>Home</span></a><a href="activity.html" class="mobile-nav-item is-active" aria-current="page"><span class="mobile-nav-icon">⌁</span><span>Activity</span></a><a href="profile.html" class="mobile-nav-item"><span class="mobile-nav-icon">○</span><span>Profile</span></a></nav>
 
     <script src="../js/api.js"></script>
     <script src="../js/activity.js"></script>
