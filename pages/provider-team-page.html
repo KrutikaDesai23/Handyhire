@@ -126,6 +126,23 @@
         </section>
     </main>
 
+    <script>
+        (function () {
+            try {
+                var params = new URLSearchParams(window.location.search);
+                if (params.get('package_id')) return;
+                var raw = sessionStorage.getItem('handyhire.selectedTeamPackage');
+                if (!raw) return;
+                var selected = JSON.parse(raw);
+                if (!selected || !selected.id) return;
+                params.set('package_id', String(selected.id));
+                var nextUrl = window.location.pathname + '?' + params.toString() + window.location.hash;
+                window.history.replaceState(null, '', nextUrl);
+            } catch (error) {
+                /* Keep the normal page flow if stored context is unavailable. */
+            }
+        })();
+    </script>
     <script src="../js/api.js"></script>
     <script src="../js/provider-team-page.js"></script>
 </body>
