@@ -3,108 +3,128 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="description" content="HandyHire - View a professional included in your selected team package." />
+    <meta name="description" content="HandyHire - Team member professional details." />
     <meta name="theme-color" content="#173f2b" />
-    <title>Team Member | HandyHire</title>
+    <title>Professional Details | HandyHire</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
-    <link rel="stylesheet" href="../css/team-member.css" />
-    <link rel="stylesheet" href="../css/customer-team-member-premium.css" />
-    <link rel="stylesheet" href="../css/provider-page-back.css" />
-    <link rel="stylesheet" href="../css/provider-subpage-header.css" />
+    <link rel="stylesheet" href="../css/provider-job-hire.css" />
+    <link rel="stylesheet" href="../css/provider-flow-header.css" />
 </head>
 <body>
-    <header class="subpage-header" role="banner">
-        <div class="subpage-header-inner">
-            <a href="home.html" class="subpage-brand" aria-label="HandyHire home">
-                <span class="subpage-brand-logo-shell"><img src="../Images/Hamor.jpeg" alt="" class="subpage-brand-logo" /></span>
-                <span>HandyHire</span>
+    <header class="hire-topbar" role="banner">
+        <div class="topbar-inner">
+            <a href="home.html" class="brand-mark" aria-label="HandyHire customer home">
+                <span class="brand-logo-shell"><img src="../Images/Hamor.jpeg" alt="" class="brand-logo" /></span>
+                <span class="brand-name">HandyHire</span>
             </a>
         </div>
     </header>
 
-    <main class="member-page" role="main">
-        <a href="team-page.html" class="page-back" aria-label="Back to team">
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m15 18-6-6 6-6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" /></svg>
-            <span>Back to Team</span>
-        </a>
+    <main class="hire-page" role="main">
+        <div class="flow-back-row">
+            <a href="team-page.html" class="topbar-back flow-page-back" id="backLink" aria-label="Back to team">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m15 18-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>Back to Team</span>
+            </a>
+        </div>
 
-        <section class="member-hero" aria-label="Team member overview">
-            <div class="member-hero-copy">
-                <span class="member-eyebrow">TEAM PROFESSIONAL</span>
-                <h1 class="member-name-large" id="memberNameLarge">Loading member...</h1>
-                <p class="member-team-line" id="memberTeamLine">Part of: Selected Team</p>
-                <span class="member-role-chip">Included in this team package</span>
-            </div>
-
-            <div class="member-hero-visual" aria-hidden="true">
-                <div class="member-avatar-large" id="memberAvatarLarge"></div>
-            </div>
-        </section>
-
-        <section class="member-details-workspace" aria-label="Team member details">
-            <div class="member-info-panel">
-                <div class="member-info-heading">
-                    <span class="member-section-kicker">PROFESSIONAL DETAILS</span>
-                    <h2>About this member</h2>
-                    <p>Details shown here help you understand who is included in the selected crew.</p>
+        <section class="profile-hero-card" aria-label="Professional overview">
+            <div class="profile-hero-main">
+                <div class="availability-strip" id="availabilityStrip" role="status">
+                    <span class="availability-dot" aria-hidden="true"></span>
+                    <span class="availability-text" id="availabilityText">Included in selected team</span>
                 </div>
 
-                <ul class="info-list">
-                    <li class="info-row">
-                        <span class="info-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="7" width="16" height="12" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M9 7V5h6v2M4 12h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-                        <div class="info-text"><p class="info-label">Occupation</p><p class="info-value" id="memberInfoOccupation">Occupation</p></div>
-                    </li>
-                    <li class="info-row">
-                        <span class="info-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/><path d="M5 20c.8-4 3.1-6 7-6s6.2 2 7 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-                        <div class="info-text"><p class="info-label">Age</p><p class="info-value" id="memberInfoAge">&mdash;</p></div>
-                    </li>
-                    <li class="info-row">
-                        <span class="info-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8"/><path d="M10 18h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-                        <div class="info-text"><p class="info-label">Mobile No.</p><p class="info-value" id="memberInfoMobile">&mdash;</p></div>
-                    </li>
-                    <li class="info-row">
-                        <span class="info-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="m4 7 8 6 8-6" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span>
-                        <div class="info-text"><p class="info-label">Email ID</p><p class="info-value" id="memberInfoEmail">&mdash;</p></div>
-                    </li>
-                    <li class="info-row">
-                        <span class="info-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s7-5.1 7-12a7 7 0 1 0-14 0c0 6.9 7 12 7 12Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="9" r="2.3" stroke="currentColor" stroke-width="1.8"/></svg></span>
-                        <div class="info-text"><p class="info-label">Address</p><p class="info-value" id="memberInfoAddress">&mdash;</p></div>
-                    </li>
-                    <li class="info-row">
-                        <span class="info-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m3 9 9-5 9 5-9 5-9-5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M7 12v5c2.8 2 7.2 2 10 0v-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-                        <div class="info-text"><p class="info-label">Qualification</p><p class="info-value" id="memberInfoQualification">&mdash;</p></div>
-                    </li>
-                    <li class="info-row info-row--select">
-                        <span class="info-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-8l-5 4v-4H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span>
-                        <div class="info-text">
-                            <label class="info-label" for="memberFeedbackSelect">Feedback</label>
-                            <div class="select-wrap">
-                                <select id="memberFeedbackSelect" class="info-select" aria-describedby="memberFeedbackHelp">
-                                    <option value="" disabled selected>Select your feedback</option>
-                                    <option value="excellent">Excellent</option>
-                                    <option value="good">Good</option>
-                                    <option value="average">Average</option>
-                                    <option value="poor">Poor</option>
-                                </select>
-                                <span class="select-caret" aria-hidden="true">⌄</span>
-                            </div>
-                            <p class="info-help" id="memberFeedbackHelp">Choose one option.</p>
+                <section class="hero-profile" aria-label="Professional profile">
+                    <div class="hero-avatar-wrap">
+                        <div class="hero-avatar" id="profileAvatar" aria-hidden="true"></div>
+                        <span class="hero-avatar-status" aria-hidden="true"></span>
+                    </div>
+
+                    <div class="hero-profile-copy">
+                        <span class="profile-kicker">TEAM PROFESSIONAL</span>
+                        <h1 class="hero-name" id="profileName">Loading...</h1>
+                        <p class="hero-profession" id="profileOccupation">Profession</p>
+                        <p class="hero-bio" id="profileBio">Professional details will appear here.</p>
+
+                        <div class="hero-rating" id="profileRating" aria-label="Team package member">
+                            <span class="hero-stars" aria-hidden="true">✓</span>
+                            <span class="hero-rating-value">Team member</span>
+                            <span class="hero-rating-divider" aria-hidden="true">•</span>
+                            <span class="hero-rating-count" id="teamNameText">Selected team</span>
                         </div>
-                    </li>
-                </ul>
+                    </div>
+                </section>
             </div>
 
-            <aside class="member-flow-panel" aria-label="Team booking note">
-                <span class="member-section-kicker">TEAM BOOKING</span>
-                <h2>This is a view-only profile</h2>
-                <p class="flow-note">This professional is part of your selected team. To hire the crew, return to the team page and choose <strong>Book Whole Team</strong>.</p>
-                <a href="team-page.html" class="back-to-team-btn">Back to Team</a>
+            <aside class="hero-cta-card" aria-label="Team booking action">
+                <span class="cta-kicker">TEAM PACKAGE</span>
+                <h2>Book the complete crew</h2>
+                <p>This professional is included in the selected team package and is not booked separately from this page.</p>
+                <div class="cta-trust-list" aria-hidden="true">
+                    <span><i>✓</i> One team request</span>
+                    <span><i>✓</i> Coordinated booking</span>
+                    <span><i>✓</i> Shared package details</span>
+                </div>
+                <a href="team-page.html" class="book-now-btn" id="backToTeamBtn">
+                    Back to team
+                    <span aria-hidden="true">→</span>
+                </a>
             </aside>
         </section>
+
+        <div class="details-layout">
+            <div class="details-main-column">
+                <section class="content-card quick-info-section" aria-label="Quick info">
+                    <div class="section-heading">
+                        <span class="section-kicker">AT A GLANCE</span>
+                        <h2 class="section-title">Professional details</h2>
+                        <p class="section-subtitle">Everything currently available for this team member.</p>
+                    </div>
+                    <ul class="info-grid" id="infoGrid"><!-- Filled by js/team-member.js --></ul>
+                </section>
+
+                <section class="content-card about-section" aria-label="About professional">
+                    <div class="section-heading">
+                        <span class="section-kicker">ABOUT</span>
+                        <h2 class="section-title">About this professional</h2>
+                    </div>
+                    <p class="about-text" id="aboutText">Professional details will appear here.</p>
+
+                    <div class="services-block">
+                        <h3 class="services-title">Team role</h3>
+                        <ul class="services-pills" id="servicesPills" aria-label="Team role"><!-- Filled by js/team-member.js --></ul>
+                    </div>
+                </section>
+            </div>
+
+            <aside class="details-side-column">
+                <section class="content-card reviews-section" aria-label="Team context">
+                    <div class="section-heading">
+                        <span class="section-kicker">TEAM CONTEXT</span>
+                        <h2 class="section-title">Included in your selected crew</h2>
+                    </div>
+                    <div class="reviews-summary">
+                        <span class="reviews-summary-score">✓</span>
+                        <span class="reviews-summary-info">
+                            <span class="reviews-summary-stars">Team package</span>
+                            <span class="reviews-summary-count" id="teamSummaryText">Return to the team page to continue.</span>
+                        </span>
+                    </div>
+                </section>
+
+                <section class="confidence-card" aria-label="Booking reassurance">
+                    <span class="confidence-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none"><path d="M12 3 5 6v5c0 4.4 2.7 8.1 7 10 4.3-1.9 7-5.6 7-10V6l-7-3Z" stroke="currentColor" stroke-width="1.8"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>
+                    <div><strong>One coordinated booking</strong><p>Booking the team keeps every professional connected to the same package request.</p></div>
+                </section>
+            </aside>
+        </div>
     </main>
 
     <script src="../js/api.js"></script>
