@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.auth.router import router as auth_router
 from app.database.connection import test_database_connection
+from app.routers.activity import router as activity_router
 from app.routers.bookings import router as bookings_router
 from app.routers.customer import router as customer_router
 from app.routers.packages import router as packages_router
@@ -52,6 +53,7 @@ app.include_router(workers_router)
 app.include_router(services_router)
 app.include_router(packages_router)
 app.include_router(bookings_router)
+app.include_router(activity_router)
 app.include_router(teams_router)
 app.include_router(reviews_router)
 app.include_router(worker_profile_router)
