@@ -329,7 +329,7 @@
         const before = data.before_photos || [];
         const after = data.after_photos || [];
         const key = normalizeProgressStatus(effectiveStatus || data.status);
-        const canUploadAfter = mode === 'received' && ['in_progress', 'completion_requested'].includes(key);
+        const canUploadAfter = mode === 'received' && ['accepted', 'in_progress', 'completion_requested', 'completed'].includes(key);
 
         const beforeBlock = document.getElementById('beforePhotosBlock');
         const afterBlock = document.getElementById('afterPhotosBlock');
@@ -353,8 +353,7 @@
         }
 
         /* Job Proof is part of the booking record, so keep it visible even
-           after completion when no photos were uploaded. Only the upload
-           control is status-dependent. */
+           after completion when no photos were uploaded. */
         section.hidden = false;
     }
 
