@@ -7,24 +7,187 @@
     <meta name="theme-color" content="#1F5B3D" />
     <title>Requests | HandyHire</title>
     <link rel="stylesheet" href="../css/provider-request.css" />
+
+    <!-- Keep the provider header geometry identical to Provider Home so it never jumps between pages. -->
+    <style>
+        .app-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: block;
+            padding: 0;
+            color: inherit;
+            background: rgba(255,255,255,.9);
+            border-bottom: 1px solid rgba(18,53,35,.08);
+            box-shadow: none;
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+        }
+
+        .header-inner {
+            width: min(calc(100% - 32px), 1180px);
+            min-height: 72px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 22px;
+        }
+
+        .brand-mark {
+            width: auto;
+            height: auto;
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 10px;
+            flex-shrink: 0;
+            overflow: visible;
+            background: transparent;
+            border-radius: 0;
+            text-decoration: none;
+            font-weight: 800;
+            letter-spacing: -.03em;
+        }
+
+        .brand-mark:hover { background: transparent; }
+
+        .brand-logo-shell {
+            width: 42px;
+            height: 42px;
+            display: grid;
+            place-items: center;
+            overflow: hidden;
+            border-radius: 13px;
+            background: #173f2b;
+            box-shadow: 0 7px 18px rgba(23,63,43,.22);
+        }
+
+        .brand-logo {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+            border-radius: 0;
+        }
+
+        .brand-name {
+            font-size: 18px;
+            font-weight: 800;
+            color: #173f2b;
+        }
+
+        .app-nav {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            padding: 5px;
+            border-radius: 999px;
+            background: #f5f7f3;
+        }
+
+        .nav-tab {
+            position: relative;
+            min-height: 42px;
+            display: inline-flex;
+            align-items: center;
+            padding: 0 18px;
+            color: #68756c;
+            background: transparent;
+            text-decoration: none;
+            border-radius: 999px;
+            font-size: 14px;
+            font-weight: 650;
+            box-shadow: none;
+            transition: background 200ms ease, color 200ms ease, box-shadow 200ms ease;
+        }
+
+        .nav-tab:hover {
+            color: #173f2b;
+            background: transparent;
+        }
+
+        .nav-tab.is-active {
+            color: #173f2b;
+            background: #fff;
+            font-weight: 650;
+            box-shadow: 0 4px 14px rgba(18,53,35,.08);
+        }
+
+        .header-accent {
+            width: 42px;
+            height: 42px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #e6f0e7, #fff);
+            border: 1px solid rgba(18,53,35,.08);
+        }
+
+        .nav-count {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 6px;
+            display: inline-grid;
+            place-items: center;
+            border-radius: 999px;
+            background: #d84d4d;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 800;
+            line-height: 1;
+            box-shadow: 0 0 0 3px rgba(255,255,255,.96), 0 5px 12px rgba(121,34,34,.22);
+            pointer-events: none;
+        }
+
+        .nav-count[hidden] { display: none; }
+
+        @media (max-width: 767px) {
+            .header-inner {
+                width: calc(100% - 26px);
+                min-height: 62px;
+            }
+
+            .app-nav,
+            .header-accent {
+                display: none;
+            }
+
+            .brand-logo-shell {
+                width: 38px;
+                height: 38px;
+                border-radius: 12px;
+            }
+
+            .brand-name { font-size: 16px; }
+        }
+    </style>
 </head>
 <body>
     <header class="app-header" role="banner">
-        <a href="provider-home.html" class="brand" aria-label="HandyHire provider home">
-            <span class="brand-mark">
-                <img src="../Images/Hamor.jpeg" alt="" class="brand-logo" />
-            </span>
-            <span class="brand-name">HandyHire</span>
-        </a>
-
-        <nav class="app-nav" aria-label="Primary navigation">
-            <a href="provider-home.html" class="nav-tab">Home</a>
-            <a href="provider-request.html" class="nav-tab is-active" aria-current="page">
-                Requests<span class="nav-count" data-request-count hidden>0</span>
+        <div class="header-inner">
+            <a href="provider-home.html" class="brand-mark" aria-label="HandyHire provider home">
+                <span class="brand-logo-shell">
+                    <img src="../Images/Hamor.jpeg" alt="" class="brand-logo" />
+                </span>
+                <span class="brand-name">HandyHire</span>
             </a>
-            <a href="provider-activity.html" class="nav-tab">Activity</a>
-            <a href="provider-worker-profile.html" class="nav-tab">Profile</a>
-        </nav>
+
+            <nav class="app-nav" aria-label="Primary navigation">
+                <a href="provider-home.html" class="nav-tab">Home</a>
+                <a href="provider-request.html" class="nav-tab is-active" aria-current="page">
+                    Requests<span class="nav-count" data-request-count hidden>0</span>
+                </a>
+                <a href="provider-activity.html" class="nav-tab">Activity</a>
+                <a href="provider-worker-profile.html" class="nav-tab">Profile</a>
+            </nav>
+
+            <span class="header-accent" aria-hidden="true"></span>
+        </div>
     </header>
 
     <main class="app-main" role="main">
