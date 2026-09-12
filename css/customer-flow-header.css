@@ -1,0 +1,134 @@
+/* Shared customer flow header
+   Canonical layout for customer sub-pages:
+   HandyHire brand in the top bar, Back action below it.
+*/
+
+.flow-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 95;
+    width: 100%;
+    background: rgba(255,255,255,.94);
+    border-bottom: 1px solid rgba(18,53,35,.08);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+}
+
+.flow-topbar-inner {
+    width: min(calc(100% - 32px), 1180px);
+    min-height: 72px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.flow-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: #173f2b;
+    text-decoration: none;
+    font-weight: 800;
+    letter-spacing: -.03em;
+}
+
+.flow-brand-logo {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 13px;
+    background: #173f2b;
+    box-shadow: 0 7px 18px rgba(23,63,43,.22);
+}
+
+.flow-brand-logo img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+}
+
+.flow-brand-name {
+    color: #173f2b;
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.flow-back-row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.flow-page-back {
+    width: fit-content;
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 14px 0 10px;
+    border: 1px solid #dfe8e1;
+    border-radius: 999px;
+    color: #315a42;
+    background: #f4f8f4;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 750;
+    line-height: 1;
+    transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
+}
+
+.flow-page-back:hover {
+    transform: translateX(-2px);
+    color: #173f2b;
+    background: #eaf3ec;
+    border-color: #cddfd1;
+}
+
+.flow-page-back svg {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+}
+
+.flow-page-back--secondary {
+    padding-left: 14px;
+    color: #68756c;
+    background: #fff;
+}
+
+.flow-page-back[hidden],
+#backToTeamBtn[hidden] {
+    display: none !important;
+}
+
+@media (max-width: 767px) {
+    .flow-topbar-inner {
+        width: calc(100% - 24px);
+        min-height: 62px;
+    }
+
+    .flow-brand-logo {
+        width: 38px;
+        height: 38px;
+        flex-basis: 38px;
+        border-radius: 12px;
+    }
+
+    .flow-brand-name { font-size: 16px; }
+
+    .flow-page-back {
+        min-height: 40px;
+        padding: 0 13px 0 9px;
+        font-size: 12px;
+    }
+}
