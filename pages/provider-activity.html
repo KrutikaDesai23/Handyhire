@@ -2,51 +2,29 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
-
     <meta
         name="description"
         content="HandyHire - View jobs received and workers hired."
     />
-
-    <meta
-        name="theme-color"
-        content="#68865C"
-    />
+    <meta name="theme-color" content="#68865C" />
 
     <title>Activity | HandyHire</title>
 
-    <link
-        rel="preconnect"
-        href="https://fonts.googleapis.com"
-    />
-
-    <link
-        rel="preconnect"
-        href="https://fonts.gstatic.com"
-        crossorigin
-    />
-
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
         rel="stylesheet"
     />
-
-    <link
-        rel="stylesheet"
-        href="../css/provider-activity.css"
-    />
+    <link rel="stylesheet" href="../css/provider-activity.css" />
 </head>
 
 <body>
-    <header
-        class="app-header"
-        role="banner"
-    >
+    <header class="app-header" role="banner">
         <a
             href="provider-home.html"
             class="brand-mark"
@@ -59,16 +37,8 @@
             />
         </a>
 
-        <nav
-            class="app-nav"
-            aria-label="Primary navigation"
-        >
-            <a
-                href="provider-home.html"
-                class="nav-tab"
-            >
-                Home
-            </a>
+        <nav class="app-nav" aria-label="Primary navigation">
+            <a href="provider-home.html" class="nav-tab">Home</a>
 
             <a
                 href="provider-request.html"
@@ -76,14 +46,11 @@
                 id="requestTab"
             >
                 Request
-
                 <span
                     class="nav-count"
                     data-request-count
                     hidden
-                >
-                    0
-                </span>
+                >0</span>
             </a>
 
             <a
@@ -104,20 +71,21 @@
             </a>
         </nav>
 
-        <span
-            class="icon-btn-spacer"
-            aria-hidden="true"
-        ></span>
+        <span class="icon-btn-spacer" aria-hidden="true"></span>
     </header>
 
-    <main
-        class="app-main"
-        role="main"
-    >
-        <section
-            class="activity-mode-section"
-            aria-label="Activity type"
-        >
+    <main class="app-main" role="main">
+        <section class="page-heading" aria-labelledby="activityTitle">
+            <div>
+                <p class="page-kicker">WORKSPACE</p>
+                <h1 id="activityTitle">Activity</h1>
+                <p class="page-subtitle">
+                    Track active jobs, completed work and workers you have hired.
+                </p>
+            </div>
+        </section>
+
+        <section class="activity-controls" aria-label="Activity controls">
             <div
                 class="activity-mode-tabs"
                 id="activityModeTabs"
@@ -144,26 +112,25 @@
                     Workers Hired
                 </button>
             </div>
-        </section>
 
-        <section
-            class="search-section"
-            aria-label="Search activity"
-        >
-            <label
-                class="visually-hidden"
-                for="activitySearch"
-            >
+            <label class="visually-hidden" for="activitySearch">
                 Search activity
             </label>
 
             <div class="search-wrap">
-                <span
+                <svg
                     class="search-icon"
+                    viewBox="0 0 24 24"
                     aria-hidden="true"
                 >
-                    &#128269;
-                </span>
+                    <path
+                        d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                    />
+                </svg>
 
                 <input
                     type="search"
@@ -175,17 +142,10 @@
             </div>
         </section>
 
-        <section
-            class="activity-feed"
-            aria-label="Provider activity"
-        >
+        <section class="activity-feed" aria-label="Provider activity">
             <div id="activityFeed"></div>
 
-            <p
-                class="empty-state"
-                id="emptyState"
-                hidden
-            >
+            <p class="empty-state" id="emptyState" hidden>
                 No activity yet.
             </p>
         </section>
