@@ -3,140 +3,87 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="description" content="HandyHire - Schedule a booking with a service professional." />
-    <meta name="theme-color" content="#68865C" />
+    <meta name="description" content="HandyHire - Schedule a booking with a trusted professional." />
+    <meta name="theme-color" content="#173f2b" />
     <title>Booking | HandyHire</title>
-
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-
-    <link rel="stylesheet" href="../css/tokens.css" />
     <link rel="stylesheet" href="../css/booking.css" />
+    <link rel="stylesheet" href="../css/customer-flow-header.css" />
 </head>
 <body>
-    <!-- ========== TOP BAR ========== -->
-    <header class="booking-topbar" role="banner">
-        <a href="team-page.html" class="back-btn" id="backLink" aria-label="Back">
-            <span class="back-icon" aria-hidden="true">&#8592;</span>
-            <span class="back-label">Back</span>
-        </a>
-        <h1 class="booking-topbar-title">Booking</h1>
-        <span class="icon-btn-spacer" aria-hidden="true"></span>
+    <header class="flow-topbar" role="banner">
+        <div class="flow-topbar-inner">
+            <a href="home.html" class="flow-brand" aria-label="HandyHire home">
+                <span class="flow-brand-logo"><img src="../Images/Hamor.jpeg" alt="" /></span>
+                <span class="flow-brand-name">HandyHire</span>
+            </a>
+        </div>
     </header>
 
     <main class="booking-page" role="main">
-        <!-- ========== SUBJECT HEADER (worker or team) ========== -->
-        <section class="worker-header" aria-label="Booking subject">
-            <div class="worker-avatar" id="workerAvatar" aria-hidden="true"></div>
-            <h2 class="worker-name" id="workerName">Ravi Kumar</h2>
-            <p class="worker-mode" id="workerMode" hidden>Booking: Team</p>
-            <hr class="worker-divider" aria-hidden="true" />
+        <div class="flow-back-row">
+            <a href="job-hire.html" class="flow-page-back" id="backLink" aria-label="Back">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m15 18-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>Back</span>
+            </a>
+        </div>
+
+        <section class="booking-heading">
+            <span class="booking-eyebrow">ONE LAST STEP</span>
+            <h1>Set up the service</h1>
+            <p>Choose the schedule, share the job details and review your estimated total before sending the request.</p>
         </section>
 
-        <!-- ========== BOOKING FORM ========== -->
-        <form class="booking-form" id="bookingForm" novalidate>
-            <div class="form-row">
-                <label class="form-label" for="scheduleDate">Schedule</label>
-                <input
-                    type="date"
-                    id="scheduleDate"
-                    class="form-input"
-                    aria-describedby="scheduleHelp"
-                    required
-                />
-                <p class="form-help" id="scheduleHelp">Pick a date for the service.</p>
-            </div>
-
-            <div class="form-row">
-                <label class="form-label" for="bookingTime">Time</label>
-                <input
-                    type="time"
-                    id="bookingTime"
-                    class="form-input"
-                    aria-describedby="timeHelp"
-                    required
-                />
-                <p class="form-help" id="timeHelp">Choose a convenient time slot.</p>
-            </div>
-
-            <div class="form-row">
-                <label class="form-label" for="hoursSelect">Number of Hours</label>
-                <div class="select-wrap">
-                    <select id="hoursSelect" class="form-select">
-                        <option value="" selected disabled>Select hours</option>
-                        <option value="1">1 hour</option>
-                        <option value="2">2 hours</option>
-                        <option value="3">3 hours</option>
-                        <option value="4">4 hours</option>
-                        <option value="5">5 hours</option>
-                        <option value="6">6 hours</option>
-                        <option value="8">8 hours</option>
-                    </select>
-                    <span class="select-caret" aria-hidden="true">&#9662;</span>
+        <div class="booking-layout">
+            <aside class="booking-summary" aria-label="Booking subject">
+                <span class="summary-kicker">YOU'RE BOOKING</span>
+                <div class="worker-header">
+                    <div class="worker-avatar" id="workerAvatar" aria-hidden="true"></div>
+                    <div class="worker-copy">
+                        <h2 class="worker-name" id="workerName">Loading booking...</h2>
+                        <p class="worker-mode" id="workerMode" hidden>Booking</p>
+                    </div>
                 </div>
-                <p class="form-help">Choose how long you need the professional.</p>
-            </div>
-
-            <div class="form-row">
-                <label class="form-label" for="bookingAddress">Address</label>
-                <input
-                    type="text"
-                    id="bookingAddress"
-                    class="form-input"
-                    placeholder="Enter your service address"
-                    aria-describedby="addressHelp"
-                    maxlength="500"
-                    required
-                />
-                <p class="form-help" id="addressHelp">Where should the service take place?</p>
-            </div>
-
-            <div class="form-row">
-                <label class="form-label" for="bookingDescription">Work Details <span class="form-label-optional">(Optional)</span></label>
-                <textarea
-                    id="bookingDescription"
-                    class="form-input"
-                    rows="3"
-                    placeholder="Describe the work required (optional)"
-                    aria-describedby="descriptionHelp"
-                ></textarea>
-                <p class="form-help" id="descriptionHelp">Any extra details that help the professional prepare.</p>
-            </div>
-
-            <div class="form-row form-row--total">
-                <span class="form-label">Total Cost</span>
-                <p class="total-value" id="totalCost" aria-live="polite">&#8377;500</p>
-                <p class="form-help" id="totalHelp">Auto-calculated at &#8377;250 / hour.</p>
-            </div>
-
-            <div class="form-row form-row--photos">
-                <span class="form-label">Job Photos <span class="form-label-optional">(Optional)</span></span>
-                <p class="form-help">Add photos of the job so the professional can understand the work required.</p>
-                <div class="photo-upload" id="photoUpload">
-                    <label class="photo-upload-trigger" for="beforePhotoInput">
-                        <span class="photo-upload-icon" aria-hidden="true">&#128247;</span>
-                        <span class="photo-upload-text">Add Before Photos</span>
-                    </label>
-                    <input
-                        type="file"
-                        id="beforePhotoInput"
-                        class="photo-upload-input"
-                        accept="image/jpeg,image/png,image/webp"
-                        multiple
-                        hidden
-                    />
-                    <div class="photo-preview-grid" id="beforePhotoPreview" hidden></div>
-                    <p class="photo-upload-error" id="photoUploadError" role="alert" hidden></p>
+                <div class="summary-points">
+                    <div class="summary-point"><span class="summary-point-icon">✓</span><div><strong>Clear request</strong><span>Your booking stays saved in HandyHire.</span></div></div>
+                    <div class="summary-point"><span class="summary-point-icon">◷</span><div><strong>You choose the time</strong><span>Pick the date, time and duration that suit you.</span></div></div>
+                    <div class="summary-point"><span class="summary-point-icon">□</span><div><strong>Share job context</strong><span>Notes and photos help the professional prepare.</span></div></div>
                 </div>
-            </div>
+            </aside>
 
-            <p class="booking-error" id="bookingError" role="alert" hidden></p>
+            <form class="booking-form" id="bookingForm" novalidate>
+                <section class="form-section">
+                    <div class="form-section-heading"><span class="form-section-kicker">WHEN</span><h3>Schedule the service</h3><p>Choose when you want the professional to arrive.</p></div>
+                    <div class="schedule-grid">
+                        <div class="form-row"><label class="form-label" for="scheduleDate">Schedule Date</label><input type="date" id="scheduleDate" class="form-input" aria-describedby="scheduleHelp" required /><p class="form-help" id="scheduleHelp">Pick a date for the service.</p></div>
+                        <div class="form-row"><label class="form-label" for="bookingTime">Starting Time</label><input type="time" id="bookingTime" class="form-input" aria-describedby="timeHelp" required /><p class="form-help" id="timeHelp">Choose a convenient start time.</p></div>
+                        <div class="form-row"><label class="form-label" for="hoursSelect">Number of Hours</label><div class="select-wrap"><select id="hoursSelect" class="form-select"><option value="" selected disabled>Select hours</option><option value="1">1 hour</option><option value="2">2 hours</option><option value="3">3 hours</option><option value="4">4 hours</option><option value="5">5 hours</option><option value="6">6 hours</option><option value="8">8 hours</option></select></div><p class="form-help">Choose how long you need the professional.</p></div>
+                    </div>
+                </section>
 
-            <button type="submit" class="book-btn" id="bookBtn">
-                Book
-            </button>
-        </form>
+                <section class="form-section">
+                    <div class="form-section-heading"><span class="form-section-kicker">WHERE &amp; WHAT</span><h3>Service details</h3><p>Help the professional arrive prepared.</p></div>
+                    <div class="form-row"><label class="form-label" for="bookingAddress">Service Address</label><textarea id="bookingAddress" class="form-input form-textarea" rows="3" maxlength="500" placeholder="Enter the complete service address" required></textarea><p class="form-help" id="addressHelp">Where should the service take place?</p></div>
+                    <div class="form-row"><div class="label-row"><label class="form-label" for="bookingDescription">Work Details</label><span class="optional-pill">Optional</span></div><textarea id="bookingDescription" class="form-input form-textarea" rows="4" placeholder="Describe the work required, issue or access notes"></textarea><p class="form-help" id="descriptionHelp">Any details that help the professional prepare.</p></div>
+                </section>
+
+                <section class="form-section form-section--photos">
+                    <div class="form-section-heading"><span class="form-section-kicker">VISUAL CONTEXT</span><h3>Job photos <span class="heading-optional">Optional</span></h3><p>Photos can help the professional understand the job before arriving.</p></div>
+                    <div class="photo-upload" id="photoUpload"><label class="photo-upload-trigger" for="beforePhotoInput"><span class="photo-upload-icon">＋</span><span class="photo-upload-copy"><strong>Add before photos</strong><small>JPEG, PNG or WEBP • up to 5 MB each</small></span><span class="photo-upload-action">Choose files</span></label><input type="file" id="beforePhotoInput" class="photo-upload-input" accept="image/jpeg,image/png,image/webp" multiple hidden /><div class="photo-preview-grid" id="beforePhotoPreview" hidden></div><p class="photo-upload-error" id="photoUploadError" role="alert" hidden></p></div>
+                </section>
+
+                <section class="booking-checkout" aria-label="Booking total">
+                    <div><span class="checkout-label">Estimated total</span><p class="total-value" id="totalCost" aria-live="polite">—</p><p class="checkout-help" id="totalHelp">Select hours to see the estimated total.</p></div>
+                    <span class="checkout-badge">✓</span>
+                </section>
+
+                <p class="booking-error" id="bookingError" role="alert" hidden></p>
+                <button type="submit" class="book-btn" id="bookBtn">Confirm booking <span aria-hidden="true">→</span></button>
+                <p class="booking-footnote">Your booking request will be sent to the selected professional for confirmation.</p>
+            </form>
+        </div>
     </main>
 
     <script src="../js/api.js"></script>
