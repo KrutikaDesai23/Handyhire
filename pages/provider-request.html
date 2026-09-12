@@ -4,44 +4,94 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="HandyHire - Manage service booking requests for workers and service providers." />
-    <meta name="theme-color" content="#68865C" />
+    <meta name="theme-color" content="#1F5B3D" />
     <title>Requests | HandyHire</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-
     <link rel="stylesheet" href="../css/provider-request.css" />
 </head>
 <body>
-    <!-- ========== TOP NAVIGATION ========== -->
     <header class="app-header" role="banner">
-        <a href="home.html" class="brand-mark" aria-label="HandyHire home">
-    <img src="../Images/Hamor.jpeg" alt="HandyHire Logo" class="brand-logo">
-</a>
+        <a href="provider-home.html" class="brand" aria-label="HandyHire provider home">
+            <span class="brand-mark">
+                <img src="../Images/Hamor.jpeg" alt="" class="brand-logo" />
+            </span>
+            <span class="brand-name">HandyHire</span>
+        </a>
 
         <nav class="app-nav" aria-label="Primary navigation">
             <a href="provider-home.html" class="nav-tab">Home</a>
             <a href="provider-request.html" class="nav-tab is-active" aria-current="page">
-                Request<span class="nav-count" data-request-count hidden>0</span>
+                Requests<span class="nav-count" data-request-count hidden>0</span>
             </a>
             <a href="provider-activity.html" class="nav-tab">Activity</a>
             <a href="provider-worker-profile.html" class="nav-tab">Profile</a>
         </nav>
-
-        <span class="icon-btn-spacer" aria-hidden="true"></span>
     </header>
 
     <main class="app-main" role="main">
-        <section class="page-heading" aria-label="Page heading">
-            <h1>Service Requests</h1>
-            <p>Manage booking requests from customers.</p>
+        <section class="request-hero" aria-labelledby="requestsTitle">
+            <div class="request-hero-copy">
+                <span class="request-eyebrow">WORK INBOX</span>
+                <h1 id="requestsTitle">Service requests</h1>
+                <p>Review new jobs, accept the work that fits, and keep your schedule moving.</p>
+            </div>
+
+            <div class="request-hero-art" aria-hidden="true">
+                <div class="request-art-icon">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M7 8h10M7 12h7M7 16h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M5.5 3.5h13A2.5 2.5 0 0 1 21 6v12a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 18V6a2.5 2.5 0 0 1 2.5-2.5Z" stroke="currentColor" stroke-width="1.8"/>
+                    </svg>
+                </div>
+                <div>
+                    <strong>Stay on top of new work</strong>
+                    <span>Pending requests appear here first.</span>
+                </div>
+            </div>
         </section>
 
-        <div class="rq-tabs" id="rqTabs" role="tablist" aria-label="Request status"></div>
+        <section class="request-workspace" aria-label="Request management">
+            <div class="request-toolbar">
+                <div>
+                    <span class="section-kicker">MANAGE REQUESTS</span>
+                    <h2>Choose a request status</h2>
+                </div>
+                <p>Accept, decline, or review booking details without leaving this page.</p>
+            </div>
 
-        <section class="rq-panel" id="rqPanel" data-tab="pending" role="tabpanel" aria-live="polite"></section>
+            <div class="rq-tabs" id="rqTabs" role="tablist" aria-label="Request status"></div>
+
+            <section class="rq-panel" id="rqPanel" data-tab="pending" role="tabpanel" aria-live="polite"></section>
+        </section>
     </main>
+
+    <nav class="mobile-bottom-nav" aria-label="Provider mobile navigation">
+        <a href="provider-home.html" class="mobile-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3V10.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            </svg>
+            <span>Home</span>
+        </a>
+        <a href="provider-request.html" class="mobile-nav-item is-active" aria-current="page">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M6 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8"/>
+                <path d="M8 9h8M8 13h6M8 17h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            <span>Requests</span>
+        </a>
+        <a href="provider-activity.html" class="mobile-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M4 12h4l2.1-5 3.6 10 2.1-5H20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Activity</span>
+        </a>
+        <a href="provider-worker-profile.html" class="mobile-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="8" r="3.2" stroke="currentColor" stroke-width="1.8"/>
+                <path d="M5.5 20c.7-4 3-6 6.5-6s5.8 2 6.5 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            <span>Profile</span>
+        </a>
+    </nav>
 
     <script src="../js/api.js"></script>
     <script src="../js/provider-request.js"></script>

@@ -1031,6 +1031,14 @@ let createdBookingId = null;
                     event.preventDefault();
                     showStep(3);
                     back.setAttribute('href', 'quick-hire.html');
+                } else if (currentStep === 3) {
+                    event.preventDefault();
+                    showStep(2);
+                    back.setAttribute('href', 'quick-hire.html');
+                } else if (currentStep === 2) {
+                    event.preventDefault();
+                    showStep(1);
+                    back.setAttribute('href', getHomeHref());
                 }
             });
         }

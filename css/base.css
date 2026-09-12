@@ -1,0 +1,82 @@
+/* =========================================================
+   HandyHire - Base Visual Foundation
+   Safe shared styles loaded before page-specific CSS.
+   Uses premium HandyHire design tokens.
+   ========================================================= */
+
+/* ---------- Reset ---------- */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* ---------- Base page ---------- */
+html {
+    height: 100%;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    font-family: var(--hh-font-family);
+}
+
+body {
+    min-height: 100%;
+    font-family: inherit;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    background-color: var(--hh-bg);
+    color: var(--hh-text);
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ---------- Typography defaults ---------- */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+}
+
+p {
+    line-height: 1.5;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+ul, ol {
+    list-style: none;
+}
+
+img {
+    display: block;
+    max-width: 100%;
+}
+
+/* ---------- Focus ring ---------- */
+:focus-visible {
+    outline: 2px solid var(--hh-primary);
+    outline-offset: 2px;
+}
+
+/* ---------- Selection ---------- */
+::selection {
+    background-color: var(--hh-primary-soft);
+    color: var(--hh-primary-deep);
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        transition: none !important;
+        transform: none !important;
+        animation: none !important;
+    }
+}

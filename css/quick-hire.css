@@ -1,37 +1,12 @@
 /* =========================================================
    HandyHire - Quick Hire Stylesheet
    Shared instant-booking flow for customer and worker roles.
-   Phase 1: Service selection + professionals placeholder.
    ========================================================= */
-
-/* ---------- CSS Reset ---------- */
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
 
 /* ---------- Root Variables ---------- */
 :root {
-    --color-bg: #f5f7f5;
-    --color-surface: #ffffff;
-    --color-primary: #68865C;
-    --color-primary-dark: #566f4b;
-    --color-text: #1a1a1a;
-    --color-text-muted: #6a6a6a;
-    --color-border: #e2e6e2;
-    --color-rating: #f5a623;
-    --color-price: #68865C;
-    --color-danger: #c0392b;
-
     --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --radius-card: 14px;
     --radius-chip: 999px;
-    --shadow-card: 0 4px 14px rgba(0, 0, 0, 0.08);
-    --shadow-elevated: 0 10px 24px rgba(0, 0, 0, 0.12);
-    --transition: 300ms ease;
 }
 
 /* ---------- Global ---------- */
@@ -42,8 +17,8 @@ body {
     font-family: var(--font-family);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: var(--color-bg);
-    color: var(--color-text);
+    background-color: var(--hh-bg);
+    color: var(--hh-text);
 }
 
 body {
@@ -72,7 +47,7 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    background-color: var(--color-primary);
+    background-color: var(--hh-primary);
     color: #ffffff;
     padding: 12px 16px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
@@ -88,7 +63,7 @@ body {
     font-weight: 500;
     padding: 8px 10px;
     border-radius: 10px;
-    transition: background-color var(--transition);
+    transition: background-color var(--hh-transition);
     flex-shrink: 0;
 }
 
@@ -140,6 +115,18 @@ body {
     justify-content: space-between;
     gap: 8px;
     list-style: none;
+    position: relative;
+}
+
+.quickhire-progress-list::before {
+    content: '';
+    position: absolute;
+    top: 14px;
+    left: 24px;
+    right: 24px;
+    height: 2px;
+    background-color: var(--hh-border);
+    z-index: 0;
 }
 
 .quickhire-progress-step {
@@ -148,6 +135,8 @@ body {
     align-items: center;
     gap: 4px;
     flex: 1;
+    position: relative;
+    z-index: 1;
 }
 
 .quickhire-progress-number {
@@ -159,35 +148,49 @@ body {
     border-radius: 50%;
     font-size: 12px;
     font-weight: 700;
-    background-color: var(--color-border);
-    color: var(--color-text-muted);
-    transition: background-color var(--transition), color var(--transition);
+    background-color: var(--hh-border);
+    color: var(--hh-text-muted);
+    transition: background-color var(--hh-transition), color var(--hh-transition);
+    border: 2px solid var(--hh-border);
+}
+
+.quickhire-progress-step.is-completed .quickhire-progress-number {
+    background-color: var(--hh-primary-dark);
+    border-color: var(--hh-primary-dark);
+    color: #ffffff;
+}
+
+.quickhire-progress-step.is-active .quickhire-progress-number {
+    background-color: var(--hh-primary);
+    border-color: var(--hh-primary);
+    color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(104, 134, 92, 0.15);
 }
 
 .quickhire-progress-label {
     font-size: 11px;
     font-weight: 600;
-    color: var(--color-text-muted);
+    color: var(--hh-text-muted);
     text-align: center;
     white-space: nowrap;
 }
 
 .quickhire-progress-step.is-active .quickhire-progress-number {
-    background-color: var(--color-primary);
+    background-color: var(--hh-primary);
     color: #ffffff;
 }
 
 .quickhire-progress-step.is-active .quickhire-progress-label {
-    color: var(--color-text);
+    color: var(--hh-text);
 }
 
 .quickhire-progress-step.is-completed .quickhire-progress-number {
-    background-color: var(--color-primary-dark);
+    background-color: var(--hh-primary-dark);
     color: #ffffff;
 }
 
 .quickhire-progress-step.is-completed .quickhire-progress-label {
-    color: var(--color-text);
+    color: var(--hh-text);
 }
 
 @media (max-width: 374px) {
@@ -231,7 +234,7 @@ body {
 .quickhire-step-title {
     font-size: 18px;
     font-weight: 700;
-    color: var(--color-text);
+    color: var(--hh-text);
     margin-bottom: 4px;
     letter-spacing: -0.01em;
 }
@@ -239,7 +242,7 @@ body {
 .quickhire-step-subtitle {
     font-size: 13px;
     font-weight: 400;
-    color: var(--color-text-muted);
+    color: var(--hh-text-muted);
     margin-bottom: 16px;
     line-height: 1.4;
 }
@@ -247,7 +250,7 @@ body {
 .quickhire-badge {
     font-size: 14px;
     line-height: 1;
-    color: var(--color-primary);
+    color: var(--hh-primary);
 }
 
 /* =========================================================
@@ -266,16 +269,16 @@ body {
     text-align: center;
     gap: 6px;
     padding: 18px 12px;
-    background-color: var(--color-surface);
-    border: 2px solid var(--color-border);
-    border-radius: var(--radius-card);
-    box-shadow: var(--shadow-card);
+    background-color: var(--hh-surface);
+    border: 2px solid var(--hh-border);
+    border-radius: var(--hh-radius-md);
+    box-shadow: var(--hh-shadow-card);
     cursor: pointer;
     transition:
-        transform var(--transition),
-        box-shadow var(--transition),
-        border-color var(--transition),
-        background-color var(--transition);
+        transform var(--hh-transition),
+        box-shadow var(--hh-transition),
+        border-color var(--hh-transition),
+        background-color var(--hh-transition);
     width: 100%;
     font-family: inherit;
     color: inherit;
@@ -283,32 +286,32 @@ body {
 
 .quickhire-service-card:hover {
     transform: translateY(-3px);
-    box-shadow: var(--shadow-elevated);
+    box-shadow: var(--hh-shadow-elevated);
     border-color: rgba(104, 134, 92, 0.35);
 }
 
 .quickhire-service-card:focus-visible {
-    outline: 2px solid var(--color-primary);
+    outline: 2px solid var(--hh-primary);
     outline-offset: 2px;
 }
 
 .quickhire-service-card.is-selected {
-    border-color: var(--color-primary);
-    background-color: rgba(104, 134, 92, 0.06);
+    border-color: var(--hh-primary);
+    background-color: var(--hh-primary-soft);
     box-shadow: 0 0 0 3px rgba(104, 134, 92, 0.12);
 }
 
 .quickhire-service-name {
     font-size: 14px;
     font-weight: 700;
-    color: var(--color-text);
+    color: var(--hh-text);
     line-height: 1.25;
 }
 
 .quickhire-service-category {
     font-size: 11px;
     font-weight: 600;
-    color: var(--color-primary);
+    color: var(--hh-primary);
     text-transform: uppercase;
     letter-spacing: 0.4px;
 }
@@ -316,7 +319,7 @@ body {
 .quickhire-service-desc {
     font-size: 12px;
     font-weight: 400;
-    color: var(--color-text-muted);
+    color: var(--hh-text-muted);
     line-height: 1.35;
 }
 
@@ -324,7 +327,7 @@ body {
 .quickhire-empty {
     grid-column: 1 / -1;
     text-align: center;
-    color: var(--color-text-muted);
+    color: var(--hh-text-muted);
     padding: 32px 0;
     font-size: 14px;
 }
@@ -337,8 +340,8 @@ body {
     align-items: center;
     gap: 10px;
     padding: 10px 14px;
-    background-color: var(--color-surface);
-    border: 1px solid var(--color-border);
+    background-color: var(--hh-surface);
+    border: 1px solid var(--hh-border);
     border-radius: 12px;
     margin-bottom: 14px;
     flex-wrap: wrap;
@@ -347,7 +350,7 @@ body {
 .quickhire-service-summary-label {
     font-size: 12px;
     font-weight: 600;
-    color: var(--color-text-muted);
+    color: var(--hh-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.4px;
 }
@@ -355,28 +358,28 @@ body {
 .quickhire-service-summary-value {
     font-size: 14px;
     font-weight: 700;
-    color: var(--color-text);
+    color: var(--hh-text);
 }
 
 .quickhire-change-service {
     margin-left: auto;
     font-size: 12px;
     font-weight: 600;
-    color: var(--color-primary);
+    color: var(--hh-primary);
     background: transparent;
     border: none;
     cursor: pointer;
     padding: 4px 8px;
     border-radius: 8px;
-    transition: background-color var(--transition);
+    transition: background-color var(--hh-transition);
 }
 
 .quickhire-change-service:hover {
-    background-color: rgba(104, 134, 92, 0.08);
+    background-color: var(--hh-primary-soft);
 }
 
 .quickhire-change-service:focus-visible {
-    outline: 2px solid var(--color-primary);
+    outline: 2px solid var(--hh-primary);
     outline-offset: 2px;
 }
 
@@ -397,22 +400,22 @@ body {
     font-size: 13px;
     font-weight: 600;
     font-family: inherit;
-    color: var(--color-text-muted);
-    background-color: var(--color-surface);
-    border: 1px solid var(--color-border);
+    color: var(--hh-text-muted);
+    background-color: var(--hh-surface);
+    border: 1px solid var(--hh-border);
     border-radius: 10px;
     cursor: pointer;
-    transition: background-color var(--transition), color var(--transition), border-color var(--transition);
+    transition: background-color var(--hh-transition), color var(--hh-transition), border-color var(--hh-transition);
 }
 
 .quickhire-refresh:hover {
-    color: var(--color-text);
-    border-color: var(--color-primary);
-    background-color: rgba(104, 134, 92, 0.04);
+    color: var(--hh-text);
+    border-color: var(--hh-primary);
+    background-color: var(--hh-primary-soft);
 }
 
 .quickhire-refresh:focus-visible {
-    outline: 2px solid var(--color-primary);
+    outline: 2px solid var(--hh-primary);
     outline-offset: 2px;
 }
 
@@ -429,15 +432,15 @@ body {
     justify-content: center;
     gap: 10px;
     padding: 40px 0;
-    color: var(--color-text-muted);
+    color: var(--hh-text-muted);
     font-size: 14px;
 }
 
 .quickhire-spinner {
     width: 20px;
     height: 20px;
-    border: 2px solid var(--color-border);
-    border-top-color: var(--color-primary);
+    border: 2px solid var(--hh-border);
+    border-top-color: var(--hh-primary);
     border-radius: 50%;
     animation: quickhireSpin 0.8s linear infinite;
 }
@@ -459,12 +462,12 @@ body {
     align-items: center;
     gap: 12px;
     padding: 14px;
-    background-color: var(--color-surface);
-    border: 2px solid var(--color-border);
-    border-radius: var(--radius-card);
-    box-shadow: var(--shadow-card);
+    background-color: var(--hh-surface);
+    border: 2px solid var(--hh-border);
+    border-radius: var(--hh-radius-md);
+    box-shadow: var(--hh-shadow-card);
     cursor: pointer;
-    transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+    transition: transform var(--hh-transition), box-shadow var(--hh-transition), border-color var(--hh-transition);
     text-align: left;
     width: 100%;
     font-family: inherit;
@@ -473,17 +476,17 @@ body {
 
 .quickhire-worker-card:hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-elevated);
+    box-shadow: var(--hh-shadow-elevated);
     border-color: rgba(104, 134, 92, 0.35);
 }
 
 .quickhire-worker-card:focus-visible {
-    outline: 2px solid var(--color-primary);
+    outline: 2px solid var(--hh-primary);
     outline-offset: 2px;
 }
 
 .quickhire-worker-card.is-selected {
-    border-color: var(--color-primary);
+    border-color: var(--hh-primary);
     box-shadow: 0 0 0 3px rgba(104, 134, 92, 0.12);
 }
 
@@ -507,7 +510,7 @@ body {
 .quickhire-worker-name {
     font-size: 14px;
     font-weight: 700;
-    color: var(--color-text);
+    color: var(--hh-text);
     margin-bottom: 2px;
     line-height: 1.25;
     word-break: break-word;
@@ -516,14 +519,14 @@ body {
 .quickhire-worker-profession {
     font-size: 12px;
     font-weight: 500;
-    color: var(--color-text-muted);
+    color: var(--hh-text-secondary);
     margin-bottom: 2px;
 }
 
 .quickhire-worker-location {
     font-size: 12px;
     font-weight: 400;
-    color: var(--color-text-muted);
+    color: var(--hh-text-muted);
     margin-bottom: 4px;
 }
 
@@ -540,11 +543,11 @@ body {
     gap: 3px;
     font-size: 12px;
     font-weight: 600;
-    color: var(--color-text);
+    color: var(--hh-text);
 }
 
 .quickhire-star {
-    color: var(--color-rating);
+    color: var(--hh-rating);
     font-size: 13px;
     line-height: 1;
 }
@@ -552,7 +555,7 @@ body {
 .quickhire-worker-reviews {
     font-size: 12px;
     font-weight: 400;
-    color: var(--color-text-muted);
+    color: var(--hh-text-muted);
 }
 
 .quickhire-worker-footer {
@@ -566,7 +569,7 @@ body {
 .quickhire-worker-price {
     font-size: 13px;
     font-weight: 700;
-    color: var(--color-price);
+    color: var(--hh-primary);
 }
 
 .quickhire-availability-badge {
@@ -574,10 +577,10 @@ body {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.4px;
-    color: var(--color-primary);
-    background-color: rgba(104, 134, 92, 0.1);
+    color: var(--hh-success);
+    background-color: var(--hh-success-soft);
     padding: 4px 8px;
-    border-radius: 999px;
+    border-radius: var(--hh-radius-pill);
 }
 
 .quickhire-select-worker {
@@ -587,25 +590,25 @@ body {
     font-weight: 700;
     font-family: inherit;
     color: #ffffff;
-    background-color: var(--color-primary);
+    background-color: var(--hh-primary);
     border: none;
     border-radius: 10px;
     cursor: pointer;
-    transition: background-color var(--transition), transform var(--transition);
+    transition: background-color var(--hh-transition), transform var(--hh-transition);
 }
 
 .quickhire-select-worker:hover {
-    background-color: var(--color-primary-dark);
+    background-color: var(--hh-primary-dark);
     transform: translateY(-1px);
 }
 
 .quickhire-select-worker:focus-visible {
-    outline: 2px solid var(--color-primary);
+    outline: 2px solid var(--hh-primary);
     outline-offset: 2px;
 }
 
 .quickhire-worker-card.is-selected .quickhire-select-worker {
-    background-color: var(--color-primary-dark);
+    background-color: var(--hh-primary-dark);
 }
 
 /* =========================================================
@@ -620,10 +623,10 @@ body {
     align-items: center;
     gap: 12px;
     padding: 14px;
-    background-color: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-card);
-    box-shadow: var(--shadow-card);
+    background-color: var(--hh-surface);
+    border: 1px solid var(--hh-border);
+    border-radius: var(--hh-radius-md);
+    box-shadow: var(--hh-shadow-card);
 }
 
 .quickhire-selected-avatar {
@@ -646,21 +649,21 @@ body {
 .quickhire-selected-name {
     font-size: 15px;
     font-weight: 700;
-    color: var(--color-text);
+    color: var(--hh-text);
     margin-bottom: 2px;
 }
 
 .quickhire-selected-profession {
     font-size: 13px;
     font-weight: 500;
-    color: var(--color-text-muted);
+    color: var(--hh-text-secondary);
     margin-bottom: 2px;
 }
 
 .quickhire-selected-location {
     font-size: 12px;
     font-weight: 400;
-    color: var(--color-text-muted);
+    color: var(--hh-text-muted);
     margin-bottom: 4px;
 }
 
@@ -677,19 +680,19 @@ body {
     gap: 3px;
     font-size: 13px;
     font-weight: 600;
-    color: var(--color-text);
+    color: var(--hh-text);
 }
 
 .quickhire-selected-reviews {
     font-size: 12px;
     font-weight: 400;
-    color: var(--color-text-muted);
+    color: var(--hh-text-muted);
 }
 
 .quickhire-selected-price {
     font-size: 13px;
     font-weight: 700;
-    color: var(--color-price);
+    color: var(--hh-primary);
 }
 
 /* =========================================================
@@ -705,26 +708,27 @@ body {
 
 .quickhire-continue {
     flex: 1;
-    padding: 14px 20px;
+    padding: 14px 24px;
     font-size: 15px;
     font-weight: 700;
     font-family: inherit;
     color: #ffffff;
-    background-color: var(--color-primary);
+    background-color: var(--hh-primary);
     border: none;
-    border-radius: 12px;
-    box-shadow: var(--shadow-card);
+    border-radius: var(--hh-radius-md);
+    box-shadow: var(--hh-shadow-card);
     cursor: pointer;
-    transition: background-color var(--transition), transform var(--transition), opacity var(--transition);
+    transition: background-color var(--hh-transition), transform var(--hh-transition), box-shadow var(--hh-transition);
 }
 
 .quickhire-continue:hover:not(:disabled) {
-    background-color: var(--color-primary-dark);
+    background-color: var(--hh-primary-dark);
     transform: translateY(-1px);
+    box-shadow: var(--hh-shadow-elevated);
 }
 
 .quickhire-continue:focus-visible {
-    outline: 2px solid var(--color-primary);
+    outline: 2px solid var(--hh-primary);
     outline-offset: 2px;
 }
 
@@ -734,145 +738,27 @@ body {
 }
 
 .quickhire-secondary {
-    padding: 14px 18px;
+    padding: 12px 18px;
     font-size: 14px;
     font-weight: 600;
     font-family: inherit;
-    color: var(--color-text-muted);
+    color: var(--hh-text-secondary);
     background-color: transparent;
-    border: 1.5px solid var(--color-border);
-    border-radius: 12px;
+    border: 1.5px solid var(--hh-border-strong);
+    border-radius: var(--hh-radius-md);
     cursor: pointer;
-    transition: background-color var(--transition), color var(--transition);
+    transition: background-color var(--hh-transition), color var(--hh-transition), border-color var(--hh-transition);
 }
 
 .quickhire-secondary:hover {
-    background-color: rgba(0, 0, 0, 0.03);
-    color: var(--color-text);
+    background-color: var(--hh-primary-soft);
+    color: var(--hh-text);
+    border-color: var(--hh-primary);
 }
 
 .quickhire-secondary:focus-visible {
-    outline: 2px solid var(--color-primary);
+    outline: 2px solid var(--hh-primary);
     outline-offset: 2px;
-}
-
-/* =========================================================
-   RESPONSIVE
-   ========================================================= */
-
-@media (max-width: 374px) {
-    .quickhire-header {
-        padding: 10px 12px;
-    }
-
-    .quickhire-title {
-        font-size: 15px;
-    }
-
-    .quickhire-subtitle {
-        font-size: 11px;
-    }
-
-    .quickhire-main {
-        padding: 8px 12px 20px;
-    }
-
-    .quickhire-service-grid {
-        grid-template-columns: 1fr;
-        gap: 10px;
-    }
-
-    .quickhire-worker-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .quickhire-worker-card {
-        flex-wrap: wrap;
-    }
-
-    .quickhire-select-worker {
-        width: 100%;
-        margin-top: 8px;
-    }
-
-    .quickhire-worker-footer {
-        width: 100%;
-    }
-
-    .quickhire-step-title {
-        font-size: 16px;
-    }
-}
-
-@media (min-width: 768px) {
-    .quickhire-header {
-        padding: 14px 24px;
-    }
-
-    .quickhire-title {
-        font-size: 18px;
-    }
-
-    .quickhire-subtitle {
-        font-size: 13px;
-    }
-
-    .quickhire-main {
-        padding: 12px 24px 32px;
-        max-width: 860px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-
-    .quickhire-service-grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 16px;
-    }
-
-    .quickhire-worker-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 14px;
-    }
-
-    .quickhire-step-title {
-        font-size: 20px;
-    }
-}
-
-@media (min-width: 1024px) {
-    .quickhire-main {
-        max-width: 960px;
-    }
-
-    .quickhire-service-grid {
-        grid-template-columns: repeat(4, 1fr);
-    }
-
-    .quickhire-worker-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
-
-/* ---------- Reduced motion ---------- */
-@media (prefers-reduced-motion: reduce) {
-    .quickhire-service-card,
-    .quickhire-worker-card,
-    .quickhire-continue,
-    .quickhire-secondary,
-    .quickhire-back,
-    .quickhire-refresh,
-    .quickhire-select-worker {
-        transition: none;
-        transform: none;
-    }
-
-    .quickhire-step {
-        animation: none;
-    }
-
-    .quickhire-spinner {
-        animation: none;
-    }
 }
 
 /* =========================================================
@@ -894,13 +780,13 @@ body {
 .quickhire-form-label {
     font-size: 13px;
     font-weight: 600;
-    color: var(--color-text);
+    color: var(--hh-text);
 }
 
 .quickhire-form-optional {
     font-size: 12px;
     font-weight: 400;
-    color: var(--color-text-muted);
+    color: var(--hh-text-muted);
 }
 
 .quickhire-form-input,
@@ -909,11 +795,11 @@ body {
     padding: 12px 14px;
     font-size: 14px;
     font-family: inherit;
-    background-color: var(--color-surface);
-    border: 1px solid var(--color-border);
+    background-color: var(--hh-surface);
+    border: 1px solid var(--hh-border);
     border-radius: 12px;
-    color: var(--color-text);
-    transition: border-color var(--transition), box-shadow var(--transition);
+    color: var(--hh-text);
+    transition: border-color var(--hh-transition), box-shadow var(--hh-transition);
 }
 
 .quickhire-form-input:focus,
@@ -925,7 +811,7 @@ body {
 
 .quickhire-form-help {
     font-size: 12px;
-    color: var(--color-text-muted);
+    color: var(--hh-text-muted);
     line-height: 1.4;
 }
 
@@ -941,19 +827,19 @@ body {
     align-items: center;
     gap: 8px;
     padding: 12px 16px;
-    background-color: rgba(104, 134, 92, 0.06);
-    border: 1.5px dashed var(--color-primary);
+    background-color: var(--hh-primary-soft);
+    border: 1.5px dashed var(--hh-primary);
     border-radius: 12px;
-    color: var(--color-primary-dark);
+    color: var(--hh-primary-dark);
     font-size: 14px;
     font-weight: 700;
     cursor: pointer;
-    transition: background-color var(--transition), border-color var(--transition);
+    transition: background-color var(--hh-transition), border-color var(--hh-transition);
 }
 
 .quickhire-photo-trigger:hover {
     background-color: rgba(104, 134, 92, 0.12);
-    border-color: var(--color-primary-dark);
+    border-color: var(--hh-primary-dark);
 }
 
 .quickhire-photo-input {
@@ -978,9 +864,10 @@ body {
 .quickhire-photo-preview-item {
     position: relative;
     aspect-ratio: 1 / 1;
-    border-radius: 10px;
+    border-radius: var(--hh-radius-md);
     overflow: hidden;
-    background-color: var(--color-border);
+    background-color: var(--hh-border);
+    box-shadow: var(--hh-shadow-soft);
 }
 
 .quickhire-photo-preview-item img {
@@ -992,20 +879,26 @@ body {
 
 .quickhire-photo-remove {
     position: absolute;
-    top: 4px;
-    right: 4px;
-    width: 22px;
-    height: 22px;
+    top: 6px;
+    right: 6px;
+    width: 24px;
+    height: 24px;
     border: none;
     border-radius: 50%;
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: rgba(0, 0, 0, 0.65);
     color: #ffffff;
-    font-size: 14px;
+    font-size: 15px;
     line-height: 1;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: background-color var(--hh-transition), transform var(--hh-transition);
+}
+
+.quickhire-photo-remove:hover {
+    background-color: rgba(0, 0, 0, 0.85);
+    transform: scale(1.1);
 }
 
 .quickhire-photo-error {
@@ -1013,9 +906,9 @@ body {
     padding: 8px 12px;
     font-size: 12px;
     line-height: 1.4;
-    color: var(--color-danger);
-    background-color: rgba(192, 57, 43, 0.08);
-    border: 1px solid rgba(192, 57, 43, 0.25);
+    color: var(--hh-danger);
+    background-color: rgba(196, 69, 54, 0.08);
+    border: 1px solid rgba(196, 69, 54, 0.25);
     border-radius: 8px;
 }
 
@@ -1023,55 +916,56 @@ body {
    PRICE
    ========================================================= */
 .quickhire-price-card {
-    padding: 14px 16px;
-    background-color: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: 12px;
-    box-shadow: var(--shadow-card);
+    padding: 16px 18px;
+    background-color: var(--hh-surface);
+    border: 1px solid var(--hh-border);
+    border-radius: var(--hh-radius-lg);
+    box-shadow: var(--hh-shadow-card);
 }
 
 .quickhire-price-label {
     font-size: 12px;
     font-weight: 600;
-    color: var(--color-text-muted);
+    color: var(--hh-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.4px;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
 }
 
 .quickhire-price-summary {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
 }
 
 .quickhire-price-rate {
     font-size: 16px;
     font-weight: 700;
-    color: var(--color-text);
+    color: var(--hh-text);
 }
 
 .quickhire-price-hours {
     font-size: 13px;
     font-weight: 500;
-    color: var(--color-text-muted);
+    color: var(--hh-text-muted);
 }
 
 .quickhire-price-total {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 800;
-    color: var(--color-primary);
+    color: var(--hh-primary);
+    margin-top: 4px;
 }
 
 .quickhire-price-unavailable {
     font-size: 14px;
     font-weight: 600;
-    color: var(--color-danger);
+    color: var(--hh-danger);
 }
 
 .quickhire-price-note {
     font-size: 12px;
-    color: var(--color-danger);
+    color: var(--hh-danger);
     margin-top: 6px;
     line-height: 1.4;
 }
@@ -1089,24 +983,24 @@ body {
 .quickhire-confirm-card {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 14px;
-    background-color: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-card);
-    box-shadow: var(--shadow-card);
+    gap: 14px;
+    padding: 16px;
+    background-color: var(--hh-surface);
+    border: 1px solid var(--hh-border);
+    border-radius: var(--hh-radius-lg);
+    box-shadow: var(--hh-shadow-elevated);
 }
 
 .quickhire-confirm-avatar {
-    width: 56px;
-    height: 56px;
+    width: 64px;
+    height: 64px;
     border-radius: 50%;
     background-color: #d9e1d9;
     background-size: cover;
     background-position: center;
     flex-shrink: 0;
-    border: 2px solid #ffffff;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    border: 3px solid #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .quickhire-confirm-info {
@@ -1115,23 +1009,23 @@ body {
 }
 
 .quickhire-confirm-name {
-    font-size: 15px;
+    font-size: 17px;
     font-weight: 700;
-    color: var(--color-text);
+    color: var(--hh-text);
     margin-bottom: 2px;
 }
 
 .quickhire-confirm-profession {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--color-text-muted);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--hh-text-secondary);
     margin-bottom: 2px;
 }
 
 .quickhire-confirm-location {
     font-size: 12px;
     font-weight: 400;
-    color: var(--color-text-muted);
+    color: var(--hh-text-muted);
     margin-bottom: 4px;
 }
 
@@ -1148,30 +1042,30 @@ body {
     gap: 3px;
     font-size: 13px;
     font-weight: 600;
-    color: var(--color-text);
+    color: var(--hh-text);
 }
 
 .quickhire-confirm-reviews {
     font-size: 12px;
     font-weight: 400;
-    color: var(--color-text-muted);
+    color: var(--hh-text-muted);
 }
 
 .quickhire-confirm-price {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 700;
-    color: var(--color-price);
+    color: var(--hh-primary);
 }
 
 .quickhire-confirm-summary {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    padding: 14px;
-    background-color: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-card);
-    box-shadow: var(--shadow-card);
+    padding: 16px;
+    background-color: var(--hh-surface);
+    border: 1px solid var(--hh-border);
+    border-radius: var(--hh-radius-lg);
+    box-shadow: var(--hh-shadow-card);
 }
 
 .quickhire-confirm-row {
@@ -1179,8 +1073,8 @@ body {
     align-items: flex-start;
     justify-content: space-between;
     gap: 10px;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--color-border);
+    padding: 10px 0;
+    border-bottom: 1px solid var(--hh-border);
 }
 
 .quickhire-confirm-row:last-child {
@@ -1190,7 +1084,7 @@ body {
 .quickhire-confirm-label {
     font-size: 12px;
     font-weight: 600;
-    color: var(--color-text-muted);
+    color: var(--hh-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.4px;
     flex-shrink: 0;
@@ -1199,22 +1093,22 @@ body {
 .quickhire-confirm-value {
     font-size: 14px;
     font-weight: 500;
-    color: var(--color-text);
+    color: var(--hh-text);
     text-align: right;
     word-break: break-word;
 }
 
 .quickhire-confirm-total {
-    border-top: 2px solid var(--color-border);
+    border-top: 2px solid var(--hh-border);
     border-bottom: none;
     margin-top: 4px;
-    padding-top: 10px;
+    padding-top: 12px;
 }
 
 .quickhire-confirm-total .quickhire-confirm-value {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--color-primary);
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--hh-primary);
 }
 
 .quickhire-confirm-badge {
@@ -1227,9 +1121,9 @@ body {
     padding: 10px 14px;
     font-size: 13px;
     line-height: 1.4;
-    color: var(--color-danger);
-    background-color: rgba(192, 57, 43, 0.08);
-    border: 1px solid rgba(192, 57, 43, 0.25);
+    color: var(--hh-danger);
+    background-color: rgba(196, 69, 54, 0.08);
+    border: 1px solid rgba(196, 69, 54, 0.25);
     border-radius: 10px;
     text-align: center;
 }
@@ -1323,7 +1217,7 @@ body {
 
 @media (min-width: 1024px) {
     .quickhire-main {
-        max-width: 960px;
+        max-width: 1040px;
     }
 
     .quickhire-service-grid {

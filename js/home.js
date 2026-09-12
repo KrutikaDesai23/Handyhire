@@ -15,17 +15,6 @@
     const DISPLAY_LIMIT = 4;
 
     /**
-     * Routes for the filter chips that have a dedicated page.
-     * Chips without an entry here are treated as in-page only.
-     */
-    const CHIP_ROUTES = {
-        'pre-booking': 'home-prebooking.html',
-        'on-spot': 'home-onspot.html',
-        'near-me': 'home-nearme.html',
-        'budget': 'home-budget.html',
-    };
-
-    /**
      * Convert a worker name into a URL-safe slug used by
      * job-hire.html. The slug is also embedded as
      * `data-worker-slug` on every card so the click
@@ -173,32 +162,21 @@
     }
 
     /**
-     * Wire up the filter chips so the active one toggles locally
-     * and chips with a target page navigate to that page.
+     * Wire up the booking mode cards so each card navigates to its
+     * dedicated booking experience.
      */
-    function initFilterChips() {
-        const chips = document.querySelectorAll('.filter-chips .chip');
-        if (!chips.length) return;
+    function initBookingModeCards() {
+        const cards = document.querySelectorAll('.booking-mode-card');
+        if (!cards.length) return;
 
-        chips.forEach((chip) => {
-            chip.addEventListener('click', function () {
-                const filter = chip.dataset.filter;
-                const target = chip.dataset.target;
-
-                // Always update visual state first
-                chips.forEach((c) => {
-                    c.classList.remove('is-active');
-                    c.setAttribute('aria-pressed', 'false');
-                });
-                chip.classList.add('is-active');
-                chip.setAttribute('aria-pressed', 'true');
-
-                // Navigate if the chip has a target page
-                if (target) {
-                    window.location.href = target;
-                } else if (filter === 'all') {
-                    // "All" stays on the current page; just scroll to top
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+        cards.forEach((card) => {
+            card.addEventListener('click', function () {
+                const href = card.getAttribute('href');
+                if (href) {
+                    try {
+                        sessionStorage.setItem('handyhire.customer.previousPage', 'home.html');
+                    } catch (e) {}
+                    window.location.href = href;
                 }
             });
         });
@@ -452,7 +430,7 @@
         }
         console.log('[HandyHire][home][debug] init requireRole=true -> render');
         loadWorkers(document.getElementById('serviceGrid'));
-        initFilterChips();
+        initBookingModeCards();
         initWorkerCards();
         initPackageTiles();
         initTopNav();
