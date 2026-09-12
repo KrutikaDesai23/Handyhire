@@ -89,7 +89,33 @@
         }
     }
 
+    function loadTeamPackageBridge() {
+        var path = String(window.location.pathname || '');
+        if (!/\/booking\.html$/i.test(path)) return;
+
+        var params;
+        try {
+            params = new URLSearchParams(window.location.search);
+        } catch (error) {
+            return;
+        }
+
+        // The bridge verifies package_type from the backend itself, so it is
+        // safe to load for any package booking and stays dormant for normal
+        // Multitasking Packages.
+        if (!params.get('package_id')) return;
+        if (params.get('booking_mode') === 'individual') return;
+        if (document.getElementById('hhTeamPackageBookingBridge')) return;
+
+        var script = document.createElement('script');
+        script.id = 'hhTeamPackageBookingBridge';
+        script.src = '../js/team-package-booking-fix.js';
+        script.async = false;
+        document.body.appendChild(script);
+    }
+
     sanitizeBookingPage();
+    loadTeamPackageBridge();
 
     // Capture the normal professional CTA before any older bubble-phase
     // listener can reuse stale package/team state.
