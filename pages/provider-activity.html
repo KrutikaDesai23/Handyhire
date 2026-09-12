@@ -2,154 +2,156 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-    />
-    <meta
-        name="description"
-        content="HandyHire - View jobs received and workers hired."
-    />
-    <meta name="theme-color" content="#68865C" />
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="HandyHire - Track provider jobs and workers hired." />
+    <meta name="theme-color" content="#173f2b" />
     <title>Activity | HandyHire</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="../css/provider-activity.css" />
 </head>
-
 <body>
     <header class="app-header" role="banner">
-        <a
-            href="provider-home.html"
-            class="brand-mark"
-            aria-label="HandyHire home"
-        >
-            <img
-                src="../Images/Hamor.jpeg"
-                alt="HandyHire Logo"
-                class="brand-logo"
-            />
-        </a>
-
-        <nav class="app-nav" aria-label="Primary navigation">
-            <a href="provider-home.html" class="nav-tab">Home</a>
-
-            <a
-                href="provider-request.html"
-                class="nav-tab"
-                id="requestTab"
-            >
-                Request
-                <span
-                    class="nav-count"
-                    data-request-count
-                    hidden
-                >0</span>
+        <div class="header-inner">
+            <a href="provider-home.html" class="brand-mark" aria-label="HandyHire provider home">
+                <span class="brand-logo-shell">
+                    <img src="../Images/Hamor.jpeg" alt="" class="brand-logo" />
+                </span>
+                <span class="brand-name">HandyHire</span>
             </a>
 
-            <a
-                href="provider-activity.html"
-                class="nav-tab is-active"
-                id="activityTab"
-                aria-current="page"
-            >
-                Activity
-            </a>
+            <nav class="app-nav" aria-label="Primary navigation">
+                <a href="provider-home.html" class="nav-tab">Home</a>
+                <a href="provider-request.html" class="nav-tab" id="requestTab">
+                    Requests
+                    <span class="nav-count" data-request-count hidden>0</span>
+                </a>
+                <a href="provider-activity.html" class="nav-tab is-active" aria-current="page">Activity</a>
+                <a href="provider-worker-profile.html" class="nav-tab">Profile</a>
+            </nav>
 
-            <a
-                href="provider-worker-profile.html"
-                class="nav-tab"
-                id="profileTab"
-            >
-                Profile
-            </a>
-        </nav>
-
-        <span class="icon-btn-spacer" aria-hidden="true"></span>
+            <span class="header-accent" aria-hidden="true"></span>
+        </div>
     </header>
 
     <main class="app-main" role="main">
-        <section class="page-heading" aria-labelledby="activityTitle">
-            <div>
-                <p class="page-kicker">WORKSPACE</p>
-                <h1 id="activityTitle">Activity</h1>
-                <p class="page-subtitle">
-                    Track active jobs, completed work and workers you have hired.
-                </p>
+        <section class="activity-hero" aria-labelledby="activityTitle">
+            <div class="activity-hero-copy">
+                <span class="activity-eyebrow">WORK OVERVIEW</span>
+                <h1 id="activityTitle">Your activity</h1>
+                <p>Follow ongoing jobs, completed work and professionals you have hired — all in one place.</p>
+            </div>
+
+            <div class="activity-hero-art" aria-hidden="true">
+                <div class="activity-art-icon">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M4 12h4l2.1-5 3.6 10 2.1-5H20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5" opacity=".45"/>
+                    </svg>
+                </div>
+                <div>
+                    <strong>Everything stays organised</strong>
+                    <span>Open any booking to view its complete job details.</span>
+                </div>
             </div>
         </section>
 
-        <section class="activity-controls" aria-label="Activity controls">
-            <div
-                class="activity-mode-tabs"
-                id="activityModeTabs"
-                role="tablist"
-                aria-label="Choose activity type"
-            >
-                <button
-                    type="button"
-                    class="activity-mode-tab is-active"
-                    data-mode="received"
-                    role="tab"
-                    aria-selected="true"
-                >
-                    Jobs Received
-                </button>
-
-                <button
-                    type="button"
-                    class="activity-mode-tab"
-                    data-mode="sent"
-                    role="tab"
-                    aria-selected="false"
-                >
-                    Workers Hired
-                </button>
+        <section class="activity-workspace" aria-label="Activity management">
+            <div class="activity-toolbar-copy">
+                <div>
+                    <span class="section-kicker">TRACK YOUR WORK</span>
+                    <h2>Jobs and hires</h2>
+                </div>
+                <p>Switch between work received and professionals you hired, then search whenever you need something specific.</p>
             </div>
 
-            <label class="visually-hidden" for="activitySearch">
-                Search activity
-            </label>
-
-            <div class="search-wrap">
-                <svg
-                    class="search-icon"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
+            <div class="activity-tools">
+                <div
+                    class="activity-mode-tabs"
+                    id="activityModeTabs"
+                    role="tablist"
+                    aria-label="Choose activity type"
                 >
-                    <path
-                        d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
+                    <button
+                        type="button"
+                        class="activity-mode-tab is-active"
+                        data-mode="received"
+                        role="tab"
+                        aria-selected="true"
+                    >
+                        Jobs Received
+                    </button>
+
+                    <button
+                        type="button"
+                        class="activity-mode-tab"
+                        data-mode="sent"
+                        role="tab"
+                        aria-selected="false"
+                    >
+                        Workers Hired
+                    </button>
+                </div>
+
+                <label class="visually-hidden" for="activitySearch">Search activity</label>
+                <div class="search-wrap">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8" />
+                        <path d="m16.2 16.2 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                    </svg>
+                    <input
+                        type="search"
+                        id="activitySearch"
+                        class="search-input"
+                        placeholder="Search jobs received"
+                        autocomplete="off"
                     />
-                </svg>
-
-                <input
-                    type="search"
-                    id="activitySearch"
-                    class="search-input"
-                    placeholder="Search jobs received"
-                    autocomplete="off"
-                />
+                </div>
             </div>
-        </section>
 
-        <section class="activity-feed" aria-label="Provider activity">
-            <div id="activityFeed"></div>
-
-            <p class="empty-state" id="emptyState" hidden>
-                No activity yet.
-            </p>
+            <section class="activity-feed" aria-label="Provider activity">
+                <div id="activityFeed"></div>
+                <p class="empty-state" id="emptyState" hidden>No activity yet.</p>
+            </section>
         </section>
     </main>
+
+    <nav class="mobile-bottom-nav" aria-label="Provider mobile navigation">
+        <a href="provider-home.html" class="mobile-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3V10.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            </svg>
+            <span>Home</span>
+        </a>
+
+        <a href="provider-request.html" class="mobile-nav-item mobile-nav-item--requests">
+            <span class="mobile-nav-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M6 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8"/>
+                    <path d="M8 9h8M8 13h6M8 17h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+                <span class="mobile-nav-count" data-request-count hidden>0</span>
+            </span>
+            <span>Requests</span>
+        </a>
+
+        <a href="provider-activity.html" class="mobile-nav-item is-active" aria-current="page">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M4 12h4l2.1-5 3.6 10 2.1-5H20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Activity</span>
+        </a>
+
+        <a href="provider-worker-profile.html" class="mobile-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="8" r="3.2" stroke="currentColor" stroke-width="1.8"/>
+                <path d="M5.5 20c.7-4 3-6 6.5-6s5.8 2 6.5 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            <span>Profile</span>
+        </a>
+    </nav>
 
     <script src="../js/api.js"></script>
     <script src="../js/provider-activity.js"></script>
