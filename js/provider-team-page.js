@@ -1,36 +1,28 @@
 /* =========================================================
-   HandyHire - Provider Team Page JavaScript
-   Loads the authenticated provider's REAL team from
-   GET /api/teams/{team_id} and enriches every member with
-   GET /api/workers/{worker_id}. The old TEAM_CATALOG and
-   DEFAULT_TEAM are removed as the normal data source.
+   HandyHire - Provider Team Package Details
+   Uses the package detail endpoint directly and avoids
+   unnecessary per-worker fetches before rendering the crew.
    ========================================================= */
 
 (function () {
     'use strict';
 
-    const VISIBLE_BY_DEFAULT = 3;
-    let TEAM = null;
+    const api = window.HandyHireAPI;
+    const VISIBLE_BY_DEFAULT = 4;
 
-    /**
-     * Require an authenticated provider.
-     * @returns {boolean}
-     */
+    let TEAM = null;
+    let currentMembers = [];
+
     function requireAuth() {
-        if (!(window.HandyHireAPI && typeof window.HandyHireAPI.requireRole === 'function')) {
+        if (!api || typeof api.requireRole !== 'function') {
             window.location.href = 'login.html';
             return false;
         }
-        return window.HandyHireAPI.requireRole('worker');
+        return api.requireRole('worker') !== false;
     }
 
-    /**
-     * Escape user-supplied text before injecting as HTML.
-     * @param {string} str
-     * @returns {string}
-     */
-    function escapeHtml(str) {
-        return String(str == null ? '' : str)
+    function escapeHtml(value) {
+        return String(value == null ? '' : value)
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
@@ -38,175 +30,205 @@
             .replace(/'/g, '&#39;');
     }
 
-    /**
-     * Generate a placeholder avatar data URL from a name.
-     * @param {string} name
-     * @returns {string}
-     */
     function buildAvatar(name) {
-        const clean = String(name || '?').trim() || '?';
+        const clean = String(name || 'Team').trim() || 'Team';
         const initials = clean
             .split(' ')
             .filter(Boolean)
-            .map((part) => part.charAt(0).toUpperCase())
+            .map(function (part) { return part.charAt(0).toUpperCase(); })
             .slice(0, 2)
-            .join('') || '?';
+            .join('') || 'T';
 
-        const hue = Array.from(clean).reduce(
-            (sum, ch) => sum + ch.charCodeAt(0),
-            0
-        ) % 360;
+        const hue = Array.from(clean).reduce(function (sum, ch) {
+            return sum + ch.charCodeAt(0);
+        }, 0) % 360;
 
-        const svg = `
-            <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'>
-                <defs>
-                    <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
-                        <stop offset='0%' stop-color='hsl(${hue}, 35%, 70%)'/>
-                        <stop offset='100%' stop-color='hsl(${hue}, 40%, 55%)'/>
-                    </linearGradient>
-                </defs>
-                <circle cx='60' cy='60' r='60' fill='url(#g)'/>
-                <text x='50%' y='54%' text-anchor='middle'
-                      font-family='Inter, sans-serif' font-size='44'
-                      font-weight='700' fill='#ffffff' dominant-baseline='middle'>
-                    ${initials}
-                </text>
-            </svg>
-        `.trim();
+        const svg =
+            "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'>" +
+                "<defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>" +
+                    "<stop offset='0%' stop-color='hsl(" + hue + ",35%,72%)'/>" +
+                    "<stop offset='100%' stop-color='hsl(" + ((hue + 35) % 360) + ",35%,55%)'/>" +
+                "</linearGradient></defs>" +
+                "<rect width='120' height='120' rx='30' fill='url(#g)'/>" +
+                "<text x='50%' y='54%' text-anchor='middle' font-family='Inter,sans-serif' font-size='42' font-weight='800' fill='#fff' dominant-baseline='middle'>" + initials + "</text>" +
+            "</svg>";
 
-        return `url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}")`;
+        return 'url("data:image/svg+xml;utf8,' + encodeURIComponent(svg) + '")';
     }
 
-    /**
-     * Read the selected team ID from sessionStorage,
-     * falling back to the selected team name.
-     * @returns {string|null}
-     */
-    function readTeamId() {
-        try {
-            const id = sessionStorage.getItem('handyhire.selectedTeamId');
-            if (id) return id;
-        } catch (e) {}
-        try {
-            const name = sessionStorage.getItem('handyhire.selectedTeam');
-            if (name) return name;
-        } catch (e) {}
-        return null;
+    function formatPrice(amount) {
+        return '\u20B9' + Number(amount || 0).toLocaleString('en-IN');
     }
-function readSelectedPackage() {
-    try {
-        const raw =
-            sessionStorage.getItem(
-                'handyhire.selectedTeamPackage'
-            );
 
-        if (!raw) {
+    function getRequestedPackageId() {
+        try {
+            return Number(new URLSearchParams(window.location.search).get('package_id')) || null;
+        } catch (error) {
             return null;
         }
-
-        const parsed =
-            JSON.parse(raw);
-
-        return (
-            parsed &&
-            typeof parsed === 'object'
-        )
-            ? parsed
-            : null;
-
-    } catch (e) {
-        return null;
     }
-}
-    /**
-     * Render a neutral message into the members list.
-     * @param {string} text
-     */
-    function showMessage(text) {
+
+    function readStoredPackage() {
+        try {
+            const raw = sessionStorage.getItem('handyhire.selectedTeamPackage');
+            if (!raw) return null;
+            const parsed = JSON.parse(raw);
+            return parsed && typeof parsed === 'object' ? parsed : null;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function saveStoredPackage(pkg) {
+        try {
+            sessionStorage.setItem('handyhire.selectedTeamPackage', JSON.stringify(pkg));
+        } catch (error) {
+            /* Storage is only an optional fast-path. */
+        }
+    }
+
+    function getPackageWorkers(pkg) {
+        const source = Array.isArray(pkg && pkg.workers)
+            ? pkg.workers
+            : (Array.isArray(pkg && pkg.team_members) ? pkg.team_members : []);
+
+        return source
+            .map(function (worker) {
+                const workerId = Number(worker.worker_id || worker.id) || null;
+                return {
+                    worker_id: workerId,
+                    full_name: worker.full_name || worker.name || 'Worker',
+                    profession: worker.profession || worker.role || 'Team member',
+                    profile_image: worker.profile_image || null,
+                    is_leader: worker.is_leader === true,
+                };
+            })
+            .filter(function (worker) { return worker.worker_id; });
+    }
+
+    function setText(id, value) {
+        const element = document.getElementById(id);
+        if (element) element.textContent = value;
+    }
+
+    function renderPackageSummary(pkg, members) {
+        const name = pkg.name || 'Team Package';
+        const description = pkg.description || 'A coordinated HandyHire crew ready to take on the job together.';
+
+        setText('teamName', name);
+        setText('teamDescription', description);
+        setText('teamRating', members.length + ' member' + (members.length === 1 ? '' : 's'));
+        setText('teamPrice', formatPrice(pkg.price) + ' / hour');
+        setText('teamDuration', pkg.duration || 'Flexible');
+        setText('teamLocation', pkg.location || 'Flexible');
+        setText('teamAvailability', pkg.availability || 'Check schedule');
+
+        const avatar = document.getElementById('teamAvatar');
+        if (avatar) avatar.style.backgroundImage = buildAvatar(name);
+
+        const services = Array.isArray(pkg.services)
+            ? pkg.services.map(function (service) { return service && service.name; }).filter(Boolean)
+            : [];
+
+        const servicesPanel = document.getElementById('servicesPanel');
+        if (servicesPanel) {
+            if (services.length) {
+                setText('teamServices', services.join(' • '));
+                servicesPanel.hidden = false;
+            } else {
+                servicesPanel.hidden = true;
+            }
+        }
+    }
+
+    function renderState(message, isError) {
         const list = document.getElementById('membersList');
         if (!list) return;
+
+        list.classList.remove('is-expanded');
         list.innerHTML =
-            '<li><p class="empty-state" style="grid-column: 1 / -1; text-align: center; ' +
-            'color: var(--color-text-muted); padding: 32px 0;">' +
-            escapeHtml(text) + '</p></li>';
+            '<li class="team-state' + (isError ? ' team-state--error' : '') + '">' +
+                escapeHtml(message) +
+            '</li>';
+
+        updateExpandButton(0);
     }
 
-    /**
-     * Render the team header using real backend data.
-     * @param {Object} team
-     */
-    function renderTeamHeader(team) {
-        const avatar = document.getElementById('teamAvatar');
-        if (avatar) avatar.style.backgroundImage = buildAvatar(team.name);
-
-        const nameEl = document.getElementById('teamName');
-        if (nameEl) {
-            let label = team.name || 'Team';
-            if (team.creator_name) label += ' \u00b7 by ' + team.creator_name;
-            nameEl.textContent = label;
-        }
-
-        const ratingEl = document.getElementById('teamRating');
-        if (ratingEl) {
-            const count = Array.isArray(team.members) ? team.members.length : 0;
-            ratingEl.innerHTML = '<span class="rating-value">' + count + ' member' + (count === 1 ? '' : 's') + '</span>';
-            ratingEl.setAttribute('aria-label', count + ' members');
-        }
-    }
-
-    /**
-     * Render a single member card from enriched backend data.
-     * @param {Object} member
-     * @param {boolean} isExtra
-     * @returns {string}
-     */
     function renderMember(member, isExtra) {
-        const extraClass = isExtra ? ' is-extra' : '';
-        const name = member.full_name || member.name || 'Worker';
-        const occupation = member.profession || member.role || 'Team member';
         const avatarStyle = member.profile_image
-            ? 'url("' + member.profile_image + '")'
-            : buildAvatar(name);
+            ? 'url("' + String(member.profile_image).replace(/"/g, '&quot;') + '")'
+            : buildAvatar(member.full_name);
 
-        return `
-            <li>
-                <article class="member-card${extraClass}" tabindex="0"
-                         data-worker-id="${escapeHtml(String(member.worker_id))}"
-                         data-name="${escapeHtml(name)}"
-                         data-occupation="${escapeHtml(occupation)}"
-                         aria-label="View details for ${escapeHtml(name)}, ${escapeHtml(occupation)}">
-                    <div class="member-avatar" style="background-image: ${avatarStyle}" aria-hidden="true"></div>
-                    <div class="member-text">
-                        <p class="member-name">${escapeHtml(name)}</p>
-                        <p class="member-occupation">${escapeHtml(occupation)}</p>
-                    </div>
-                </article>
-            </li>
-        `.trim();
+        return (
+            '<li>' +
+                '<article class="member-card' + (isExtra ? ' is-extra' : '') + '" tabindex="0" ' +
+                    'data-worker-id="' + escapeHtml(String(member.worker_id)) + '" ' +
+                    'data-name="' + escapeHtml(member.full_name) + '" ' +
+                    'data-occupation="' + escapeHtml(member.profession) + '" ' +
+                    'aria-label="View ' + escapeHtml(member.full_name) + '">' +
+                    '<div class="member-avatar" style="background-image:' + avatarStyle + '" aria-hidden="true"></div>' +
+                    '<div class="member-text">' +
+                        '<p class="member-name">' + escapeHtml(member.full_name) + '</p>' +
+                        '<p class="member-occupation">' + escapeHtml(member.profession) + '</p>' +
+                    '</div>' +
+                '</article>' +
+            '</li>'
+        );
     }
 
-    /**
-     * Render the full member list, honouring the visible-by-default limit.
-     * @param {Array} members
-     */
     function renderMembers(members) {
         const list = document.getElementById('membersList');
         if (!list) return;
 
-        if (!members || !members.length) {
-            list.innerHTML = '';
+        currentMembers = members || [];
+        list.classList.remove('is-expanded');
+
+        if (!currentMembers.length) {
+            renderState('No team members were found for this package.', false);
             return;
         }
 
-        list.innerHTML = members
-            .map((m, index) => renderMember(m, index >= VISIBLE_BY_DEFAULT))
+        list.innerHTML = currentMembers
+            .map(function (member, index) {
+                return renderMember(member, index >= VISIBLE_BY_DEFAULT);
+            })
             .join('');
+
+        updateExpandButton(currentMembers.length);
     }
 
-    /**
-     * Wire up member-card clicks/keys to open the provider
-     * person-details page, carrying the real worker_id.
-     */
+    function updateExpandButton(memberCount) {
+        const button = document.getElementById('expandBtn');
+        if (!button) return;
+
+        const extraCount = Math.max(0, Number(memberCount || 0) - VISIBLE_BY_DEFAULT);
+        button.hidden = extraCount <= 0;
+        button.setAttribute('aria-expanded', 'false');
+
+        const label = button.querySelector('span');
+        if (label) label.textContent = extraCount > 0 ? 'Show ' + extraCount + ' more' : 'Show more';
+    }
+
+    function hydratePackage(pkg) {
+        const members = getPackageWorkers(pkg);
+
+        TEAM = {
+            id: Number(pkg.id),
+            name: pkg.name || 'Team Package',
+            description: pkg.description || null,
+            price: Number(pkg.price) || 0,
+            duration: pkg.duration || null,
+            location: pkg.location || null,
+            availability: pkg.availability || null,
+            services: Array.isArray(pkg.services) ? pkg.services : [],
+            members: members,
+            package_type: pkg.package_type || 'team',
+        };
+
+        renderPackageSummary(TEAM, members);
+        renderMembers(members);
+    }
+
     function initMemberNavigation() {
         const list = document.getElementById('membersList');
         if (!list) return;
@@ -224,43 +246,21 @@ function readSelectedPackage() {
                 team: TEAM ? TEAM.name : '',
             };
 
-try {
-    sessionStorage.setItem(
-        'handyhire.selectedMember',
-        JSON.stringify(member)
-    );
-
-    /*
-     * Keep old key temporarily for
-     * compatibility with other pages.
-     */
-    sessionStorage.setItem(
-        'handyhire.provider.selectedMember',
-        JSON.stringify(member)
-    );
-
-    if (workerId) {
-        sessionStorage.setItem(
-            'handyhire.selectedWorkerId',
-            workerId
-        );
-    }
-
-} catch (e) {}
-
-            const url = 'provider-job-hire.html?worker=' + encodeURIComponent(slug) + '&source=team';
-            if (workerId) url += '&worker_id=' + encodeURIComponent(workerId);
-
             try {
-                sessionStorage.setItem('handyhire.provider.previousPage', 'provider-team-page.html');
-            } catch (e) {}
+                sessionStorage.setItem('handyhire.selectedMember', JSON.stringify(member));
+                sessionStorage.setItem('handyhire.provider.selectedMember', JSON.stringify(member));
+                if (workerId) sessionStorage.setItem('handyhire.selectedWorkerId', workerId);
+                sessionStorage.setItem('handyhire.provider.previousPage', window.location.href);
+            } catch (error) {}
+
+            let url = 'provider-job-hire.html?worker=' + encodeURIComponent(slug) + '&source=team';
+            if (workerId) url += '&worker_id=' + encodeURIComponent(workerId);
             window.location.href = url;
         }
 
         list.addEventListener('click', function (event) {
             const card = event.target.closest('.member-card');
-            if (!card || !list.contains(card)) return;
-            openMember(card);
+            if (card && list.contains(card)) openMember(card);
         });
 
         list.addEventListener('keydown', function (event) {
@@ -273,27 +273,29 @@ try {
         });
     }
 
-    /**
-     * Wire up the BOOK WHOLE TEAM CTA.
-     */
     function initBookWholeTeam() {
-        const btn = document.getElementById('bookWholeTeamBtn');
-        if (!btn) return;
+        const button = document.getElementById('bookWholeTeamBtn');
+        if (!button) return;
 
-        btn.addEventListener('click', function () {
+        button.addEventListener('click', function () {
             if (!TEAM || !TEAM.id) return;
 
             try {
-                sessionStorage.setItem(
-                    'handyhire.provider.bookingBackPage',
-                    window.location.href
-                );
-
-                sessionStorage.setItem(
-                    'handyhire.provider.previousPage',
-                    'provider-team-page.html'
-                );
-            } catch (e) {}
+                sessionStorage.setItem('handyhire.selectedTeamPackage', JSON.stringify({
+                    id: TEAM.id,
+                    name: TEAM.name,
+                    description: TEAM.description,
+                    price: TEAM.price,
+                    duration: TEAM.duration,
+                    location: TEAM.location,
+                    availability: TEAM.availability,
+                    package_type: 'team',
+                    services: TEAM.services,
+                    workers: TEAM.members,
+                }));
+                sessionStorage.setItem('handyhire.provider.bookingBackPage', window.location.href);
+                sessionStorage.setItem('handyhire.provider.previousPage', window.location.href);
+            } catch (error) {}
 
             window.location.href =
                 'provider-booking.html?package_id=' +
@@ -302,371 +304,75 @@ try {
         });
     }
 
-    /**
-     * Wire up the expand/collapse arrow.
-     */
     function initExpand() {
-        const btn = document.getElementById('expandBtn');
+        const button = document.getElementById('expandBtn');
         const list = document.getElementById('membersList');
-        if (!btn || !list) return;
+        if (!button || !list) return;
 
-        const extras = TEAM ? TEAM.members.length - VISIBLE_BY_DEFAULT : 0;
-        if (extras <= 0) {
-            btn.hidden = true;
-            return;
-        }
-
-        btn.addEventListener('click', function () {
+        button.addEventListener('click', function () {
             const expanded = list.classList.toggle('is-expanded');
-            btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-            btn.setAttribute('aria-label',
-                expanded ? 'Show fewer team members' : 'Show more team members');
+            button.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+
+            const label = button.querySelector('span');
+            const extraCount = Math.max(0, currentMembers.length - VISIBLE_BY_DEFAULT);
+            if (label) label.textContent = expanded ? 'Show fewer' : 'Show ' + extraCount + ' more';
         });
     }
 
-    /**
-     * Fetch the team and its member worker profiles, then render.
-     */
-    async function loadTeam() {
-        const selectedPackage =
-    readSelectedPackage();
+    async function loadTeamPackage() {
+        const packageId = getRequestedPackageId();
+        const storedPackage = readStoredPackage();
+        const storedMatches = storedPackage && packageId && Number(storedPackage.id) === Number(packageId);
 
-const params =
-    new URLSearchParams(
-        window.location.search
-    );
-
-const requestedPackageId =
-    Number(
-        params.get('package_id')
-    ) || null;
-
-        if (requestedPackageId) {
-            showMessage('Loading team...');
-
-            try {
-                const resp =
-                    await window.HandyHireAPI.apiFetch(
-                        '/api/packages/' +
-                            encodeURIComponent(
-                                String(requestedPackageId)
-                            )
-                    );
-
-                if (resp.status === 401) {
-                    window.HandyHireAPI.clearAuth();
-                    window.location.href = 'login.html';
-                    return;
-                }
-                if (!resp.ok) {
-                    showMessage('Unable to load team package. Please try again.');
-                    return;
-                }
-
-                const selectedPackage =
-                    await resp.json();
-
-                const packageWorkers =
-                    Array.isArray(
-                        selectedPackage.workers
-                    )
-                        ? selectedPackage.workers
-                        : [];
-
-
-                const workerProfiles =
-                    await Promise.all(
-                        packageWorkers.map(
-                            function (worker) {
-
-                                const workerId =
-                                    Number(
-                                        worker.worker_id ||
-                                        worker.id
-                                    );
-
-                                if (!workerId) {
-                                    return Promise.resolve(null);
-                                }
-
-                                return window.HandyHireAPI
-                                    .apiFetch(
-                                        '/api/workers/' +
-                                            encodeURIComponent(
-                                                String(workerId)
-                                            )
-                                    )
-                                    .then(function (response) {
-
-                                        return response.ok
-                                            ? response.json()
-                                            : null;
-                                    })
-                                    .catch(function () {
-                                        return null;
-                                    });
-                            }
-                        )
-                    );
-
-
-                const members =
-                    packageWorkers.map(
-                        function (worker, index) {
-
-                            const profile =
-                                workerProfiles[index];
-
-                            return {
-                                worker_id:
-                                    Number(
-                                        worker.worker_id ||
-                                        worker.id
-                                    ),
-
-                                full_name:
-                                    (
-                                        profile &&
-                                        profile.full_name
-                                    ) ||
-                                    worker.full_name ||
-                                    worker.name ||
-                                    'Worker',
-
-                                profession:
-                                    (
-                                        profile &&
-                                        profile.profession
-                                    ) ||
-                                    worker.profession ||
-                                    'Team member',
-
-                                profile_image:
-                                    (
-                                        profile &&
-                                        profile.profile_image
-                                    ) ||
-                                    worker.profile_image ||
-                                    null
-                            };
-                        }
-                    );
-
-
-                TEAM = {
-                    id: selectedPackage.id,
-                    name:
-                        selectedPackage.name ||
-                        'Team Package',
-                    members: members,
-                    is_package: true
-                };
-
-
-                renderTeamHeader(TEAM);
-                renderMembers(TEAM.members);
-                initMemberNavigation();
-                initBookWholeTeam();
-                initExpand();
-
-                return;
-            } catch (e) {
-                showMessage('Network error. Please check your connection and try again.');
-                return;
+        if (storedMatches) {
+            const storedMembers = getPackageWorkers(storedPackage);
+            renderPackageSummary(storedPackage, storedMembers);
+            if (storedMembers.length) {
+                hydratePackage(storedPackage);
+            } else {
+                renderState('Loading team members...', false);
             }
+        } else {
+            renderState('Loading team members...', false);
         }
 
-        if (
-            selectedPackage &&
-            Number(selectedPackage.id) ===
-                requestedPackageId
-        ) {
-            showMessage('Loading team...');
-
-            const packageWorkers =
-                Array.isArray(
-                    selectedPackage.workers
-                )
-                    ? selectedPackage.workers
-                    : (
-                        Array.isArray(
-                            selectedPackage.team_members
-                        )
-                            ? selectedPackage.team_members
-                            : []
-                      );
-
-
-            const workerProfiles =
-                await Promise.all(
-                    packageWorkers.map(
-                        function (worker) {
-
-                            const workerId =
-                                Number(
-                                    worker.worker_id ||
-                                    worker.id
-                                );
-
-                            if (!workerId) {
-                                return Promise.resolve(null);
-                            }
-
-                            return window.HandyHireAPI
-                                .apiFetch(
-                                    '/api/workers/' +
-                                        encodeURIComponent(
-                                            String(workerId)
-                                        )
-                                )
-                                .then(function (response) {
-
-                                    return response.ok
-                                        ? response.json()
-                                        : null;
-                                })
-                                .catch(function () {
-                                    return null;
-                                });
-                        }
-                    )
-                );
-
-
-            const members =
-                packageWorkers.map(
-                    function (worker, index) {
-
-                        const profile =
-                            workerProfiles[index];
-
-                        return {
-                            worker_id:
-                                Number(
-                                    worker.worker_id ||
-                                    worker.id
-                                ),
-
-                            full_name:
-                                (
-                                    profile &&
-                                    profile.full_name
-                                ) ||
-                                worker.full_name ||
-                                worker.name ||
-                                'Worker',
-
-                            profession:
-                                (
-                                    profile &&
-                                    profile.profession
-                                ) ||
-                                worker.profession ||
-                                'Team member',
-
-                            profile_image:
-                                (
-                                    profile &&
-                                    profile.profile_image
-                                ) ||
-                                worker.profile_image ||
-                                null
-                        };
-                    }
-                );
-
-
-            TEAM = {
-                id: selectedPackage.id,
-                name:
-                    selectedPackage.name ||
-                    'Team Package',
-                members: members,
-                is_package: true
-            };
-
-
-            renderTeamHeader(TEAM);
-            renderMembers(TEAM.members);
-            initMemberNavigation();
-            initBookWholeTeam();
-            initExpand();
-
+        if (!packageId) {
+            renderState('Select a team package to view its details.', true);
             return;
         }
-        const teamId = readTeamId();
-        if (!teamId) {
-            showMessage('Select a team to view its details.');
-            return;
-        }
-
-        showMessage('Loading team...');
 
         try {
-            const resp = await window.HandyHireAPI.apiFetch('/api/teams/' + encodeURIComponent(String(teamId)));
+            const response = await api.apiFetch('/api/packages/' + encodeURIComponent(String(packageId)));
 
-            if (resp.status === 401) {
-                window.HandyHireAPI.clearAuth();
+            if (response.status === 401) {
+                api.clearAuth();
                 window.location.href = 'login.html';
                 return;
             }
-            if (resp.status === 403) {
-                showMessage('You do not have access to this team.');
-                return;
-            }
-            if (resp.status === 404) {
-                showMessage('Team not found.');
-                return;
-            }
-            if (!resp.ok) {
-                showMessage('Unable to load team. Please try again.');
+
+            if (!response.ok) {
+                if (!storedMatches || !getPackageWorkers(storedPackage).length) {
+                    renderState('Unable to load this team package. Please return and try again.', true);
+                }
                 return;
             }
 
-            const team = await resp.json();
-
-            const memberPromises = (team.members || []).map(function (m) {
-                return window.HandyHireAPI.apiFetch('/api/workers/' + encodeURIComponent(String(m.worker_id)))
-                    .then(function (r) { return r.ok ? r.json() : null; })
-                    .catch(function () { return null; });
-            });
-
-            const workerProfiles = await Promise.all(memberPromises);
-
-            const enrichedMembers = (team.members || []).map(function (m, i) {
-                return {
-                    worker_id: m.worker_id,
-                    role: m.role,
-                    full_name: workerProfiles[i] ? workerProfiles[i].full_name : null,
-                    profession: workerProfiles[i] ? workerProfiles[i].profession : null,
-                    profile_image: workerProfiles[i] ? workerProfiles[i].profile_image : null,
-                };
-            });
-
-            TEAM = {
-                id: team.id,
-                name: team.name,
-                description: team.description,
-                creator_name: team.creator_name,
-                members: enrichedMembers,
-            };
-
-            renderTeamHeader(TEAM);
-            renderMembers(TEAM.members);
-            initMemberNavigation();
-            initBookWholeTeam();
-            initExpand();
-        } catch (e) {
-            showMessage('Network error. Please check your connection and try again.');
+            const pkg = await response.json();
+            saveStoredPackage(pkg);
+            hydratePackage(pkg);
+        } catch (error) {
+            if (!storedMatches || !getPackageWorkers(storedPackage).length) {
+                renderState('Network error while loading the team. Please try again.', true);
+            }
         }
     }
 
-    /**
-     * Initialize the Team page.
-     */
     function init() {
         if (!requireAuth()) return;
-        loadTeam();
+        initMemberNavigation();
+        initBookWholeTeam();
+        initExpand();
+        loadTeamPackage();
     }
 
     if (document.readyState === 'loading') {
