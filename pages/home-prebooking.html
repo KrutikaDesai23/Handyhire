@@ -3,95 +3,96 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="description" content="HandyHire - Pre-book trusted service professionals in advance." />
-    <meta name="theme-color" content="#68865C" />
+    <meta name="description" content="HandyHire - Choose a trusted professional and schedule service in advance." />
+    <meta name="theme-color" content="#173f2b" />
     <title>Pre-booking | HandyHire</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-
-    <link rel="stylesheet" href="../css/home.css" />
+    <link rel="stylesheet" href="../css/home-prebooking.css" />
+    <link rel="stylesheet" href="../css/customer-flow-header.css" />
 </head>
 <body>
-    <!-- ========== HEADER ========== -->
-    <header class="app-header" role="banner">
-        <a href="home.html" class="brand-mark" aria-label="HandyHire home">
-    <img src="../Images/Hamor.jpeg" alt="HandyHire Logo" class="brand-logo">
-</a>
-
-        <nav class="app-nav" aria-label="Primary navigation">
-            <a href="home.html" class="nav-tab is-active" aria-current="page">Home</a>
-            <a href="activity.html" class="nav-tab" id="activityTab">Activity</a>
-            <a href="profile.html" class="nav-tab" id="profileTab">Profile</a>
-        </nav>
-
-        <span class="icon-btn-spacer" aria-hidden="true"></span>
+    <header class="flow-topbar" role="banner">
+        <div class="flow-topbar-inner">
+            <a href="home.html" class="flow-brand" aria-label="HandyHire home">
+                <span class="flow-brand-logo"><img src="../Images/Hamor.jpeg" alt="" /></span>
+                <span class="flow-brand-name">HandyHire</span>
+            </a>
+        </div>
     </header>
 
-    <main class="app-main" role="main">
-        <!-- ========== HERO BANNER ========== -->
-        <section class="hero-banner" aria-label="Promotional banner">
-            <div class="hero-image" role="img" aria-label="HandyHire promotional banner"></div>
-        </section>
+    <main class="prebook-page" role="main">
+        <div class="flow-back-row">
+            <a class="flow-page-back" href="home.html" aria-label="Back to home">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m15 18-6-6 6-6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>Back</span>
+            </a>
+        </div>
 
-        <!-- ========== FILTER CHIPS ========== -->
-        <section class="filter-chips" aria-label="Service filters">
-            <button type="button" class="chip" data-filter="all" data-target="home.html">All</button>
-            <button type="button" class="chip is-active" data-filter="pre-booking" aria-pressed="true">Pre-booking</button>
-            <button type="button" class="chip" data-filter="on-spot" data-target="home-onspot.html">On-spot</button>
-            <button type="button" class="chip" data-filter="near-me" data-target="home-nearme.html">Near me</button>
-        </section>
+        <section class="prebook-hero" aria-labelledby="prebookTitle">
+            <div class="prebook-hero-copy">
+                <span class="prebook-eyebrow">PLAN AHEAD</span>
+                <h1 id="prebookTitle">Book the right professional, <span>for the right time.</span></h1>
+                <p>Choose a trusted professional now. You’ll select your preferred date, time and job details on the next step.</p>
+                <div class="prebook-benefits" aria-label="Pre-booking benefits">
+                    <span><i aria-hidden="true">✓</i> Pick your professional</span>
+                    <span><i aria-hidden="true">✓</i> Choose date &amp; time</span>
+                    <span><i aria-hidden="true">✓</i> Confirm before booking</span>
+                </div>
+            </div>
 
-        <!-- ========== SERVICE GRID ========== -->
-        <section class="service-section" aria-labelledby="workersHeading">
-            <h2 id="workersHeading" class="visually-hidden">Pre-booking service professionals</h2>
-
-            <div class="service-grid" id="serviceGrid">
-                <!-- Cards are rendered by js/home-prebooking.js -->
+            <div class="prebook-hero-card" aria-hidden="true">
+                <div class="calendar-visual">
+                    <span class="calendar-month">PLAN</span>
+                    <strong>17</strong>
+                    <small>Choose your schedule</small>
+                </div>
+                <div class="hero-mini-card hero-mini-card--top">
+                    <span class="mini-icon"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/><path d="M6 20c.8-4 2.8-6 6-6s5.2 2 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+                    <div><strong>Trusted professionals</strong><small>Compare before you choose</small></div>
+                </div>
+                <div class="hero-mini-card hero-mini-card--bottom">
+                    <span class="mini-icon mini-icon--warm"><svg viewBox="0 0 24 24" fill="none"><path d="M7 3v4M17 3v4M4 9h16M5 5h14a2 2 0 0 1 2 2v12H3V7a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+                    <div><strong>Schedule with confidence</strong><small>No rush, no guesswork</small></div>
+                </div>
             </div>
         </section>
 
-        <!-- ========== PACKAGE TILES ========== -->
-        <section class="pkg-section" aria-label="Service packages">
-            <a href="multitasking-package.html" class="pkg-tile" aria-label="Open multitasking packages">
-                <span class="pkg-tile-text">
-                    <span class="pkg-tile-title">Multitasking packages</span>
-                    <span class="pkg-tile-subtitle">Browse multi-skill professionals</span>
-                </span>
-                <span class="pkg-tile-arrow" aria-hidden="true">&#8250;</span>
-            </a>
-            <a href="team-package.html" class="pkg-tile" aria-label="Open team packages">
-                <span class="pkg-tile-text">
-                    <span class="pkg-tile-title">Team packages</span>
-                    <span class="pkg-tile-subtitle">Hire a coordinated team for bigger jobs</span>
-                </span>
-                <span class="pkg-tile-arrow" aria-hidden="true">&#8250;</span>
-            </a>
-        </section>
-
-        <!-- ========== BOTTOM PROMOTIONAL BANNER ========== -->
-        <section class="promo-section" aria-label="Promotions">
-            <article class="promo-card promo-card--primary">
-                <div class="promo-text">
-                    <h3 class="promo-title">Refer &amp; Earn</h3>
-                    <p class="promo-subtitle">Invite friends and earn service credits.</p>
+        <section class="professional-marketplace" aria-labelledby="professionalsHeading">
+            <div class="marketplace-heading">
+                <div>
+                    <span class="section-kicker">PRE-BOOKING PROFESSIONALS</span>
+                    <h2 id="professionalsHeading">Choose who you want to hire</h2>
+                    <p>Only professionals who accept scheduled bookings are shown here.</p>
                 </div>
-                <div class="promo-icon" aria-hidden="true">&#127873;</div>
-            </article>
+                <span class="availability-pill"><span></span> Available for pre-booking</span>
+            </div>
 
-            <article class="promo-card promo-card--secondary">
-                <div class="promo-text">
-                    <h3 class="promo-title">Become a Provider</h3>
-                    <p class="promo-subtitle">Offer your skills and grow your business.</p>
-                </div>
-                <div class="promo-icon" aria-hidden="true">&#128188;</div>
-            </article>
+            <div class="marketplace-toolbar">
+                <label class="prebook-search" for="prebookSearch">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><path d="m20 20-4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                    <input id="prebookSearch" type="search" placeholder="Search by name, skill or location" autocomplete="off" />
+                </label>
+
+                <label class="prebook-sort" for="prebookSort">
+                    <span>Sort by</span>
+                    <select id="prebookSort" aria-label="Sort pre-booking professionals">
+                        <option value="">Recommended</option>
+                        <option value="rating">Rating: High to Low</option>
+                        <option value="price_asc">Price: Low to High</option>
+                        <option value="price_desc">Price: High to Low</option>
+                        <option value="name">Name: A to Z</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="service-grid" id="serviceGrid" aria-live="polite"></div>
         </section>
     </main>
 
     <script src="../js/api.js"></script>
-    <script src="../js/worker-browse.js"></script>
     <script src="../js/home-prebooking.js"></script>
 </body>
 </html>
