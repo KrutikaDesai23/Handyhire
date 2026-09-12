@@ -3,69 +3,81 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="description" content="HandyHire - Meet the team behind a service package." />
-    <meta name="theme-color" content="#68865C" />
-    <title>Team | HandyHire</title>
+    <meta name="description" content="HandyHire - Meet the professionals in your selected team package." />
+    <meta name="theme-color" content="#173f2b" />
+    <title>Team Details | HandyHire</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="../css/team-page.css" />
-    <script src="../js/api.js"></script>
+    <link rel="stylesheet" href="../css/customer-team-page-premium.css" />
+    <link rel="stylesheet" href="../css/provider-page-back.css" />
+    <link rel="stylesheet" href="../css/provider-subpage-header.css" />
 </head>
 <body>
-    <!-- ========== TOP BAR ========== -->
-    <header class="team-topbar" role="banner">
-        <a href="team-package.html" class="back-btn" id="backLink" aria-label="Back to team packages">
-            <span class="back-icon" aria-hidden="true">&#8592;</span>
-            <span class="back-label">Back</span>
-        </a>
-        <h1 class="team-topbar-title">Team</h1>
-        <span class="icon-btn-spacer" aria-hidden="true"></span>
+    <header class="subpage-header" role="banner">
+        <div class="subpage-header-inner">
+            <a href="home.html" class="subpage-brand" aria-label="HandyHire home">
+                <span class="subpage-brand-logo-shell">
+                    <img src="../Images/Hamor.jpeg" alt="" class="subpage-brand-logo" />
+                </span>
+                <span>HandyHire</span>
+            </a>
+        </div>
     </header>
 
     <main class="team-page" role="main">
-        <!-- ========== TEAM HEADER ========== -->
-        <section class="team-header" aria-label="Team summary">
-            <div class="team-avatar" id="teamAvatar" aria-hidden="true"></div>
-            <h2 class="team-name" id="teamName">BuildRight Crew</h2>
-            <div class="team-rating" id="teamRating" aria-label="Team rated 4.7 out of 5">
-                <span class="stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9734;</span>
-                <span class="rating-value">4.7</span>
+        <a href="team-package.html" class="page-back" id="backLink" aria-label="Back to team packages">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m15 18-6-6 6-6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            <span>Back to Team Packages</span>
+        </a>
+
+        <section class="team-detail-hero" aria-label="Team summary">
+            <div class="team-detail-copy">
+                <span class="team-detail-eyebrow">SELECTED TEAM</span>
+                <h1 class="team-name" id="teamName">Loading team...</h1>
+                <p>Review the professionals included in this team, open any member for more detail, or continue with one booking for the complete crew.</p>
+
+                <div class="team-rating" id="teamRating" aria-label="Team rating">
+                    <span class="stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9734;</span>
+                    <span class="rating-value">4.7</span>
+                </div>
+
+                <section class="book-cta-section" aria-label="Book the whole team">
+                    <button type="button" class="book-whole-team-btn" id="bookWholeTeamBtn">Book Whole Team</button>
+                </section>
+            </div>
+
+            <div class="team-detail-visual" aria-hidden="true">
+                <div class="team-avatar" id="teamAvatar"></div>
+                <span class="team-visual-note">Coordinated crew</span>
             </div>
         </section>
 
-        <!-- ========== BOOK WHOLE TEAM CTA ========== -->
-        <section class="book-cta-section" aria-label="Book the whole team">
-            <button type="button" class="book-whole-team-btn" id="bookWholeTeamBtn">
-                BOOK WHOLE TEAM
-            </button>
-        </section>
+        <section class="members-workspace" aria-label="Team members">
+            <div class="members-heading">
+                <div>
+                    <span class="members-kicker">TEAM MEMBERS</span>
+                    <h2>Meet the crew</h2>
+                </div>
+                <p class="members-help">Tap a member to view their professional details. Individual member viewing does not create a separate booking.</p>
+            </div>
 
-        <!-- ========== MEMBER LIST ========== -->
-        <section class="members-section" aria-label="Team members">
-            <p class="members-help">Tap a member to view their details. Selecting a member does not book them individually.</p>
-            <ul class="members-list" id="membersList">
-                <!-- Member cards rendered by js/team-page.js -->
-            </ul>
-        </section>
+            <section class="members-section" aria-label="Team member list">
+                <ul class="members-list" id="membersList"><!-- Member cards rendered by js/team-page.js --></ul>
+            </section>
 
-        <!-- ========== EXPANDABLE ARROW ========== -->
-        <section class="expand-section" aria-label="Show more members">
-            <button
-                type="button"
-                class="expand-btn"
-                id="expandBtn"
-                aria-expanded="false"
-                aria-controls="membersList"
-                aria-label="Show more team members"
-            >
-                <span class="expand-icon" aria-hidden="true">&#9662;</span>
-            </button>
+            <section class="expand-section" aria-label="Show more members">
+                <button type="button" class="expand-btn" id="expandBtn" aria-expanded="false" aria-controls="membersList" aria-label="Show more team members">
+                    <span class="expand-icon" aria-hidden="true">&#9662;</span>
+                </button>
+            </section>
         </section>
     </main>
 
+    <script src="../js/api.js"></script>
     <script src="../js/team-page.js"></script>
 </body>
 </html>
