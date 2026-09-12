@@ -1,49 +1,45 @@
-/* =========================================================
-   HandyHire - Booking Success JavaScript
-   Minimal: the success state is rendered entirely by the
-   markup. This script reads the last booking summary
-   persisted by booking.js (if any) for future expansion.
-   ========================================================= */
-
 (function () {
     'use strict';
 
-    // Role guard: this page belongs to the customer booking flow.
-    // A worker token is redirected to provider-home.html by requireRole.
     if (!(window.HandyHireAPI && window.HandyHireAPI.requireRole('customer'))) return;
 
-
-    /**
-     * Try to read the booking summary persisted by booking.js.
-     * The shape now includes the real backend response:
-     *   { bookingId, workerId, workerName, booking_date,
-     *     booking_time, address, hours, amount, total, status }
-     * @returns {Object|null}
-     */
     function readLastBooking() {
         try {
-            const raw = sessionStorage.getItem('handyhire.lastBooking');
+            var raw = sessionStorage.getItem('handyhire.lastBooking');
             if (!raw) return null;
-            const parsed = JSON.parse(raw);
+            var parsed = JSON.parse(raw);
             return parsed && typeof parsed === 'object' ? parsed : null;
-        } catch (e) {
+        } catch (error) {
             return null;
         }
     }
 
-    /**
-     * Initialize the Booking Success page.
-     */
-    function init() {
-        // Read the real summary so downstream pages/tabs can
-        // rely on the backend booking ID as the source of truth.
-        readLastBooking();
+    function formatMoney(value) {
+        var number = Number(value);
+        return Number.isFinite(number) ? '₹' + number.toLocaleString('en-IN') : '—';
     }
 
-    // Run after DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
+    function setText(id, value) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = value;
     }
+
+    function init() {
+        var summary = readLastBooking();
+        if (!summary) return;
+
+        var bookingId = summary.bookingId || summary.id || '--';
+        var worker = summary.workerName || summary.worker || summary.package_name || 'Professional';
+        var date = summary.booking_date || summary.date || '--';
+        var time = summary.booking_time || summary.time || '--';
+        var amount = summary.amount != null ? summary.amount : summary.total;
+
+        setText('successBookingId', 'Booking ID: ' + bookingId);
+        setText('successWorker', worker);
+        setText('successSchedule', date + ' • ' + time);
+        setText('successAmount', formatMoney(amount));
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
 })();
