@@ -1,274 +1,315 @@
 /* =========================================================
-   HandyHire - Pre-booking Provider Home JavaScript
-   Variant of the Provider Home. Renders the authenticated
-   provider's REAL teams from GET /api/worker/teams (replacing
-   the previous hardcoded worker dataset). Filter chips, package
-   tiles and top navigation behaviour are preserved.
+   HandyHire — Provider Pre-booking Discovery
+   Shows only professionals who accept scheduled bookings.
    ========================================================= */
 
 (function () {
     'use strict';
 
-    /**
-     * Routes for the filter chips. "Pre-booking" is the active chip
-     * and has no target - the user is already on this page.
-     */
-    const CHIP_ROUTES = {
-        'all': 'provider-home.html',
-        'on-spot': 'provider-home-onspot.html',
-        'near-me': 'provider-home-nearme.html',
-        'budget': 'provider-home-budget.html',
-    };
+    var allWorkers = [];
+    var currentSearch = '';
+    var currentSort = '';
 
-    /**
-     * Require an authenticated provider.
-     * @returns {boolean}
-     */
+    function getApi() {
+        return window.HandyHireAPI || null;
+    }
+
     function requireAuth() {
-        if (!(window.HandyHireAPI && typeof window.HandyHireAPI.requireRole === 'function')) {
+        var api = getApi();
+
+        if (!api) {
             window.location.href = 'login.html';
             return false;
         }
-        return window.HandyHireAPI.requireRole('worker');
+
+        if (typeof api.requireRole === 'function') {
+            return api.requireRole('worker');
+        }
+
+        if (typeof api.isLoggedIn === 'function' && !api.isLoggedIn()) {
+            window.location.href = 'login.html';
+            return false;
+        }
+
+        return true;
     }
 
-    /**
-     * Escape user-supplied text before injecting as HTML.
-     * @param {string} str
-     * @returns {string}
-     */
-    function escapeHtml(str) {
-        return String(str == null ? '' : str)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
+    function normalizeAvailability(value) {
+        var normalized = String(value || '')
+            .toLowerCase()
+            .trim()
+            .replace(/_/g, '-')
+            .replace(/\s+/g, '-');
+
+        if (normalized === 'prebooking') return 'pre-booking';
+        if (normalized === 'onspot') return 'on-spot';
+        return normalized;
     }
 
-    /**
-     * Generate a placeholder avatar data URL from a name.
-     * @param {string} name
-     * @returns {string}
-     */
-    function buildAvatar(name) {
-        const clean = String(name || '?').trim() || '?';
-        const initials = clean
-            .split(' ')
+    function normalizeWorker(record) {
+        var item = record || {};
+        var profile = item.worker_profile || item.profile || {};
+        var user = item.user || profile.user || {};
+
+        return {
+            id: item.id || item.worker_id || profile.worker_id || user.id || '',
+            fullName: item.full_name || profile.full_name || user.full_name || user.name || 'Professional',
+            profession: item.profession || profile.profession || item.service || 'Professional',
+            location: item.location || profile.location || 'Location not specified',
+            price: item.price != null ? item.price : profile.price,
+            availability: item.availability || profile.availability || item.booking_type || item.service_type || '',
+            rating: item.average_rating != null
+                ? item.average_rating
+                : (profile.average_rating != null ? profile.average_rating : item.rating),
+            profileImage: item.profile_image || profile.profile_image || user.profile_image || ''
+        };
+    }
+
+    function getInitials(name) {
+        return String(name || 'P')
+            .trim()
+            .split(/\s+/)
             .filter(Boolean)
-            .map((part) => part.charAt(0).toUpperCase())
+            .map(function (part) { return part.charAt(0).toUpperCase(); })
             .slice(0, 2)
-            .join('') || '?';
-
-        const hue = Array.from(clean).reduce(
-            (sum, ch) => sum + ch.charCodeAt(0),
-            0
-        ) % 360;
-
-        const svg = `
-            <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 72'>
-                <defs>
-                    <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
-                        <stop offset='0%' stop-color='hsl(${hue}, 35%, 70%)'/>
-                        <stop offset='100%' stop-color='hsl(${(hue + 40) % 360}, 30%, 55%)'/>
-                    </linearGradient>
-                </defs>
-                <rect width='72' height='72' fill='url(#g)'/>
-                <text x='50%' y='54%' text-anchor='middle' font-family='Inter, sans-serif'
-                      font-size='28' font-weight='700' fill='#ffffff' dominant-baseline='middle'>
-                    ${initials}
-                </text>
-            </svg>
-        `.trim();
-
-        return `url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}")`;
+            .join('') || 'P';
     }
 
-    /**
-     * Render a neutral message into the grid.
-     * @param {HTMLElement} container
-     * @param {string} text
-     */
-    function showMessage(container, text) {
-        if (!container) return;
-        container.innerHTML =
-            '<p class="empty-state" style="grid-column: 1 / -1; text-align: center; ' +
-            'color: var(--color-text-muted); padding: 32px 0;">' +
-            escapeHtml(text) + '</p>';
+    function isPrebookable(worker) {
+        var value = normalizeAvailability(worker && worker.availability);
+        return value === 'pre-booking' || value === 'both';
     }
 
-    /**
-     * Render the provider's real teams into the grid.
-     * @param {HTMLElement} container
-     * @param {Array} teams
-     */
-    function renderTeams(container, teams) {
-        if (!container) return;
+    function showState(type, title, copy) {
+        var grid = document.getElementById('serviceGrid');
+        if (!grid) return;
 
-        if (!teams || !teams.length) {
-            showMessage(container, 'You haven\'t created or joined any teams yet.');
+        grid.innerHTML = '';
+
+        var state = document.createElement('div');
+        state.className = type + '-state';
+
+        var icon = document.createElement('span');
+        icon.className = 'state-icon';
+        icon.textContent = type === 'loading' ? '…' : (type === 'error' ? '!' : '✓');
+
+        var heading = document.createElement('p');
+        heading.className = 'state-title';
+        heading.textContent = title;
+
+        var paragraph = document.createElement('p');
+        paragraph.className = 'state-copy';
+        paragraph.textContent = copy;
+
+        state.appendChild(icon);
+        state.appendChild(heading);
+        state.appendChild(paragraph);
+        grid.appendChild(state);
+    }
+
+    function openWorker(worker) {
+        if (!worker || !worker.id) return;
+
+        try {
+            sessionStorage.setItem('handyhire.selectedWorkerId', String(worker.id));
+            sessionStorage.setItem('handyhire.provider.previousPage', window.location.href);
+        } catch (error) {
+            /* Navigation works without sessionStorage. */
+        }
+
+        window.location.href = 'provider-job-hire.html?worker_id=' + encodeURIComponent(String(worker.id));
+    }
+
+    function createWorkerCard(worker) {
+        var card = document.createElement('article');
+        card.className = 'worker-card';
+        card.tabIndex = 0;
+        card.setAttribute('role', 'button');
+        card.setAttribute('aria-label', 'View ' + worker.fullName + ', ' + worker.profession);
+        card.dataset.workerId = String(worker.id || '');
+
+        var avatar = document.createElement('div');
+        avatar.className = 'worker-avatar';
+        avatar.setAttribute('aria-hidden', 'true');
+
+        if (worker.profileImage) {
+            avatar.style.backgroundImage = 'url("' + String(worker.profileImage).replace(/"/g, '%22') + '")';
+        } else {
+            avatar.textContent = getInitials(worker.fullName);
+        }
+
+        var name = document.createElement('h3');
+        name.className = 'worker-name';
+        name.textContent = worker.fullName;
+
+        var profession = document.createElement('p');
+        profession.className = 'worker-profession';
+        profession.textContent = worker.profession;
+
+        var location = document.createElement('p');
+        location.className = 'worker-location';
+        location.textContent = worker.location;
+
+        var availability = document.createElement('span');
+        availability.className = 'worker-availability';
+        availability.textContent = normalizeAvailability(worker.availability) === 'both'
+            ? 'Pre-booking + On-spot'
+            : 'Pre-booking';
+
+        var meta = document.createElement('div');
+        meta.className = 'worker-meta';
+
+        var rating = document.createElement('span');
+        rating.className = 'worker-rating';
+        var ratingNumber = Number(worker.rating);
+        rating.textContent = Number.isFinite(ratingNumber) && ratingNumber > 0
+            ? '★ ' + ratingNumber.toFixed(1)
+            : '★ New';
+
+        var price = document.createElement('span');
+        price.className = 'worker-price';
+        var priceNumber = Number(worker.price);
+        price.innerHTML = Number.isFinite(priceNumber) && priceNumber > 0
+            ? '₹' + Math.round(priceNumber) + '<small>/ hour</small>'
+            : 'Rate unavailable';
+
+        meta.appendChild(rating);
+        meta.appendChild(price);
+
+        card.appendChild(avatar);
+        card.appendChild(name);
+        card.appendChild(profession);
+        card.appendChild(location);
+        card.appendChild(availability);
+        card.appendChild(meta);
+
+        card.addEventListener('click', function () { openWorker(worker); });
+        card.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openWorker(worker);
+            }
+        });
+
+        return card;
+    }
+
+    function sortWorkers(workers) {
+        var list = workers.slice();
+
+        if (currentSort === 'rating') {
+            list.sort(function (a, b) { return Number(b.rating || 0) - Number(a.rating || 0); });
+        } else if (currentSort === 'price_asc') {
+            list.sort(function (a, b) { return Number(a.price || 0) - Number(b.price || 0); });
+        } else if (currentSort === 'price_desc') {
+            list.sort(function (a, b) { return Number(b.price || 0) - Number(a.price || 0); });
+        } else if (currentSort === 'name') {
+            list.sort(function (a, b) { return String(a.fullName).localeCompare(String(b.fullName)); });
+        }
+
+        return list;
+    }
+
+    function renderWorkers() {
+        var grid = document.getElementById('serviceGrid');
+        if (!grid) return;
+
+        var query = currentSearch.trim().toLowerCase();
+        var filtered = allWorkers.filter(function (worker) {
+            if (!query) return true;
+
+            return [worker.fullName, worker.profession, worker.location]
+                .some(function (value) {
+                    return String(value || '').toLowerCase().includes(query);
+                });
+        });
+
+        filtered = sortWorkers(filtered);
+
+        if (!filtered.length) {
+            showState(
+                'empty',
+                currentSearch ? 'No matching professionals' : 'No pre-booking professionals yet',
+                currentSearch
+                    ? 'Try another name, profession or location.'
+                    : 'When professionals enable scheduled bookings, they will appear here.'
+            );
             return;
         }
 
-        container.innerHTML = teams.map(function (team) {
-            const count = Array.isArray(team.members) ? team.members.length : 0;
-            const roleLabel = team.role === 'creator' ? 'Team creator' : 'Team member';
-            const name = team.name || 'Team';
-
-            return `
-                <article class="worker-card" tabindex="0"
-                         data-team-id="${escapeHtml(String(team.id))}"
-                         data-team-name="${escapeHtml(name)}"
-                         aria-label="${escapeHtml(name)}, ${escapeHtml(roleLabel)}, ${count} member${count === 1 ? '' : 's'}">
-                    <div class="worker-avatar" style="background-image: ${buildAvatar(name)}" aria-hidden="true"></div>
-                    <h3 class="worker-name">${escapeHtml(name)}</h3>
-                    <p class="worker-profession">${escapeHtml(roleLabel)}</p>
-                    <div class="worker-meta">
-                        <span class="worker-price">${count} member${count === 1 ? '' : 's'}</span>
-                    </div>
-                </article>
-            `;
-        }).join('');
-    }
-
-    /**
-     * Fetch the provider's teams and render them.
-     */
-    function loadTeams() {
-        const container = document.getElementById('serviceGrid');
-        if (!container) return;
-
-        showMessage(container, 'Loading your teams...');
-
-        window.HandyHireAPI.apiFetch('/api/worker/teams')
-            .then(function (response) {
-                if (response.status === 401) {
-                    window.HandyHireAPI.clearAuth();
-                    window.location.href = 'login.html';
-                    return;
-                }
-                if (response.status === 403) {
-                    showMessage(container, 'You do not have provider access to this page.');
-                    return;
-                }
-                if (!response.ok) {
-                    showMessage(container, 'Unable to load your teams. Please try again.');
-                    return;
-                }
-                return response.json();
-            })
-            .then(function (teams) {
-                if (!teams) return;
-                renderTeams(container, teams);
-            })
-            .catch(function () {
-                showMessage(container, 'Network error. Please check your connection and try again.');
-            });
-    }
-
-    /**
-     * Wire up team-card clicks/keys to open the team page.
-     */
-    function initTeamCards() {
-        const grid = document.getElementById('serviceGrid');
-        if (!grid) return;
-
-        function openTeam(card) {
-            const id = card.getAttribute('data-team-id');
-            const name = card.getAttribute('data-team-name');
-            if (!id) return;
-            try {
-                sessionStorage.setItem('handyhire.selectedTeamId', id);
-                sessionStorage.setItem('handyhire.selectedTeam', name || '');
-                sessionStorage.setItem('handyhire.provider.previousPage', 'provider-home-prebooking.html');
-            } catch (e) {}
-            window.location.href = 'provider-team-page.html';
-        }
-
-        grid.addEventListener('click', function (event) {
-            const card = event.target.closest('.worker-card');
-            if (!card || !grid.contains(card)) return;
-            openTeam(card);
+        grid.innerHTML = '';
+        filtered.forEach(function (worker) {
+            grid.appendChild(createWorkerCard(worker));
         });
+    }
 
-        grid.addEventListener('keydown', function (event) {
-            const card = event.target.closest('.worker-card');
-            if (!card || !grid.contains(card)) return;
-            if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                openTeam(card);
+    async function loadWorkers() {
+        var api = getApi();
+        showState('loading', 'Finding professionals', 'Loading professionals who accept scheduled bookings…');
+
+        try {
+            if (!api || typeof api.apiFetch !== 'function') {
+                throw new Error('API helper unavailable');
             }
-        });
-    }
 
-    /**
-     * Wire up the filter chips so they navigate to the right page
-     * based on the centralized CHIP_ROUTES map.
-     */
-    function initFilterChips() {
-        const chips = document.querySelectorAll('.filter-chips .chip');
-        if (!chips.length) return;
+            var response = await api.apiFetch('/api/workers');
 
-        chips.forEach((chip) => {
-            chip.addEventListener('click', function () {
-                const filter = chip.dataset.filter;
+            if (response.status === 401) {
+                if (typeof api.clearAuth === 'function') api.clearAuth();
+                window.location.href = 'login.html';
+                return;
+            }
 
-                if (CHIP_ROUTES[filter]) {
-                    window.location.href = CHIP_ROUTES[filter];
-                    return;
-                }
+            if (!response.ok) {
+                throw new Error('Unable to load professionals');
+            }
 
-                chips.forEach((c) => {
-                    c.classList.remove('is-active');
-                    c.setAttribute('aria-pressed', 'false');
+            var data = await response.json();
+            var records = Array.isArray(data)
+                ? data
+                : (data.workers || data.items || data.results || data.data || []);
+
+            var currentUser = typeof api.getCurrentUser === 'function' ? api.getCurrentUser() : null;
+            var currentUserId = currentUser ? (currentUser.id || currentUser.user_id) : null;
+
+            allWorkers = (Array.isArray(records) ? records : [])
+                .map(normalizeWorker)
+                .filter(function (worker) {
+                    if (!worker.id || !isPrebookable(worker)) return false;
+                    if (!currentUserId) return true;
+                    return String(worker.id) !== String(currentUserId);
                 });
-                chip.classList.add('is-active');
-                chip.setAttribute('aria-pressed', 'true');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            });
-        });
+
+            renderWorkers();
+        } catch (error) {
+            console.error('Failed to load pre-booking professionals:', error);
+            showState('error', 'Couldn’t load professionals', 'Please check your connection and try again.');
+        }
     }
 
-    /**
-     * Wire up the top navigation tabs.
-     */
-    function initTopNav() {
-        const activityTab = document.getElementById('activityTab');
-        if (activityTab) {
-            activityTab.addEventListener('click', function (event) {
-                event.preventDefault();
-                window.location.href = 'provider-activity.html';
+    function initControls() {
+        var search = document.getElementById('prebookSearch');
+        var sort = document.getElementById('prebookSort');
+
+        if (search) {
+            search.addEventListener('input', function () {
+                currentSearch = search.value || '';
+                renderWorkers();
+            });
+        }
+
+        if (sort) {
+            sort.addEventListener('change', function () {
+                currentSort = sort.value || '';
+                renderWorkers();
             });
         }
     }
 
-    /**
-     * Make the package tiles keyboard-accessible (Space).
-     */
-    function initPackageTiles() {
-        const section = document.querySelector('.pkg-section');
-        if (!section) return;
-
-        section.addEventListener('keydown', function (event) {
-            if (event.key !== ' ') return;
-            const tile = event.target.closest('.pkg-tile');
-            if (!tile || !section.contains(tile)) return;
-            event.preventDefault();
-            const href = tile.getAttribute('href');
-            if (href) window.location.href = href;
-        });
-    }
-
-    /**
-     * Initialize the pre-booking home page.
-     */
     function init() {
         if (!requireAuth()) return;
-        loadTeams();
-        initFilterChips();
-        initTeamCards();
-        initPackageTiles();
-        initTopNav();
+        initControls();
+        loadWorkers();
     }
 
     if (document.readyState === 'loading') {
