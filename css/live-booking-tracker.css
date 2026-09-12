@@ -1,0 +1,285 @@
+/* =========================================================
+   HandyHire - Live booking / request tracker
+   Shared by customer Home and provider Home.
+   ========================================================= */
+
+.hh-live-stack {
+    position: fixed;
+    right: max(18px, env(safe-area-inset-right));
+    bottom: max(18px, env(safe-area-inset-bottom));
+    z-index: 180;
+    width: min(380px, calc(100vw - 28px));
+    display: grid;
+    gap: 12px;
+    pointer-events: none;
+}
+
+.hh-live-card {
+    position: relative;
+    overflow: hidden;
+    pointer-events: auto;
+    border: 1px solid rgba(18,53,35,.10);
+    border-radius: 22px;
+    background: rgba(255,255,255,.97);
+    box-shadow: 0 22px 58px rgba(18,53,35,.22);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    animation: hh-live-enter 220ms ease both;
+}
+
+.hh-live-card::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 4px;
+    background: linear-gradient(90deg,#173f2b,#4d855f,#9ed3ab);
+}
+
+.hh-live-card--incoming::before {
+    background: linear-gradient(90deg,#e78b2f,#f3b15f,#f8d3a5);
+}
+
+.hh-live-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 17px 18px 0;
+}
+
+.hh-live-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: #4d855f;
+    font-size: 9px;
+    font-weight: 850;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+}
+
+.hh-live-card--incoming .hh-live-kicker { color: #b7651c; }
+
+.hh-live-kicker-dot {
+    width: 8px;
+    height: 8px;
+    flex: 0 0 8px;
+    border-radius: 50%;
+    background: #57b26e;
+    box-shadow: 0 0 0 4px rgba(87,178,110,.13);
+}
+
+.hh-live-card--incoming .hh-live-kicker-dot {
+    background: #e78b2f;
+    box-shadow: 0 0 0 4px rgba(231,139,47,.14);
+}
+
+.hh-live-close {
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 30px;
+    margin-top: -3px;
+    border: 0;
+    border-radius: 10px;
+    color: #7c887f;
+    background: #f4f7f4;
+    cursor: pointer;
+    font: inherit;
+    font-size: 16px;
+    line-height: 1;
+    transition: 160ms ease;
+}
+
+.hh-live-close:hover {
+    color: #173f2b;
+    background: #e9f2eb;
+}
+
+.hh-live-body { padding: 11px 18px 16px; }
+
+.hh-live-title {
+    color: #17231b;
+    font-size: 18px;
+    line-height: 1.15;
+    letter-spacing: -.025em;
+    font-weight: 820;
+}
+
+.hh-live-subtitle {
+    margin-top: 4px;
+    color: #738078;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.hh-live-status {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 12px;
+    border: 1px solid #dce8df;
+    border-radius: 14px;
+    background: #f3f8f4;
+}
+
+.hh-live-status-icon {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    display: grid;
+    place-items: center;
+    border-radius: 11px;
+    color: #fff;
+    background: #315a42;
+}
+
+.hh-live-status-icon svg { width: 17px; height: 17px; }
+
+.hh-live-status-copy strong {
+    display: block;
+    color: #254d35;
+    font-size: 11px;
+    font-weight: 820;
+}
+
+.hh-live-status-copy span {
+    display: block;
+    margin-top: 2px;
+    color: #708078;
+    font-size: 9px;
+    line-height: 1.4;
+}
+
+.hh-live-meta {
+    margin-top: 12px;
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 8px;
+}
+
+.hh-live-meta-item {
+    min-width: 0;
+    padding: 9px 10px;
+    border-radius: 12px;
+    background: #fafcf9;
+    border: 1px solid #edf1ed;
+}
+
+.hh-live-meta-item span {
+    display: block;
+    color: #8b958e;
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.hh-live-meta-item strong {
+    display: block;
+    margin-top: 3px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #30453a;
+    font-size: 10px;
+    font-weight: 750;
+}
+
+.hh-live-progress {
+    margin-top: 13px;
+    display: grid;
+    grid-template-columns: repeat(4,1fr);
+    gap: 5px;
+}
+
+.hh-live-progress span {
+    height: 5px;
+    border-radius: 999px;
+    background: #e7ece8;
+}
+
+.hh-live-progress span.is-done,
+.hh-live-progress span.is-active { background: #4d855f; }
+.hh-live-progress span.is-active { box-shadow: 0 0 0 3px rgba(77,133,95,.10); }
+
+.hh-live-actions {
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+}
+
+.hh-live-btn {
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 13px;
+    border: 1px solid #173f2b;
+    border-radius: 12px;
+    color: #fff;
+    background: #173f2b;
+    text-decoration: none;
+    font-size: 10px;
+    font-weight: 820;
+    transition: transform 160ms ease, background 160ms ease;
+}
+
+.hh-live-btn:hover { transform: translateY(-1px); background: #24573b; }
+.hh-live-btn svg { width: 16px; height: 16px; }
+
+.hh-live-chip {
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 12px;
+    border: 1px solid #dfe6df;
+    border-radius: 12px;
+    color: #315a42;
+    background: #fff;
+    font-size: 9px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.hh-live-card.is-terminal .hh-live-status { background: #f8f9f7; }
+.hh-live-card.is-terminal .hh-live-progress span { background: #b9c6bc; }
+
+@keyframes hh-live-enter {
+    from { opacity: 0; transform: translateY(16px) scale(.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 767px) {
+    .hh-live-stack {
+        left: 10px;
+        right: 10px;
+        bottom: calc(82px + max(6px, env(safe-area-inset-bottom)));
+        width: auto;
+        gap: 9px;
+    }
+
+    .hh-live-card { border-radius: 19px; }
+    .hh-live-head { padding: 15px 15px 0; }
+    .hh-live-body { padding: 9px 15px 14px; }
+    .hh-live-title { font-size: 16px; }
+    .hh-live-status { margin-top: 11px; padding: 10px; }
+    .hh-live-meta { gap: 6px; }
+    .hh-live-actions { margin-top: 11px; }
+}
+
+@media (max-width: 420px) {
+    .hh-live-meta { grid-template-columns: 1fr; }
+    .hh-live-actions { grid-template-columns: 1fr; }
+    .hh-live-chip { min-height: 36px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hh-live-card { animation: none; }
+    .hh-live-btn,.hh-live-close { transition: none; }
+}
