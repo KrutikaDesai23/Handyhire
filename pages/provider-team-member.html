@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="HandyHire - Team member details." />
-    <meta name="theme-color" content="#68865C" />
+    <meta name="theme-color" content="#173f2b" />
     <title>Team Member | HandyHire</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -12,100 +12,187 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="../css/provider-team-member.css" />
+    <link rel="stylesheet" href="../css/provider-page-back.css" />
+    <link rel="stylesheet" href="../css/provider-subpage-header.css" />
 </head>
 <body>
-    <header class="member-topbar" role="banner">
-        <a href="provider-team-page.html" class="back-btn" aria-label="Back to team page">
-            <span class="back-icon" aria-hidden="true">&#8592;</span>
-            <span class="back-label">Back</span>
-        </a>
-        <h1 class="member-topbar-title">Team Member</h1>
-        <span class="icon-btn-spacer" aria-hidden="true"></span>
+    <header class="subpage-header" role="banner">
+        <div class="subpage-header-inner">
+            <a href="provider-home.html" class="subpage-brand" aria-label="HandyHire provider home">
+                <span class="subpage-brand-logo-shell">
+                    <img src="../Images/Hamor.jpeg" alt="" class="subpage-brand-logo" />
+                </span>
+                <span>HandyHire</span>
+            </a>
+        </div>
     </header>
 
     <main class="member-page" role="main">
-        <section class="member-card-page" aria-label="Team member details">
-            <!-- Avatar -->
-            <div class="member-avatar-large" id="memberAvatarLarge" aria-hidden="true"></div>
+        <a class="page-back" href="provider-team-page.html" aria-label="Back to team">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="m15 18-6-6 6-6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span>Back to Team</span>
+        </a>
 
-            <!-- Name -->
-            <h2 class="member-name-large" id="memberNameLarge">Member name</h2>
-            <p class="member-team-line" id="memberTeamLine">Part of: Team name</p>
-            <hr class="member-divider" aria-hidden="true" />
+        <section class="member-hero" aria-labelledby="memberNameLarge">
+            <div class="member-hero-profile">
+                <div class="member-avatar-wrap">
+                    <div class="member-avatar-large" id="memberAvatarLarge" aria-hidden="true"></div>
+                    <span class="member-verified" aria-label="Team member">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m8.5 12.5 2.2 2.2 4.8-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>
+                </div>
 
-            <!-- Info fields -->
-            <ul class="info-list">
-                <li class="info-row">
-                    <span class="info-icon" aria-hidden="true">&#128188;</span>
-                    <div class="info-text">
-                        <p class="info-label">Occupation</p>
-                        <p class="info-value" id="memberInfoOccupation">Occupation</p>
-                    </div>
-                </li>
-                <li class="info-row">
-                    <span class="info-icon" aria-hidden="true">&#127874;</span>
-                    <div class="info-text">
-                        <p class="info-label">Age</p>
-                        <p class="info-value" id="memberInfoAge">&mdash;</p>
-                    </div>
-                </li>
-                <li class="info-row">
-                    <span class="info-icon" aria-hidden="true">&#128241;</span>
-                    <div class="info-text">
-                        <p class="info-label">Mobile No.</p>
-                        <p class="info-value" id="memberInfoMobile">&mdash;</p>
-                    </div>
-                </li>
-                <li class="info-row">
-                    <span class="info-icon" aria-hidden="true">&#9993;</span>
-                    <div class="info-text">
-                        <p class="info-label">Email ID</p>
-                        <p class="info-value" id="memberInfoEmail">&mdash;</p>
-                    </div>
-                </li>
-                <li class="info-row">
-                    <span class="info-icon" aria-hidden="true">&#127968;</span>
-                    <div class="info-text">
-                        <p class="info-label">Address</p>
-                        <p class="info-value" id="memberInfoAddress">&mdash;</p>
-                    </div>
-                </li>
-                <li class="info-row">
-                    <span class="info-icon" aria-hidden="true">&#127891;</span>
-                    <div class="info-text">
-                        <p class="info-label">Qualification</p>
-                        <p class="info-value" id="memberInfoQualification">&mdash;</p>
-                    </div>
-                </li>
-                <li class="info-row info-row--select">
-                    <span class="info-icon" aria-hidden="true">&#128172;</span>
-                    <div class="info-text">
-                        <label class="info-label" for="memberFeedbackSelect">Feedback</label>
-                        <div class="select-wrap">
-                            <select id="memberFeedbackSelect" class="info-select" aria-describedby="memberFeedbackHelp">
-                                <option value="" disabled selected>Select your feedback</option>
-                                <option value="excellent">Excellent</option>
-                                <option value="good">Good</option>
-                                <option value="average">Average</option>
-                                <option value="poor">Poor</option>
-                            </select>
-                            <span class="select-caret" aria-hidden="true">&#9662;</span>
-                        </div>
-                        <p class="info-help" id="memberFeedbackHelp">Choose one option.</p>
-                    </div>
-                </li>
-            </ul>
+                <div class="member-identity">
+                    <span class="member-eyebrow">TEAM PROFESSIONAL</span>
+                    <h1 class="member-name-large" id="memberNameLarge">Member name</h1>
+                    <p class="member-team-line" id="memberTeamLine">Part of: Team name</p>
 
-            <!-- No individual "Book Now" button - this is the Team Package flow. -->
-            <p class="flow-note">
-                You are viewing details for one member of your selected team. To book the entire team, return to the team page and tap <strong>BOOK WHOLE TEAM</strong>.
-            </p>
+                    <div class="member-role-chip">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 8h12v10H6zM9 8V6h6v2" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 13h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                        <span id="memberInfoOccupation">Occupation</span>
+                    </div>
+                </div>
+            </div>
 
-            <a href="provider-team-page.html" class="back-to-team-btn">Back to Team</a>
+            <aside class="member-hero-note" aria-label="Team booking information">
+                <span class="member-hero-note-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/><circle cx="17" cy="9" r="2.5" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 19c.6-3.4 2.5-5.1 5.5-5.1s4.9 1.7 5.5 5.1M14.5 15.2c.7-.8 1.7-1.2 3-1.2 2.2 0 3.5 1.2 4 3.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                </span>
+                <div>
+                    <span>TEAM BOOKING</span>
+                    <strong>This professional is part of the selected crew.</strong>
+                    <small>Return to the team page when you are ready to book the whole team.</small>
+                </div>
+            </aside>
+        </section>
+
+        <section class="member-workspace" aria-label="Team member profile details">
+            <div class="workspace-heading">
+                <div>
+                    <span class="section-kicker">PROFESSIONAL DETAILS</span>
+                    <h2>Know who is on the team</h2>
+                    <p>Review the available profile information for this professional before booking the complete team.</p>
+                </div>
+            </div>
+
+            <div class="member-details-grid">
+                <article class="detail-card">
+                    <span class="detail-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none"><path d="M6 8h12v10H6zM9 8V6h6v2" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 13h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                    </span>
+                    <div class="detail-copy">
+                        <span class="detail-label">Occupation</span>
+                        <strong class="detail-value" id="memberInfoOccupationCard">Professional</strong>
+                    </div>
+                </article>
+
+                <article class="detail-card">
+                    <span class="detail-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none"><path d="M6 20v-2a6 6 0 0 1 12 0v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.8"/></svg>
+                    </span>
+                    <div class="detail-copy">
+                        <span class="detail-label">Age</span>
+                        <strong class="detail-value" id="memberInfoAge">—</strong>
+                    </div>
+                </article>
+
+                <article class="detail-card">
+                    <span class="detail-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none"><rect x="7" y="3" width="10" height="18" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M10 6h4M11 18h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                    </span>
+                    <div class="detail-copy">
+                        <span class="detail-label">Mobile</span>
+                        <strong class="detail-value" id="memberInfoMobile">—</strong>
+                    </div>
+                </article>
+
+                <article class="detail-card">
+                    <span class="detail-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="5" width="17" height="14" rx="2.5" stroke="currentColor" stroke-width="1.8"/><path d="m5 7 7 5 7-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>
+                    <div class="detail-copy">
+                        <span class="detail-label">Email</span>
+                        <strong class="detail-value" id="memberInfoEmail">—</strong>
+                    </div>
+                </article>
+
+                <article class="detail-card detail-card--wide">
+                    <span class="detail-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none"><path d="M12 21s6-5.2 6-11a6 6 0 1 0-12 0c0 5.8 6 11 6 11Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2" stroke="currentColor" stroke-width="1.8"/></svg>
+                    </span>
+                    <div class="detail-copy">
+                        <span class="detail-label">Address</span>
+                        <strong class="detail-value" id="memberInfoAddress">—</strong>
+                    </div>
+                </article>
+
+                <article class="detail-card detail-card--wide">
+                    <span class="detail-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none"><path d="m4 9 8-4 8 4-8 4-8-4Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M7 11.5V16c2.7 2 7.3 2 10 0v-4.5M20 9v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>
+                    <div class="detail-copy">
+                        <span class="detail-label">Qualification</span>
+                        <strong class="detail-value" id="memberInfoQualification">—</strong>
+                    </div>
+                </article>
+            </div>
+
+            <section class="feedback-panel" aria-labelledby="feedbackTitle">
+                <div class="feedback-copy">
+                    <span class="section-kicker">YOUR IMPRESSION</span>
+                    <h3 id="feedbackTitle">How does this profile look?</h3>
+                    <p>This is only a local selection on this screen and does not submit a review.</p>
+                </div>
+                <div class="feedback-control">
+                    <label class="detail-label" for="memberFeedbackSelect">Feedback</label>
+                    <div class="select-wrap">
+                        <select id="memberFeedbackSelect" class="info-select" aria-describedby="memberFeedbackHelp">
+                            <option value="" disabled selected>Select your feedback</option>
+                            <option value="excellent">Excellent</option>
+                            <option value="good">Good</option>
+                            <option value="average">Average</option>
+                            <option value="poor">Poor</option>
+                        </select>
+                        <svg class="select-caret" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m8 10 4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <p class="info-help" id="memberFeedbackHelp">Choose one option.</p>
+                </div>
+            </section>
+
+            <div class="member-actions">
+                <div class="flow-note">
+                    <span class="flow-note-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none"><path d="M12 7v5M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/></svg>
+                    </span>
+                    <p>You are viewing one member of the selected team. Team Package bookings always book the complete crew together.</p>
+                </div>
+                <a href="provider-team-page.html" class="back-to-team-btn">
+                    <span>Return to Team</span>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </a>
+            </div>
         </section>
     </main>
 
     <script src="../js/api.js"></script>
     <script src="../js/provider-team-member.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var source = document.getElementById('memberInfoOccupation');
+            var mirror = document.getElementById('memberInfoOccupationCard');
+            if (!source || !mirror) return;
+
+            var syncOccupation = function () {
+                mirror.textContent = source.textContent || 'Professional';
+            };
+            syncOccupation();
+
+            if ('MutationObserver' in window) {
+                new MutationObserver(syncOccupation).observe(source, { childList: true, subtree: true, characterData: true });
+            }
+        });
+    </script>
 </body>
 </html>
