@@ -1,11 +1,15 @@
 import pytest
-from datetime import date
+from datetime import date, timedelta
 from fastapi.testclient import TestClient
 
 from app import models
 from app.auth import security
 from app.models.user import User
 from app.models.worker_profile import WorkerProfile
+
+
+def _future_booking_date(days=30):
+    return (date.today() + timedelta(days=days)).isoformat()
 
 
 def test_worker_profile_get(client, worker):
@@ -354,7 +358,7 @@ def test_unauthenticated_worker_access_rejected(client):
 def test_customer_booking_creates_worker_request(client, customer_token, worker, db):
     payload = {
         "worker_id": worker.id,
-        "booking_date": "2026-08-21",
+        "booking_date": _future_booking_date(30),
         "booking_time": "14:00",
         "address": "456 Main St",
         "amount": 750,
@@ -376,7 +380,7 @@ def test_customer_booking_creates_worker_request(client, customer_token, worker,
 def test_duplicate_booking_request_prevention(client, customer_token, worker, db):
     payload = {
         "worker_id": worker.id,
-        "booking_date": "2026-08-22",
+        "booking_date": _future_booking_date(31),
         "booking_time": "09:00",
         "address": "789 Oak Ave",
         "amount": 600,
