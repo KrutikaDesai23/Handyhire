@@ -4,6 +4,8 @@ A FastAPI application providing backend services for the
 HandyHire service marketplace platform.
 """
 
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -33,14 +35,22 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# CORS: allow the local frontend (Live Server on port 5500) to call this
-# backend on port 8000. Scoped to localhost origins only.
+# Keep local development working while allowing production frontends to be
+# supplied through ALLOWED_ORIGINS (comma-separated, e.g. a Vercel domain).
+local_origins = [
+    "http://127.0.0.1:5500",
+    "http://localhost:5500",
+]
+configured_origins = [
+    origin.strip().rstrip("/")
+    for origin in os.getenv("ALLOWED_ORIGINS", "").split(",")
+    if origin.strip()
+]
+allowed_origins = list(dict.fromkeys(local_origins + configured_origins))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://127.0.0.1:5500",
-        "http://localhost:5500",
-    ],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
