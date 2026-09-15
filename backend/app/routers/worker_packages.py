@@ -172,17 +172,10 @@ def _validate_service_ids(
             detail="Duplicate services are not allowed in a package",
         )
 
-    minimum = 2 if package_type == "multitasking" else 1
-
-    if len(selected_ids) < minimum:
-        detail = (
-            "A multitasking package must include at least 2 different services"
-            if package_type == "multitasking"
-            else "A team package must include at least one service"
-        )
+    if package_type == "multitasking" and len(selected_ids) < 2:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=detail,
+            detail="A multitasking package must include at least 2 different services",
         )
 
     for service_id in selected_ids:
