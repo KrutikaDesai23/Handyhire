@@ -5,6 +5,7 @@ HandyHire service marketplace platform.
 """
 
 import os
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -74,13 +75,11 @@ app.include_router(worker_teams_router)
 app.include_router(worker_team_members_router)
 app.include_router(worker_work_photos_router)
 
-# Serve uploaded profile images from the backend uploads directory.
-# Files are exposed under /static/profile-images/<filename>.
-app.mount(
-    "/static",
-    StaticFiles(directory=str(__import__("pathlib").Path(__file__).resolve().parent.parent / "uploads")),
-    name="static",
-)
+# Runtime uploads are intentionally git-ignored, so create the directory on a
+# fresh machine/container before StaticFiles validates it.
+uploads_dir = Path(__file__).resolve().parent.parent / "uploads"
+uploads_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/static", StaticFiles(directory=str(uploads_dir)), name="static")
 
 
 @app.get("/")
