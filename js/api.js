@@ -6,7 +6,13 @@
 (function () {
     'use strict';
 
-    var API_BASE_URL = 'http://127.0.0.1:8000';
+    var currentHost = (window.location && window.location.hostname) ? window.location.hostname : '';
+    var isLocalHost = currentHost === '127.0.0.1' || currentHost === 'localhost' || currentHost === '';
+
+    // Production may set window.HANDYHIRE_API_BASE_URL before this script loads.
+    // Local development falls back to the FastAPI server on port 8000.
+    var configuredApiBase = (window.HANDYHIRE_API_BASE_URL || '').trim();
+    var API_BASE_URL = (configuredApiBase || (isLocalHost ? 'http://127.0.0.1:8000' : '')).replace(/\/+$/, '');
 
     var STORAGE_KEYS = {
         TOKEN: 'handyhire.auth.token',
@@ -30,6 +36,19 @@
             headers['Authorization'] = 'Bearer ' + token;
         }
 
+        if (!API_BASE_URL) {
+            return Promise.resolve({
+                ok: false,
+                status: 0,
+                statusText: 'API Not Configured',
+                json: function () {
+                    return Promise.resolve({
+                        detail: 'HandyHire API URL is not configured for this deployment.',
+                    });
+                },
+            });
+        }
+
         return fetch(API_BASE_URL + path, {
             method: options.method || 'GET',
             headers: headers,
@@ -51,7 +70,7 @@
                 statusText: 'Network Error',
                 json: function () {
                     return Promise.resolve({
-                        detail: 'Unable to connect to HandyHire server. Please make sure the backend is running.',
+                        detail: 'Unable to connect to HandyHire server. Please try again.',
                     });
                 },
             };
@@ -118,36 +137,17 @@
        ROLE ISOLATION (single source of truth = JWT-backed user)
        ========================================================= */
 
-    /**
-     * Resolve the authenticated user's role from the stored
-     * identity that was written after JWT verification.
-     * @returns {'customer'|'worker'|null}
-     */
     function getRole() {
         var user = getStoredUser();
         return (user && user.role) ? user.role : null;
     }
 
-    /**
-     * Home page for a given role.
-     * @param {string|null} role
-     * @returns {string}
-     */
     function roleHomeHref(role) {
         if (role === 'worker') return 'provider-home.html';
         if (role === 'customer') return 'home.html';
         return 'login.html';
     }
 
-    /**
-     * Central page guard. Redirects based ONLY on the stored
-     * authenticated identity (never URL/sessionStorage):
-     *   - no token          -> login.html
-     *   - wrong role        -> that role's own home page
-     *   - unknown identity  -> login.html
-     * @param {'customer'|'worker'} expectedRole
-     * @returns {boolean} true when the page may render
-     */
     function requireRole(expectedRole) {
         var token = getStoredToken();
         if (!token) {
@@ -165,11 +165,6 @@
         return true;
     }
 
-    /**
-     * Wipe every role-specific / navigation sessionStorage key so a
-     * logout (or account switch) can never inherit the previous
-     * user's navigation state.
-     */
     function clearNavigationState() {
         var KEYS = [
             'handyhire.selectedWorkerId',
