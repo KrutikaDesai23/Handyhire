@@ -1,4 +1,4 @@
-name: Backend tests
+name: App checks
 
 on:
   push:
@@ -32,5 +32,11 @@ jobs:
       - name: Compile backend
         run: python -m compileall -q app
 
-      - name: Run tests
+      - name: Run backend tests
         run: pytest -q
+
+      - name: Check frontend JavaScript syntax
+        run: |
+          for file in ../js/*.js; do
+            node --check "$file"
+          done
