@@ -33,11 +33,7 @@ def _load_before_photos(booking_id, db):
 
 
 def _load_team_members(booking, db):
-    """Return the team members for a team package booking.
-
-    Each member includes worker_id, full_name, profession, status,
-    and is_leader. Returns an empty list for non-team bookings.
-    """
+    """Return the team members for a team package booking."""
     if not booking or not booking.package_id:
         return []
 
@@ -75,6 +71,43 @@ def _load_team_members(booking, db):
         })
 
     return members
+
+
+def _get_team_package(booking, db):
+    if not booking or not booking.package_id:
+        return None
+    package = db.query(models.Package).filter(models.Package.id == booking.package_id).first()
+    if not package or package.package_type != "team":
+        return None
+    return package
+
+
+def _get_team_leader_id(booking, db):
+    package = _get_team_package(booking, db)
+    if not package:
+        return None
+
+    leader = (
+        db.query(models.PackageWorker)
+        .filter(
+            models.PackageWorker.package_id == package.id,
+            models.PackageWorker.is_leader.is_(True),
+        )
+        .first()
+    )
+    return leader.worker_id if leader else None
+
+
+def _assert_request_visible_to_worker(request, current_user, db):
+    booking = db.query(models.Booking).filter(models.Booking.id == request.booking_id).first()
+    if not booking:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Request not found")
+
+    leader_id = _get_team_leader_id(booking, db)
+    if leader_id is not None and current_user.id != leader_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Request not found")
+
+    return booking
 
 
 def _build_request_response(request: models.BookingRequest, db: Session) -> BookingRequestResponse:
@@ -127,7 +160,17 @@ def list_worker_requests(
         query = query.filter(models.BookingRequest.status == status)
 
     requests = query.order_by(models.BookingRequest.created_at.desc()).all()
-    return [_build_request_response(r, db) for r in requests]
+    visible_requests = []
+    for request in requests:
+        booking = db.query(models.Booking).filter(models.Booking.id == request.booking_id).first()
+        if not booking:
+            continue
+        leader_id = _get_team_leader_id(booking, db)
+        if leader_id is not None and current_user.id != leader_id:
+            continue
+        visible_requests.append(request)
+
+    return [_build_request_response(r, db) for r in visible_requests]
 
 
 @router.get("/requests/{request_id}", response_model=BookingRequestResponse)
@@ -140,6 +183,7 @@ def get_worker_request(
     if not request or request.worker_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Request not found")
 
+    _assert_request_visible_to_worker(request, current_user, db)
     return _build_request_response(request, db)
 
 
@@ -156,35 +200,46 @@ def accept_worker_request(
     if request.status != "pending":
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Request is not pending")
 
-    booking = db.query(models.Booking).filter(models.Booking.id == request.booking_id).first()
-    if not booking:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Booking not found")
+    booking = _assert_request_visible_to_worker(request, current_user, db)
+    leader_id = _get_team_leader_id(booking, db)
 
-    request.status = "accepted"
+    if leader_id is not None:
+        db.query(models.BookingWorker).filter(
+            models.BookingWorker.booking_id == booking.id
+        ).update({"status": "accepted"}, synchronize_session=False)
 
-    booking_workers = (
-        db.query(models.BookingWorker)
-        .filter(models.BookingWorker.booking_id == booking.id)
-        .all()
-    )
+        db.query(models.BookingRequest).filter(
+            models.BookingRequest.booking_id == booking.id
+        ).update({"status": "accepted"}, synchronize_session=False)
 
-    if booking_workers:
-        for bw in booking_workers:
-            if bw.worker_id == current_user.id:
-                bw.status = "accepted"
-                break
+        booking.status = "accepted"
+        request.status = "accepted"
+    else:
+        request.status = "accepted"
 
-        all_accepted = (
+        booking_workers = (
             db.query(models.BookingWorker)
             .filter(models.BookingWorker.booking_id == booking.id)
-            .filter(models.BookingWorker.status != "accepted")
-            .first()
-            is None
+            .all()
         )
-        if all_accepted:
+
+        if booking_workers:
+            for bw in booking_workers:
+                if bw.worker_id == current_user.id:
+                    bw.status = "accepted"
+                    break
+
+            all_accepted = (
+                db.query(models.BookingWorker)
+                .filter(models.BookingWorker.booking_id == booking.id)
+                .filter(models.BookingWorker.status != "accepted")
+                .first()
+                is None
+            )
+            if all_accepted:
+                booking.status = "accepted"
+        else:
             booking.status = "accepted"
-    else:
-        booking.status = "accepted"
 
     db.add(request)
     db.add(booking)
@@ -208,27 +263,34 @@ def reject_worker_request(
     if request.status != "pending":
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Request is not pending")
 
-    booking = db.query(models.Booking).filter(models.Booking.id == request.booking_id).first()
-    if not booking:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Booking not found")
+    booking = _assert_request_visible_to_worker(request, current_user, db)
 
     if booking.status in ("completed", "cancelled"):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Booking cannot be rejected in current status")
 
+    leader_id = _get_team_leader_id(booking, db)
+    if leader_id is not None:
+        db.query(models.BookingWorker).filter(
+            models.BookingWorker.booking_id == booking.id
+        ).update({"status": "rejected"}, synchronize_session=False)
+
+        db.query(models.BookingRequest).filter(
+            models.BookingRequest.booking_id == booking.id
+        ).update({"status": "rejected"}, synchronize_session=False)
+    else:
+        booking_workers = (
+            db.query(models.BookingWorker)
+            .filter(models.BookingWorker.booking_id == booking.id)
+            .all()
+        )
+
+        if booking_workers:
+            for bw in booking_workers:
+                if bw.worker_id == current_user.id:
+                    bw.status = "rejected"
+                    break
+
     request.status = "rejected"
-
-    booking_workers = (
-        db.query(models.BookingWorker)
-        .filter(models.BookingWorker.booking_id == booking.id)
-        .all()
-    )
-
-    if booking_workers:
-        for bw in booking_workers:
-            if bw.worker_id == current_user.id:
-                bw.status = "rejected"
-                break
-
     booking.status = "rejected"
 
     db.add(request)
