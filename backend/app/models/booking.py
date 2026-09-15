@@ -16,6 +16,7 @@ class Booking(Base):
     package_id = Column(Integer, ForeignKey("packages.id"), nullable=True)
     booking_date = Column(Date, nullable=False)
     booking_time = Column(String(10), nullable=False)
+    hours = Column(Integer, nullable=False, default=1, server_default="1")
     address = Column(String(500), nullable=False)
     description = Column(Text, nullable=True)
     amount = Column(Integer, nullable=False)
