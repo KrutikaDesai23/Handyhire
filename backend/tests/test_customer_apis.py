@@ -7,6 +7,10 @@ from app.auth import security
 from app.models.user import User
 
 
+FUTURE_BOOKING_DATE = "2099-08-20"
+FUTURE_DATE_OBJECT = date(2099, 8, 20)
+
+
 def test_customer_profile_get(client, customer_token):
     response = client.get(
         "/api/customer/profile",
@@ -24,13 +28,15 @@ def test_customer_profile_update(client, customer_token):
         "/api/customer/profile",
         headers={"Authorization": f"Bearer {customer_token}"},
         json={
-            "full_name": "Updated Name",
+            "full_name": "  Updated Name  ",
+            "email": "  CUSTOMER.NORMALIZED@EXAMPLE.COM  ",
             "city": "New City",
         },
     )
     assert response.status_code == 200
     data = response.json()
     assert data["full_name"] == "Updated Name"
+    assert data["email"] == "customer.normalized@example.com"
     assert data["city"] == "New City"
 
 
@@ -49,7 +55,7 @@ def test_customer_cannot_update_another_user_profile(client, customer_token, cus
     response = client.put(
         "/api/customer/profile",
         headers={"Authorization": f"Bearer {customer_token}"},
-        json={"email": other.email},
+        json={"email": " OTHER-CUSTOMER@EXAMPLE.COM "},
     )
     assert response.status_code == 400
     assert "email" in response.json()["detail"].lower()
@@ -115,11 +121,12 @@ def test_customer_creates_booking(client, customer_token, worker, db):
     payload = {
         "worker_id": worker.id,
         "service_id": service_id,
-        "booking_date": "2026-08-20",
+        "booking_date": FUTURE_BOOKING_DATE,
         "booking_time": "10:00",
+        "hours": 2,
         "address": "123 Customer St",
         "description": "Need help",
-        "amount": 500,
+        "amount": 1,
     }
     response = client.post(
         "/api/bookings",
@@ -130,12 +137,14 @@ def test_customer_creates_booking(client, customer_token, worker, db):
     data = response.json()
     assert data["status"] == "pending"
     assert data["worker_id"] == worker.id
+    assert data["hours"] == 2
+    assert data["amount"] == 1000
 
 
 def test_create_booking_invalid_worker(client, customer_token):
     payload = {
         "worker_id": 99999,
-        "booking_date": "2026-08-20",
+        "booking_date": FUTURE_BOOKING_DATE,
         "booking_time": "10:00",
         "address": "123 Customer St",
         "amount": 500,
@@ -163,10 +172,11 @@ def test_customer_booking_detail(client, customer_token, customer, worker, db):
         booking = models.Booking(
             customer_id=customer.id,
             worker_id=worker.id,
-            booking_date=date(2026, 8, 20),
+            booking_date=FUTURE_DATE_OBJECT,
             booking_time="10:00",
+            hours=2,
             address="123 Customer St",
-            amount=500,
+            amount=1000,
             status="pending",
         )
         db.add(booking)
@@ -178,6 +188,7 @@ def test_customer_booking_detail(client, customer_token, customer, worker, db):
         headers={"Authorization": f"Bearer {customer_token}"},
     )
     assert response.status_code == 200
+    assert response.json()["hours"] == booking.hours
 
 
 def test_customer_cannot_access_another_customer_booking(client, customer_token, customer, worker, db):
@@ -196,7 +207,7 @@ def test_customer_cannot_access_another_customer_booking(client, customer_token,
         other_booking = models.Booking(
             customer_id=other_customer.id,
             worker_id=worker.id,
-            booking_date=date(2026, 8, 20),
+            booking_date=FUTURE_DATE_OBJECT,
             booking_time="10:00",
             address="456 Other St",
             amount=500,
