@@ -6,7 +6,25 @@
 (function () {
     'use strict';
 
-    var API_BASE_URL = 'http://127.0.0.1:8000';
+    // Set this once after the Railway backend URL is created. Keeping the
+    // value centralized prevents individual pages from hard-coding hosts.
+    var DEPLOYED_API_BASE_URL = '';
+
+    function resolveApiBaseUrl() {
+        var runtimeOverride = window.HANDYHIRE_API_BASE_URL;
+        if (runtimeOverride && String(runtimeOverride).trim()) {
+            return String(runtimeOverride).trim().replace(/\/$/, '');
+        }
+
+        var hostname = window.location && window.location.hostname;
+        if (hostname === 'localhost' || hostname === '127.0.0.1' || !hostname) {
+            return 'http://127.0.0.1:8000';
+        }
+
+        return DEPLOYED_API_BASE_URL.replace(/\/$/, '');
+    }
+
+    var API_BASE_URL = resolveApiBaseUrl();
 
     var STORAGE_KEYS = {
         TOKEN: 'handyhire.auth.token',
@@ -30,6 +48,19 @@
             headers['Authorization'] = 'Bearer ' + token;
         }
 
+        if (!API_BASE_URL) {
+            return Promise.resolve({
+                ok: false,
+                status: 0,
+                statusText: 'API Not Configured',
+                json: function () {
+                    return Promise.resolve({
+                        detail: 'HandyHire API is not configured for this deployment.',
+                    });
+                },
+            });
+        }
+
         return fetch(API_BASE_URL + path, {
             method: options.method || 'GET',
             headers: headers,
@@ -43,15 +74,14 @@
         }).catch(function () {
             // Network-level failure (server down, DNS failure, CORS block, etc.).
             // Return a synthetic Response-like object so callers never see
-            // an unhandled "Failed to fetch" rejection and can show a
-            // friendly message through their normal error path.
+            // an unhandled "Failed to fetch" rejection.
             return {
                 ok: false,
                 status: 0,
                 statusText: 'Network Error',
                 json: function () {
                     return Promise.resolve({
-                        detail: 'Unable to connect to HandyHire server. Please make sure the backend is running.',
+                        detail: 'Unable to connect to HandyHire right now. Please try again.',
                     });
                 },
             };
@@ -74,11 +104,14 @@
 
     function debugAuthState(label) {
         try {
+            var hostname = window.location && window.location.hostname;
+            var isLocal = hostname === 'localhost' || hostname === '127.0.0.1' || !hostname;
+            if (!isLocal) return;
             var token = getStoredToken();
             var user = getStoredUser();
             var role = (user && user.role) ? user.role : null;
             var roleHome = roleHomeHref(role);
-            console.log('[HandyHire][auth][debug] ' + label + ' | token=' + !!token + ' | user=' + JSON.stringify(user) + ' | role=' + role + ' | roleHome=' + roleHome);
+            console.log('[HandyHire][auth][debug] ' + label + ' | token=' + !!token + ' | role=' + role + ' | roleHome=' + roleHome);
         } catch (e) {}
     }
 
@@ -118,36 +151,17 @@
        ROLE ISOLATION (single source of truth = JWT-backed user)
        ========================================================= */
 
-    /**
-     * Resolve the authenticated user's role from the stored
-     * identity that was written after JWT verification.
-     * @returns {'customer'|'worker'|null}
-     */
     function getRole() {
         var user = getStoredUser();
         return (user && user.role) ? user.role : null;
     }
 
-    /**
-     * Home page for a given role.
-     * @param {string|null} role
-     * @returns {string}
-     */
     function roleHomeHref(role) {
         if (role === 'worker') return 'provider-home.html';
         if (role === 'customer') return 'home.html';
         return 'login.html';
     }
 
-    /**
-     * Central page guard. Redirects based ONLY on the stored
-     * authenticated identity (never URL/sessionStorage):
-     *   - no token          -> login.html
-     *   - wrong role        -> that role's own home page
-     *   - unknown identity  -> login.html
-     * @param {'customer'|'worker'} expectedRole
-     * @returns {boolean} true when the page may render
-     */
     function requireRole(expectedRole) {
         var token = getStoredToken();
         if (!token) {
@@ -165,11 +179,6 @@
         return true;
     }
 
-    /**
-     * Wipe every role-specific / navigation sessionStorage key so a
-     * logout (or account switch) can never inherit the previous
-     * user's navigation state.
-     */
     function clearNavigationState() {
         var KEYS = [
             'handyhire.selectedWorkerId',
