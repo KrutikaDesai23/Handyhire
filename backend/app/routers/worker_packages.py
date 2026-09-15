@@ -68,18 +68,21 @@ def _validate_team_workers(
     current_user_id: int,
     db: Session,
 ) -> list[int]:
+    selected_ids = list(worker_ids or [])
 
-    # Remove duplicates while preserving order
-    unique_ids = list(dict.fromkeys(worker_ids or []))
+    if len(selected_ids) != len(set(selected_ids)):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Duplicate workers are not allowed in a team package",
+        )
 
-    if len(unique_ids) < 2:
+    if len(selected_ids) < 2:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="A team package must include at least 2 different workers",
         )
 
-    # Provider cannot select themselves
-    if current_user_id in unique_ids:
+    if current_user_id in selected_ids:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="You cannot add yourself as a team member",
@@ -88,7 +91,7 @@ def _validate_team_workers(
     workers = (
         db.query(models.User)
         .filter(
-            models.User.id.in_(unique_ids),
+            models.User.id.in_(selected_ids),
             models.User.role == "worker",
         )
         .all()
@@ -98,7 +101,7 @@ def _validate_team_workers(
 
     missing_ids = [
         worker_id
-        for worker_id in unique_ids
+        for worker_id in selected_ids
         if worker_id not in found_ids
     ]
 
@@ -111,7 +114,7 @@ def _validate_team_workers(
             ),
         )
 
-    return unique_ids
+    return selected_ids
 
 
 def _replace_package_workers(
@@ -159,11 +162,30 @@ def _remove_package_workers(
 def _validate_service_ids(
     service_ids: list[int],
     db: Session,
+    package_type: str,
 ) -> list[int]:
+    selected_ids = list(service_ids or [])
 
-    unique_ids = list(dict.fromkeys(service_ids or []))
+    if len(selected_ids) != len(set(selected_ids)):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Duplicate services are not allowed in a package",
+        )
 
-    for service_id in unique_ids:
+    minimum = 2 if package_type == "multitasking" else 1
+
+    if len(selected_ids) < minimum:
+        detail = (
+            "A multitasking package must include at least 2 different services"
+            if package_type == "multitasking"
+            else "A team package must include at least one service"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=detail,
+        )
+
+    for service_id in selected_ids:
         service = (
             db.query(models.Service)
             .filter(models.Service.id == service_id)
@@ -176,7 +198,7 @@ def _validate_service_ids(
                 detail=f"Service {service_id} not found",
             )
 
-    return unique_ids
+    return selected_ids
 
 
 def _replace_package_services(
@@ -199,6 +221,71 @@ def _replace_package_services(
                 package_id=package_id,
                 service_id=service_id,
             )
+        )
+
+
+def _validate_team_leader(
+    worker_ids: list[int],
+    leader_worker_id: Optional[int],
+):
+    if leader_worker_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Team package must have exactly one leader",
+        )
+
+    if leader_worker_id not in worker_ids:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Leader must be one of the selected workers",
+        )
+
+
+def _validate_existing_package_structure(
+    package: models.Package,
+    current_user_id: int,
+    db: Session,
+):
+    service_ids = [
+        row.service_id
+        for row in (
+            db.query(models.PackageService)
+            .filter(models.PackageService.package_id == package.id)
+            .all()
+        )
+    ]
+    _validate_service_ids(
+        service_ids,
+        db,
+        package.package_type,
+    )
+
+    if package.package_type != "team":
+        return
+
+    worker_rows = (
+        db.query(models.PackageWorker)
+        .filter(models.PackageWorker.package_id == package.id)
+        .all()
+    )
+    worker_ids = [row.worker_id for row in worker_rows]
+
+    _validate_team_workers(
+        worker_ids,
+        current_user_id,
+        db,
+    )
+
+    leaders = [
+        row.worker_id
+        for row in worker_rows
+        if row.is_leader
+    ]
+
+    if len(leaders) != 1 or leaders[0] not in worker_ids:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Team package must have exactly one leader",
         )
 
 
@@ -361,6 +448,7 @@ def create_package(
     service_ids = _validate_service_ids(
         payload.service_ids,
         db,
+        payload.package_type,
     )
 
     team_worker_ids = []
@@ -371,10 +459,21 @@ def create_package(
             current_user.id,
             db,
         )
-
-    # -----------------------------------------------------
-    # Create package FIRST
-    # -----------------------------------------------------
+        _validate_team_leader(
+            team_worker_ids,
+            payload.leader_worker_id,
+        )
+    else:
+        if payload.worker_ids:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Multitasking packages cannot include team workers",
+            )
+        if payload.leader_worker_id is not None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Multitasking packages cannot have a team leader",
+            )
 
     package = models.Package(
         name=payload.name,
@@ -389,14 +488,7 @@ def create_package(
     )
 
     db.add(package)
-
-    # IMPORTANT:
-    # This generates the real package.id.
     db.flush()
-
-    # -----------------------------------------------------
-    # Save services using the REAL package.id
-    # -----------------------------------------------------
 
     _replace_package_services(
         package.id,
@@ -404,23 +496,7 @@ def create_package(
         db,
     )
 
-    # -----------------------------------------------------
-    # Save Team Package workers AFTER package.id exists
-    # -----------------------------------------------------
-
     if payload.package_type == "team":
-        if payload.leader_worker_id is None:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Team package must have a leader",
-            )
-
-        if payload.leader_worker_id not in team_worker_ids:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Leader must be one of the selected workers",
-            )
-
         _replace_package_workers(
             package.id,
             team_worker_ids,
@@ -493,73 +569,86 @@ def update_package(
     if payload.status is not None:
         _validate_status(payload.status)
 
-    # -----------------------------------------------------
-    # Validate services before changing DB
-    # -----------------------------------------------------
-
     validated_service_ids = None
 
     if payload.service_ids is not None:
         validated_service_ids = _validate_service_ids(
             payload.service_ids,
             db,
+            target_type,
         )
-
-    elif target_type == "team":
-        existing_service_count = (
-            db.query(models.PackageService)
-            .filter(
-                models.PackageService.package_id == package.id
+    else:
+        existing_service_ids = [
+            row.service_id
+            for row in (
+                db.query(models.PackageService)
+                .filter(models.PackageService.package_id == package.id)
+                .all()
             )
-            .count()
+        ]
+        _validate_service_ids(
+            existing_service_ids,
+            db,
+            target_type,
         )
-
-        if existing_service_count == 0:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="A team package must include at least one service",
-            )
-
-    # -----------------------------------------------------
-    # Validate workers
-    # -----------------------------------------------------
 
     validated_worker_ids = None
 
     if target_type == "team":
-
         if payload.worker_ids is not None:
             validated_worker_ids = _validate_team_workers(
                 payload.worker_ids,
                 current_user.id,
                 db,
             )
-
+            _validate_team_leader(
+                validated_worker_ids,
+                payload.leader_worker_id,
+            )
         else:
-            existing_worker_ids = [
+            current_rows = (
+                db.query(models.PackageWorker)
+                .filter(models.PackageWorker.package_id == package.id)
+                .all()
+            )
+            current_member_ids = [
                 row.worker_id
-                for row in (
-                    db.query(models.PackageWorker)
-                    .filter(
-                        models.PackageWorker.package_id
-                        == package.id
-                    )
-                    .all()
-                )
+                for row in current_rows
             ]
 
-            if len(set(existing_worker_ids)) < 2:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=(
-                        "A team package must include "
-                        "at least 2 different workers"
-                    ),
-                )
+            _validate_team_workers(
+                current_member_ids,
+                current_user.id,
+                db,
+            )
 
-    # -----------------------------------------------------
-    # Update normal fields
-    # -----------------------------------------------------
+            if payload.leader_worker_id is not None:
+                _validate_team_leader(
+                    current_member_ids,
+                    payload.leader_worker_id,
+                )
+            else:
+                leaders = [
+                    row.worker_id
+                    for row in current_rows
+                    if row.is_leader
+                ]
+                if len(leaders) != 1:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Team package must have exactly one leader",
+                    )
+    else:
+        if payload.worker_ids:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Multitasking packages cannot include team workers",
+            )
+        if payload.leader_worker_id is not None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Multitasking packages cannot have a team leader",
+            )
 
     if payload.name is not None:
         package.name = payload.name
@@ -584,10 +673,6 @@ def update_package(
     if payload.status is not None:
         package.status = payload.status
 
-    # -----------------------------------------------------
-    # Update services
-    # -----------------------------------------------------
-
     if validated_service_ids is not None:
         _replace_package_services(
             package.id,
@@ -595,51 +680,15 @@ def update_package(
             db,
         )
 
-    # -----------------------------------------------------
-    # Update Team Package workers
-    # -----------------------------------------------------
-
     if target_type == "team":
-
         if validated_worker_ids is not None:
-            if payload.leader_worker_id is None:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Team package must have a leader",
-                )
-
-            if payload.leader_worker_id not in validated_worker_ids:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Leader must be one of the selected workers",
-                )
-
             _replace_package_workers(
                 package.id,
                 validated_worker_ids,
                 db,
                 leader_worker_id=payload.leader_worker_id,
             )
-
         elif payload.leader_worker_id is not None:
-            current_member_ids = [
-                row.worker_id
-                for row in (
-                    db.query(models.PackageWorker)
-                    .filter(
-                        models.PackageWorker.package_id
-                        == package.id
-                    )
-                    .all()
-                )
-            ]
-
-            if payload.leader_worker_id not in current_member_ids:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Leader must be one of the current team members",
-                )
-
             db.query(models.PackageWorker).filter(
                 models.PackageWorker.package_id == package.id
             ).update({"is_leader": False}, synchronize_session=False)
@@ -648,9 +697,7 @@ def update_package(
                 models.PackageWorker.package_id == package.id,
                 models.PackageWorker.worker_id == payload.leader_worker_id,
             ).update({"is_leader": True}, synchronize_session=False)
-
     else:
-        # Multitasking packages must not retain team workers
         _remove_package_workers(
             package.id,
             db,
@@ -680,6 +727,12 @@ def publish_package(
 ):
     package = _load_owned_package(
         package_id,
+        current_user.id,
+        db,
+    )
+
+    _validate_existing_package_structure(
+        package,
         current_user.id,
         db,
     )
