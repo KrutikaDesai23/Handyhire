@@ -75,10 +75,42 @@ app.include_router(worker_teams_router)
 app.include_router(worker_team_members_router)
 app.include_router(worker_work_photos_router)
 
-# Runtime uploads are intentionally git-ignored, so create the directory on a
-# fresh machine/container before StaticFiles validates it.
-uploads_dir = Path(__file__).resolve().parent.parent / "uploads"
-uploads_dir.mkdir(parents=True, exist_ok=True)
+# All existing upload routes write under backend/uploads. In production,
+# UPLOADS_DIR can point to a persistent mounted volume (for example /data on
+# Railway). A symlink keeps those routes and /static URLs unchanged while the
+# actual bytes live on persistent storage.
+def _configure_uploads_directory() -> Path:
+    default_dir = Path(__file__).resolve().parent.parent / "uploads"
+    configured = os.getenv("UPLOADS_DIR", "").strip()
+
+    if not configured:
+        default_dir.mkdir(parents=True, exist_ok=True)
+        return default_dir
+
+    target_dir = Path(configured).expanduser().resolve()
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    if default_dir.is_symlink():
+        if default_dir.resolve() != target_dir:
+            default_dir.unlink()
+        else:
+            return default_dir
+    elif default_dir.exists():
+        # A configured persistent store must not silently fall back to an
+        # ephemeral non-empty directory. Empty local directories are safe to
+        # replace with the persistent-volume symlink.
+        if any(default_dir.iterdir()):
+            raise RuntimeError(
+                "UPLOADS_DIR is configured but backend/uploads already contains files"
+            )
+        default_dir.rmdir()
+
+    default_dir.parent.mkdir(parents=True, exist_ok=True)
+    default_dir.symlink_to(target_dir, target_is_directory=True)
+    return default_dir
+
+
+uploads_dir = _configure_uploads_directory()
 app.mount("/static", StaticFiles(directory=str(uploads_dir)), name="static")
 
 
