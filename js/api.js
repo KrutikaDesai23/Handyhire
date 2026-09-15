@@ -25,6 +25,26 @@
     }
 
     var API_BASE_URL = resolveApiBaseUrl();
+    var LOCAL_API_PREFIX = 'http://127.0.0.1:8000';
+
+    // Temporary compatibility layer for older page scripts that still call
+    // localhost directly. On a deployed site, never let those requests hit
+    // the visitor's own computer; redirect them to the configured API host.
+    // New code should always use HandyHireAPI.apiFetch instead.
+    var nativeFetch = window.fetch.bind(window);
+    window.fetch = function (resource, options) {
+        var hostname = window.location && window.location.hostname;
+        var isLocalPage = hostname === 'localhost' || hostname === '127.0.0.1' || !hostname;
+
+        if (!isLocalPage && typeof resource === 'string' && resource.indexOf(LOCAL_API_PREFIX) === 0) {
+            if (!API_BASE_URL) {
+                return Promise.reject(new Error('HandyHire API is not configured for this deployment.'));
+            }
+            resource = API_BASE_URL + resource.slice(LOCAL_API_PREFIX.length);
+        }
+
+        return nativeFetch(resource, options);
+    };
 
     var STORAGE_KEYS = {
         TOKEN: 'handyhire.auth.token',
@@ -61,7 +81,7 @@
             });
         }
 
-        return fetch(API_BASE_URL + path, {
+        return window.fetch(API_BASE_URL + path, {
             method: options.method || 'GET',
             headers: headers,
             body: options.body || undefined,
