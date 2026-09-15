@@ -1,10 +1,10 @@
 import os
 import uuid
+from typing import Optional
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from typing import Optional
 
 from app import models
 from app.auth.dependencies import get_current_worker
@@ -77,6 +77,7 @@ def _serialize(photo):
 @router.post("", response_model=WorkPhotoResponse, status_code=status.HTTP_201_CREATED)
 def upload_work_photo(
     file: UploadFile = File(...),
+    request: Request = None,
     current_user: models.User = Depends(get_current_worker),
     db: Session = Depends(get_db),
 ):
@@ -92,9 +93,10 @@ def upload_work_photo(
     with open(destination, "wb") as buffer:
         buffer.write(file.file.read())
 
+    base_url = str(request.base_url).rstrip("/") if request else ""
     worker_work_photo = models.WorkerWorkPhoto(
         worker_id=current_user.id,
-        image_url="http://127.0.0.1:8000/static/worker-work-photos/" + filename,
+        image_url=f"{base_url}/static/worker-work-photos/{filename}",
     )
     db.add(worker_work_photo)
     db.commit()
