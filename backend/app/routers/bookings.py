@@ -37,6 +37,7 @@ def _build_booking_response(booking, db: Session, team_name=None):
         package_id=booking.package_id,
         booking_date=booking.booking_date,
         booking_time=booking.booking_time,
+        hours=getattr(booking, "hours", 1) or 1,
         address=booking.address,
         description=booking.description,
         amount=booking.amount,
@@ -146,6 +147,7 @@ def _build_customer_booking_detail_response(booking, db: Session):
         package_id=booking.package_id,
         booking_date=booking.booking_date,
         booking_time=booking.booking_time,
+        hours=getattr(booking, "hours", 1) or 1,
         address=booking.address,
         description=booking.description,
         amount=booking.amount,
@@ -214,8 +216,6 @@ def _worker_has_slot_conflict(
         models.Booking.status.in_(list(ACTIVE_SLOT_STATUSES)),
     )
 
-    # Ignore historical team-package organizer rows where the package owner was
-    # saved as booking.worker_id even though they were not a team participant.
     organizer_only = (
         db.query(models.Package)
         .filter(
@@ -252,7 +252,6 @@ def _worker_has_slot_conflict(
     return False
 
 
-# Backward-compatible name used by older tests/imports.
 def _worker_has_exact_slot_conflict(db, worker_id, booking_date, booking_time, exclude_booking_id=None):
     return _worker_has_slot_conflict(
         db, worker_id, booking_date, booking_time, 1, exclude_booking_id
@@ -311,7 +310,6 @@ def create_booking(
 
     hours = int(payload.hours or 1)
 
-    # Legacy Team entity flow: creates one booking/request per member.
     if payload.team_id is not None:
         team = db.query(models.Team).filter(models.Team.id == payload.team_id).first()
         if not team:
@@ -422,7 +420,6 @@ def create_booking(
             if not service:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Service not found")
 
-        # Server is authoritative for direct-booking price.
         booking_amount = _worker_hourly_price(worker_id, db) * hours
 
     booking = models.Booking(
