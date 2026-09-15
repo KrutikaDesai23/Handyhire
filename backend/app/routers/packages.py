@@ -111,6 +111,17 @@ def get_package(package_id: int, db: Session = Depends(get_db)):
         .filter(models.PackageWorker.package_id == package.id)
         .all()
     )
+
+    package_worker_rows = (
+        db.query(models.PackageWorker)
+        .filter(models.PackageWorker.package_id == package.id)
+        .all()
+    )
+    leader_map = {
+        row.worker_id: bool(row.is_leader)
+        for row in package_worker_rows
+    }
+
     return PackageSummary(
         id=package.id,
         name=package.name,
@@ -140,6 +151,7 @@ def get_package(package_id: int, db: Session = Depends(get_db)):
                     if worker.worker_profile
                     else None
                 ),
+                is_leader=leader_map.get(worker.id, False),
             )
             for worker in workers
         ],
