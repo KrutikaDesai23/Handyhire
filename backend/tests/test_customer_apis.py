@@ -1,10 +1,14 @@
 import pytest
-from datetime import date
+from datetime import date, timedelta
 from fastapi.testclient import TestClient
 
 from app import models
 from app.auth import security
 from app.models.user import User
+
+
+def _future_booking_date(days=30):
+    return (date.today() + timedelta(days=days)).isoformat()
 
 
 def test_customer_profile_get(client, customer_token):
@@ -115,7 +119,7 @@ def test_customer_creates_booking(client, customer_token, worker, db):
     payload = {
         "worker_id": worker.id,
         "service_id": service_id,
-        "booking_date": "2026-08-20",
+        "booking_date": _future_booking_date(),
         "booking_time": "10:00",
         "address": "123 Customer St",
         "description": "Need help",
@@ -135,7 +139,7 @@ def test_customer_creates_booking(client, customer_token, worker, db):
 def test_create_booking_invalid_worker(client, customer_token):
     payload = {
         "worker_id": 99999,
-        "booking_date": "2026-08-20",
+        "booking_date": _future_booking_date(31),
         "booking_time": "10:00",
         "address": "123 Customer St",
         "amount": 500,
