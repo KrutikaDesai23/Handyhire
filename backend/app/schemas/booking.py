@@ -25,13 +25,17 @@ class BookingCreate(BaseModel):
 
     description: Optional[str] = None
     amount: int = Field(..., gt=0)
-    hours: Optional[int] = Field(None, ge=1)
+    hours: Optional[int] = Field(None, ge=1, le=24)
 
     @model_validator(mode="after")
-    def validate_worker_or_team(self):
-        if not self.worker_id and not self.team_id and not self.package_id:
+    def validate_single_booking_target(self):
+        target_count = sum(
+            value is not None
+            for value in (self.worker_id, self.team_id, self.package_id)
+        )
+        if target_count != 1:
             raise ValueError(
-                "Either worker_id, team_id, or package_id must be provided"
+                "Exactly one of worker_id, team_id, or package_id must be provided"
             )
         return self
 
@@ -46,6 +50,7 @@ class BookingResponse(BaseModel):
 
     booking_date: date
     booking_time: str
+    hours: int = 1
     address: str
     description: Optional[str] = None
 
