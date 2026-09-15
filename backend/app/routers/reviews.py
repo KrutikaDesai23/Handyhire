@@ -9,6 +9,33 @@ from app.schemas import ReviewCreate, ReviewResponse
 router = APIRouter(prefix="/api/reviews", tags=["reviews"])
 
 
+def _resolve_review_worker_id(booking: models.Booking, db: Session) -> int:
+    if booking.package_id:
+        package = db.query(models.Package).filter(models.Package.id == booking.package_id).first()
+        if package and package.package_type == "team":
+            leaders = (
+                db.query(models.PackageWorker)
+                .filter(
+                    models.PackageWorker.package_id == package.id,
+                    models.PackageWorker.is_leader.is_(True),
+                )
+                .all()
+            )
+            if len(leaders) != 1:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Team package must have exactly one leader before it can be reviewed",
+                )
+            return leaders[0].worker_id
+
+    if not booking.worker_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Booking does not have a reviewable worker",
+        )
+    return booking.worker_id
+
+
 @router.post("", response_model=ReviewResponse, status_code=status.HTTP_201_CREATED)
 def create_review(
     payload: ReviewCreate,
@@ -29,10 +56,11 @@ def create_review(
     if existing:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This booking has already been reviewed")
 
+    review_worker_id = _resolve_review_worker_id(booking, db)
     review = models.Review(
         booking_id=payload.booking_id,
         customer_id=current_user.id,
-        worker_id=booking.worker_id,
+        worker_id=review_worker_id,
         rating=payload.rating,
         comment=payload.comment,
     )
