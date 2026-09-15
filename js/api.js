@@ -8,25 +8,72 @@
 
     var currentHost = (window.location && window.location.hostname) ? window.location.hostname : '';
     var isLocalHost = currentHost === '127.0.0.1' || currentHost === 'localhost' || currentHost === '';
+    var nativeFetch = window.fetch ? window.fetch.bind(window) : null;
 
-    // Production may set window.HANDYHIRE_API_BASE_URL before this script loads.
-    // Local development falls back to the FastAPI server on port 8000.
-    var configuredApiBase = (window.HANDYHIRE_API_BASE_URL || '').trim();
-    var API_BASE_URL = (configuredApiBase || (isLocalHost ? 'http://127.0.0.1:8000' : '')).replace(/\/+$/, '');
+    function normalizeBase(value) {
+        return String(value || '').trim().replace(/\/+$/, '');
+    }
+
+    var configuredApiBase = normalizeBase(window.HANDYHIRE_API_BASE_URL);
+    var API_BASE_URL = configuredApiBase || (isLocalHost ? 'http://127.0.0.1:8000' : '');
+
+    function getRuntimeConfigUrl() {
+        try {
+            var script = document.currentScript;
+            if (!script) {
+                var scripts = document.getElementsByTagName('script');
+                script = scripts[scripts.length - 1];
+            }
+            if (script && script.src) {
+                return new URL('../api-config.json', script.src).toString();
+            }
+        } catch (e) {}
+        return '/api-config.json';
+    }
+
+    var configReady = Promise.resolve();
+    if (!API_BASE_URL && nativeFetch) {
+        configReady = nativeFetch(getRuntimeConfigUrl(), { cache: 'no-store' })
+            .then(function (response) {
+                if (!response.ok) return null;
+                return response.json();
+            })
+            .then(function (config) {
+                var runtimeBase = normalizeBase(config && config.apiBaseUrl);
+                if (runtimeBase) {
+                    API_BASE_URL = runtimeBase;
+                    if (window.HandyHireAPI) {
+                        window.HandyHireAPI.API_BASE_URL = API_BASE_URL;
+                    }
+                }
+            })
+            .catch(function () {
+                return null;
+            });
+    }
 
     // Compatibility shim for older page scripts that still contain a direct
-    // localhost backend URL. Once a production API base is configured, rewrite
-    // those string URLs to the deployed backend instead of the visitor's device.
-    var nativeFetch = window.fetch ? window.fetch.bind(window) : null;
+    // localhost backend URL. In production, wait for api-config.json and
+    // rewrite those URLs to the deployed backend instead of the visitor's PC.
     if (nativeFetch) {
         window.fetch = function (input, init) {
-            if (API_BASE_URL && typeof input === 'string') {
-                input = input.replace(
-                    /^http:\/\/(127\.0\.0\.1|localhost):8000(?=\/|$)/,
-                    API_BASE_URL
-                );
+            var isLegacyLocalUrl = typeof input === 'string' &&
+                /^http:\/\/(127\.0\.0\.1|localhost):8000(?=\/|$)/.test(input);
+
+            if (!isLegacyLocalUrl) {
+                return nativeFetch(input, init);
             }
-            return nativeFetch(input, init);
+
+            return configReady.then(function () {
+                var target = input;
+                if (API_BASE_URL) {
+                    target = input.replace(
+                        /^http:\/\/(127\.0\.0\.1|localhost):8000(?=\/|$)/,
+                        API_BASE_URL
+                    );
+                }
+                return nativeFetch(target, init);
+            });
         };
     }
 
@@ -81,44 +128,42 @@
             headers['Authorization'] = 'Bearer ' + token;
         }
 
-        if (!API_BASE_URL) {
-            return Promise.resolve({
-                ok: false,
-                status: 0,
-                statusText: 'API Not Configured',
-                json: function () {
-                    return Promise.resolve({
-                        detail: 'HandyHire API URL is not configured for this deployment.',
-                    });
-                },
-            });
-        }
-
-        return fetch(API_BASE_URL + path, {
-            method: options.method || 'GET',
-            headers: headers,
-            body: options.body || undefined,
-        }).then(function (response) {
-            if (response.status === 401) {
-                debugAuthState('apiFetch:' + path + ' -> 401 clearAuth');
-                clearAuth();
+        return configReady.then(function () {
+            if (!API_BASE_URL) {
+                return {
+                    ok: false,
+                    status: 0,
+                    statusText: 'API Not Configured',
+                    json: function () {
+                        return Promise.resolve({
+                            detail: 'HandyHire API URL is not configured for this deployment.',
+                        });
+                    },
+                };
             }
-            return response;
-        }).catch(function () {
-            // Network-level failure (server down, DNS failure, CORS block, etc.).
-            // Return a synthetic Response-like object so callers never see
-            // an unhandled "Failed to fetch" rejection and can show a
-            // friendly message through their normal error path.
-            return {
-                ok: false,
-                status: 0,
-                statusText: 'Network Error',
-                json: function () {
-                    return Promise.resolve({
-                        detail: 'Unable to connect to HandyHire server. Please try again.',
-                    });
-                },
-            };
+
+            return nativeFetch(API_BASE_URL + path, {
+                method: options.method || 'GET',
+                headers: headers,
+                body: options.body || undefined,
+            }).then(function (response) {
+                if (response.status === 401) {
+                    debugAuthState('apiFetch:' + path + ' -> 401 clearAuth');
+                    clearAuth();
+                }
+                return response;
+            }).catch(function () {
+                return {
+                    ok: false,
+                    status: 0,
+                    statusText: 'Network Error',
+                    json: function () {
+                        return Promise.resolve({
+                            detail: 'Unable to connect to HandyHire server. Please try again.',
+                        });
+                    },
+                };
+            });
         });
     }
 
@@ -177,10 +222,6 @@
     function isLoggedIn() {
         return !!getStoredToken();
     }
-
-    /* =========================================================
-       ROLE ISOLATION (single source of truth = JWT-backed user)
-       ========================================================= */
 
     function getRole() {
         var user = getStoredUser();
@@ -250,5 +291,6 @@
         requireRole: requireRole,
         clearNavigationState: clearNavigationState,
         debugAuthState: debugAuthState,
+        ready: configReady,
     };
 })();
