@@ -616,12 +616,11 @@ def test_existing_worker_tests_still_pass(client):
 
 def test_worker_can_create_multitasking_package(client, worker, db):
     from app.models import Service
-    service = db.query(Service).first()
-    if not service:
-        service = Service(name="Create Service", category="General", base_price=100)
-        db.add(service)
-        db.flush()
-        db.refresh(service)
+
+    service_one = Service(name="Create Service One", category="General", base_price=100)
+    service_two = Service(name="Create Service Two", category="General", base_price=150)
+    db.add_all([service_one, service_two])
+    db.flush()
 
     token = security.create_access_token({"sub": str(worker.id), "role": worker.role})
     response = client.post(
@@ -636,7 +635,7 @@ def test_worker_can_create_multitasking_package(client, worker, db):
             "location": "Downtown",
             "availability": "Weekdays",
             "status": "draft",
-            "service_ids": [service.id],
+            "service_ids": [service_one.id, service_two.id],
         },
     )
     assert response.status_code == 201
@@ -644,11 +643,11 @@ def test_worker_can_create_multitasking_package(client, worker, db):
     assert data["name"] == "My Multitasking Package"
     assert data["status"] == "draft"
     assert data["owner_id"] == worker.id
-    assert len(data["services"]) >= 1
+    assert len(data["services"]) == 2
 
 
 def test_worker_can_create_team_package(client, worker, db):
-    from app.models import Service, User
+    from app.models import User
 
     other_worker = User(
         full_name="Team Package Worker",
@@ -669,13 +668,6 @@ def test_worker_can_create_team_package(client, worker, db):
     db.refresh(other_worker)
     db.refresh(third_worker)
 
-    service = db.query(Service).first()
-    if not service:
-        service = Service(name="Team Create Service", category="General", base_price=100)
-        db.add(service)
-        db.flush()
-        db.refresh(service)
-
     token = security.create_access_token({"sub": str(worker.id), "role": worker.role})
     response = client.post(
         "/api/worker/packages",
@@ -689,8 +681,9 @@ def test_worker_can_create_team_package(client, worker, db):
             "location": "Uptown",
             "availability": "Weekends",
             "status": "published",
-            "service_ids": [service.id],
+            "service_ids": [],
             "worker_ids": [other_worker.id, third_worker.id],
+            "leader_worker_id": other_worker.id,
         },
     )
     assert response.status_code == 201
@@ -699,6 +692,109 @@ def test_worker_can_create_team_package(client, worker, db):
     assert data["package_type"] == "team"
     assert data["status"] == "published"
     assert len(data["workers"]) == 2
+    assert sum(1 for item in data["workers"] if item["is_leader"]) == 1
+
+
+def test_multitasking_package_requires_two_services(client, worker, db):
+    from app.models import Service
+
+    service = Service(name="Single Service", category="General", base_price=100)
+    db.add(service)
+    db.flush()
+
+    token = security.create_access_token({"sub": str(worker.id), "role": worker.role})
+    response = client.post(
+        "/api/worker/packages",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "name": "Invalid Multitasking Package",
+            "package_type": "multitasking",
+            "price": 500,
+            "service_ids": [service.id],
+        },
+    )
+    assert response.status_code == 400
+
+
+def test_duplicate_service_ids_rejected(client, worker, db):
+    from app.models import Service
+
+    service = Service(name="Duplicate Service", category="General", base_price=100)
+    db.add(service)
+    db.flush()
+
+    token = security.create_access_token({"sub": str(worker.id), "role": worker.role})
+    response = client.post(
+        "/api/worker/packages",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "name": "Duplicate Service Package",
+            "package_type": "multitasking",
+            "price": 500,
+            "service_ids": [service.id, service.id],
+        },
+    )
+    assert response.status_code == 400
+
+
+def test_team_package_requires_leader(client, worker, db):
+    first = User(
+        full_name="No Leader Worker One",
+        email="noleader1@example.com",
+        mobile_number="9000000001",
+        password_hash=security.hash_password("password123"),
+        role="worker",
+    )
+    second = User(
+        full_name="No Leader Worker Two",
+        email="noleader2@example.com",
+        mobile_number="9000000002",
+        password_hash=security.hash_password("password123"),
+        role="worker",
+    )
+    db.add_all([first, second])
+    db.flush()
+
+    token = security.create_access_token({"sub": str(worker.id), "role": worker.role})
+    response = client.post(
+        "/api/worker/packages",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "name": "No Leader Team",
+            "package_type": "team",
+            "price": 1000,
+            "service_ids": [],
+            "worker_ids": [first.id, second.id],
+        },
+    )
+    assert response.status_code == 400
+
+
+def test_duplicate_team_workers_rejected(client, worker, db):
+    first = User(
+        full_name="Duplicate Team Worker",
+        email="duplicateteamworker@example.com",
+        mobile_number="9000000003",
+        password_hash=security.hash_password("password123"),
+        role="worker",
+    )
+    db.add(first)
+    db.flush()
+
+    token = security.create_access_token({"sub": str(worker.id), "role": worker.role})
+    response = client.post(
+        "/api/worker/packages",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "name": "Duplicate Worker Team",
+            "package_type": "team",
+            "price": 1000,
+            "service_ids": [],
+            "worker_ids": [first.id, first.id],
+            "leader_worker_id": first.id,
+        },
+    )
+    assert response.status_code == 400
 
 
 def test_customer_cannot_create_package(client, customer):
@@ -770,18 +866,19 @@ def test_worker_cannot_list_other_workers_packages(client, worker, db):
 
 def test_worker_can_update_own_package(client, worker, db):
     from app.models import Package, Service, PackageService
-    service = db.query(Service).first()
-    if not service:
-        service = Service(name="Update Service", category="General", base_price=100)
-        db.add(service)
-        db.flush()
-        db.refresh(service)
+
+    service_one = Service(name="Update Service One", category="General", base_price=100)
+    service_two = Service(name="Update Service Two", category="General", base_price=150)
+    db.add_all([service_one, service_two])
+    db.flush()
 
     pkg = Package(name="Old Name", package_type="multitasking", price=500, owner_id=worker.id, status="draft")
     db.add(pkg)
     db.flush()
-    ps = PackageService(package_id=pkg.id, service_id=service.id)
-    db.add(ps)
+    db.add_all([
+        PackageService(package_id=pkg.id, service_id=service_one.id),
+        PackageService(package_id=pkg.id, service_id=service_two.id),
+    ])
     db.commit()
     db.refresh(pkg)
 
@@ -827,18 +924,19 @@ def test_worker_cannot_update_other_package(client, worker, db):
 
 def test_worker_can_publish_and_unpublish(client, worker, db):
     from app.models import Package, Service, PackageService
-    service = db.query(Service).first()
-    if not service:
-        service = Service(name="Pub Service", category="General", base_price=100)
-        db.add(service)
-        db.flush()
-        db.refresh(service)
+
+    service_one = Service(name="Pub Service One", category="General", base_price=100)
+    service_two = Service(name="Pub Service Two", category="General", base_price=150)
+    db.add_all([service_one, service_two])
+    db.flush()
 
     pkg = Package(name="Pub Pkg", package_type="multitasking", price=500, owner_id=worker.id, status="draft")
     db.add(pkg)
     db.flush()
-    ps = PackageService(package_id=pkg.id, service_id=service.id)
-    db.add(ps)
+    db.add_all([
+        PackageService(package_id=pkg.id, service_id=service_one.id),
+        PackageService(package_id=pkg.id, service_id=service_two.id),
+    ])
     db.commit()
     db.refresh(pkg)
 
