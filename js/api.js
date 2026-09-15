@@ -14,6 +14,22 @@
     var configuredApiBase = (window.HANDYHIRE_API_BASE_URL || '').trim();
     var API_BASE_URL = (configuredApiBase || (isLocalHost ? 'http://127.0.0.1:8000' : '')).replace(/\/+$/, '');
 
+    // Compatibility shim for older page scripts that still contain a direct
+    // localhost backend URL. Once a production API base is configured, rewrite
+    // those string URLs to the deployed backend instead of the visitor's device.
+    var nativeFetch = window.fetch ? window.fetch.bind(window) : null;
+    if (nativeFetch) {
+        window.fetch = function (input, init) {
+            if (API_BASE_URL && typeof input === 'string') {
+                input = input.replace(
+                    /^http:\/\/(127\.0\.0\.1|localhost):8000(?=\/|$)/,
+                    API_BASE_URL
+                );
+            }
+            return nativeFetch(input, init);
+        };
+    }
+
     var STORAGE_KEYS = {
         TOKEN: 'handyhire.auth.token',
         USER: 'handyhire.auth.user',
