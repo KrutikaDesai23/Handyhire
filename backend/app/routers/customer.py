@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from sqlalchemy import not_
+from sqlalchemy import func, not_
 
 from app import models
 from app.auth.dependencies import get_current_customer
@@ -22,23 +22,29 @@ def update_customer_profile(
     db: Session = Depends(get_db),
 ):
     if payload.full_name is not None:
-        current_user.full_name = payload.full_name
+        current_user.full_name = payload.full_name.strip()
     if payload.email is not None:
-        existing = db.query(models.User).filter(models.User.email == payload.email).first()
+        normalized_email = str(payload.email).strip().lower()
+        existing = (
+            db.query(models.User)
+            .filter(func.lower(models.User.email) == normalized_email)
+            .first()
+        )
         if existing and existing.id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Email already registered",
             )
-        current_user.email = payload.email
+        current_user.email = normalized_email
     if payload.mobile_number is not None:
-        existing = db.query(models.User).filter(models.User.mobile_number == payload.mobile_number).first()
+        normalized_mobile = payload.mobile_number.strip()
+        existing = db.query(models.User).filter(models.User.mobile_number == normalized_mobile).first()
         if existing and existing.id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Mobile number already registered",
             )
-        current_user.mobile_number = payload.mobile_number
+        current_user.mobile_number = normalized_mobile
     if payload.address is not None:
         current_user.address = payload.address
     if payload.city is not None:
@@ -90,6 +96,7 @@ def _build_customer_booking_response(
         package_id=booking.package_id,
         booking_date=booking.booking_date,
         booking_time=booking.booking_time,
+        hours=getattr(booking, "hours", 1) or 1,
         address=booking.address,
         description=booking.description,
         amount=booking.amount,
