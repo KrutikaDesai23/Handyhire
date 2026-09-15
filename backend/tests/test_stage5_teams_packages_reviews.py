@@ -691,6 +691,7 @@ def test_worker_can_create_team_package(client, worker, db):
             "status": "published",
             "service_ids": [service.id],
             "worker_ids": [other_worker.id, third_worker.id],
+            "leader_worker_id": other_worker.id,
         },
     )
     assert response.status_code == 201
