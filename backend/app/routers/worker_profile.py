@@ -1,4 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
+import os
+import uuid
+
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse
 
@@ -13,6 +17,7 @@ router = APIRouter(prefix="/api/worker", tags=["worker"])
 @router.post("/profile-image")
 def upload_profile_image(
     file: UploadFile = File(...),
+    request: Request = None,
     current_user: models.User = Depends(get_current_worker),
     db: Session = Depends(get_db),
 ):
@@ -50,55 +55,62 @@ def upload_profile_image(
         "image/webp": ".webp",
     }
     suffix = ext_map.get(file.content_type, ".bin")
+    filename = f"profile-{current_user.id}-{uuid.uuid4().hex}{suffix}"
 
-    filename = (
-        "profile-"
-        + str(current_user.id)
-        + "-"
-        + str(abs(hash(file.filename or "")))
-        + suffix
+    upload_dir = os.path.abspath(
+        os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "..",
+            "uploads",
+            "profile-images",
+        )
     )
-
-    import os
-    import uuid
-
-    upload_dir = os.path.join(
-        os.path.dirname(__file__),
-        "..",
-        "..",
-        "uploads",
-        "profile-images",
-    )
-    upload_dir = os.path.abspath(upload_dir)
     os.makedirs(upload_dir, exist_ok=True)
 
     destination = os.path.join(upload_dir, filename)
-
     with open(destination, "wb") as buffer:
         buffer.write(file.file.read())
 
-    worker_profile = db.query(models.WorkerProfile).filter(models.WorkerProfile.user_id == current_user.id).first()
-    if not worker_profile:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Worker profile not found")
-
-    worker_profile.profile_image = (
-        "http://127.0.0.1:8000/static/profile-images/"
-        + filename
+    worker_profile = (
+        db.query(models.WorkerProfile)
+        .filter(models.WorkerProfile.user_id == current_user.id)
+        .first()
     )
+    if not worker_profile:
+        try:
+            os.remove(destination)
+        except OSError:
+            pass
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Worker profile not found",
+        )
+
+    base_url = str(request.base_url).rstrip("/") if request else ""
+    worker_profile.profile_image = f"{base_url}/static/profile-images/{filename}"
     db.add(worker_profile)
     db.commit()
     db.refresh(worker_profile)
 
-    return JSONResponse(
-        content={"profile_image": worker_profile.profile_image}
-    )
+    return JSONResponse(content={"profile_image": worker_profile.profile_image})
 
 
 @router.get("/profile", response_model=WorkerProfileResponse)
-def get_worker_profile(current_user: models.User = Depends(get_current_worker), db: Session = Depends(get_db)):
-    worker_profile = db.query(models.WorkerProfile).filter(models.WorkerProfile.user_id == current_user.id).first()
+def get_worker_profile(
+    current_user: models.User = Depends(get_current_worker),
+    db: Session = Depends(get_db),
+):
+    worker_profile = (
+        db.query(models.WorkerProfile)
+        .filter(models.WorkerProfile.user_id == current_user.id)
+        .first()
+    )
     if not worker_profile:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Worker profile not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Worker profile not found",
+        )
 
     return WorkerProfileResponse(
         id=current_user.id,
@@ -125,42 +137,65 @@ def update_worker_profile(
     current_user: models.User = Depends(get_current_worker),
     db: Session = Depends(get_db),
 ):
-    worker_profile = db.query(models.WorkerProfile).filter(models.WorkerProfile.user_id == current_user.id).first()
+    worker_profile = (
+        db.query(models.WorkerProfile)
+        .filter(models.WorkerProfile.user_id == current_user.id)
+        .first()
+    )
     if not worker_profile:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Worker profile not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Worker profile not found",
+        )
 
     if payload.full_name is not None:
-        current_user.full_name = payload.full_name
+        current_user.full_name = payload.full_name.strip()
     if payload.email is not None:
-        existing = db.query(models.User).filter(models.User.email == payload.email).first()
+        normalized_email = str(payload.email).strip().lower()
+        existing = (
+            db.query(models.User)
+            .filter(func.lower(models.User.email) == normalized_email)
+            .first()
+        )
         if existing and existing.id != current_user.id:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
-        current_user.email = payload.email
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already registered",
+            )
+        current_user.email = normalized_email
     if payload.mobile_number is not None:
-        existing = db.query(models.User).filter(models.User.mobile_number == payload.mobile_number).first()
+        normalized_mobile = payload.mobile_number.strip()
+        existing = (
+            db.query(models.User)
+            .filter(models.User.mobile_number == normalized_mobile)
+            .first()
+        )
         if existing and existing.id != current_user.id:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Mobile number already registered")
-        current_user.mobile_number = payload.mobile_number
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Mobile number already registered",
+            )
+        current_user.mobile_number = normalized_mobile
     if payload.address is not None:
-        current_user.address = payload.address
+        current_user.address = payload.address.strip()
     if payload.city is not None:
-        current_user.city = payload.city
+        current_user.city = payload.city.strip()
     if payload.profession is not None:
-        worker_profile.profession = payload.profession
+        worker_profile.profession = payload.profession.strip()
     if payload.bio is not None:
-        worker_profile.bio = payload.bio
+        worker_profile.bio = payload.bio.strip()
     if payload.experience is not None:
-        worker_profile.experience = payload.experience
+        worker_profile.experience = payload.experience.strip()
     if payload.qualification is not None:
-        worker_profile.qualification = payload.qualification
+        worker_profile.qualification = payload.qualification.strip()
     if payload.location is not None:
-        worker_profile.location = payload.location
+        worker_profile.location = payload.location.strip()
     if payload.price is not None:
         worker_profile.price = payload.price
     if payload.availability is not None:
-        worker_profile.availability = payload.availability
+        worker_profile.availability = payload.availability.strip()
     if payload.profile_image is not None:
-        worker_profile.profile_image = payload.profile_image
+        worker_profile.profile_image = payload.profile_image.strip()
 
     db.add(current_user)
     db.add(worker_profile)
