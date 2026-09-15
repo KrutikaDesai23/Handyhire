@@ -35,11 +35,40 @@
         USER: 'handyhire.auth.user',
     };
 
+    function enrichBookingBody(path, options, isFormData) {
+        if (
+            path !== '/api/bookings' ||
+            isFormData ||
+            String(options.method || 'GET').toUpperCase() !== 'POST' ||
+            typeof options.body !== 'string'
+        ) {
+            return;
+        }
+
+        try {
+            var payload = JSON.parse(options.body);
+            if (payload && payload.hours == null) {
+                var hoursSelect = document.getElementById('hoursSelect');
+                var hours = hoursSelect ? Number(hoursSelect.value) : NaN;
+                if (Number.isFinite(hours) && hours >= 1) {
+                    payload.hours = Math.floor(hours);
+                    options.body = JSON.stringify(payload);
+                }
+            }
+        } catch (e) {
+            // Leave non-JSON or malformed bodies untouched; the API will
+            // return its normal validation response.
+        }
+    }
+
     function apiFetch(path, options) {
         options = options || {};
         var token = localStorage.getItem(STORAGE_KEYS.TOKEN);
         var isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
         var headers = {};
+
+        enrichBookingBody(path, options, isFormData);
+
         if (!isFormData) {
             headers['Content-Type'] = 'application/json';
         }
