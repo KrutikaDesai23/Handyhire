@@ -8,6 +8,9 @@ from app.models.user import User
 from app.models.worker_profile import WorkerProfile
 
 
+FUTURE_DATE = date(2099, 8, 20)
+
+
 def test_worker_profile_get(client, worker):
     token = security.create_access_token({"sub": str(worker.id), "role": worker.role})
     response = client.get("/api/worker/profile", headers={"Authorization": f"Bearer {token}"})
@@ -74,7 +77,7 @@ def test_worker_request_listing(client, worker, customer, db):
     booking = models.Booking(
         customer_id=customer.id,
         worker_id=worker.id,
-        booking_date=date(2026, 8, 20),
+        booking_date=FUTURE_DATE,
         booking_time="10:00",
         address="123 Customer St",
         amount=500,
@@ -99,7 +102,7 @@ def test_worker_request_detail(client, worker, customer, db):
     booking = models.Booking(
         customer_id=customer.id,
         worker_id=worker.id,
-        booking_date=date(2026, 8, 20),
+        booking_date=FUTURE_DATE,
         booking_time="10:00",
         address="123 Customer St",
         amount=500,
@@ -124,7 +127,7 @@ def test_worker_accepts_request(client, worker, customer, db):
     booking = models.Booking(
         customer_id=customer.id,
         worker_id=worker.id,
-        booking_date=date(2026, 8, 20),
+        booking_date=FUTURE_DATE,
         booking_time="10:00",
         address="123 Customer St",
         amount=500,
@@ -149,7 +152,7 @@ def test_worker_rejects_request(client, worker, customer, db):
     booking = models.Booking(
         customer_id=customer.id,
         worker_id=worker.id,
-        booking_date=date(2026, 8, 20),
+        booking_date=FUTURE_DATE,
         booking_time="10:00",
         address="123 Customer St",
         amount=500,
@@ -198,7 +201,7 @@ def test_worker_cannot_access_another_worker_request(client, worker, db):
     booking = models.Booking(
         customer_id=customer.id,
         worker_id=other_worker.id,
-        booking_date=date(2026, 8, 20),
+        booking_date=FUTURE_DATE,
         booking_time="10:00",
         address="123 Customer St",
         amount=500,
@@ -221,7 +224,7 @@ def test_worker_bookings_listing(client, worker, customer, db):
     booking = models.Booking(
         customer_id=customer.id,
         worker_id=worker.id,
-        booking_date=date(2026, 8, 20),
+        booking_date=FUTURE_DATE,
         booking_time="10:00",
         address="123 Customer St",
         amount=500,
@@ -242,10 +245,11 @@ def test_worker_booking_detail(client, worker, customer, db):
     booking = models.Booking(
         customer_id=customer.id,
         worker_id=worker.id,
-        booking_date=date(2026, 8, 20),
+        booking_date=FUTURE_DATE,
         booking_time="10:00",
+        hours=2,
         address="123 Customer St",
-        amount=500,
+        amount=1000,
         status="accepted",
     )
     db.add(booking)
@@ -257,13 +261,14 @@ def test_worker_booking_detail(client, worker, customer, db):
     assert response.status_code == 200
     data = response.json()
     assert data["id"] == booking.id
+    assert data["hours"] == 2
 
 
 def test_worker_booking_status_update(client, worker, customer, db):
     booking = models.Booking(
         customer_id=customer.id,
         worker_id=worker.id,
-        booking_date=date(2026, 8, 20),
+        booking_date=FUTURE_DATE,
         booking_time="10:00",
         address="123 Customer St",
         amount=500,
@@ -275,7 +280,6 @@ def test_worker_booking_status_update(client, worker, customer, db):
 
     token = security.create_access_token({"sub": str(worker.id), "role": worker.role})
 
-    # accepted -> in_progress
     response = client.put(
         f"/api/worker/bookings/{booking.id}/status?new_status=in_progress",
         headers={"Authorization": f"Bearer {token}"},
@@ -283,7 +287,6 @@ def test_worker_booking_status_update(client, worker, customer, db):
     assert response.status_code == 200
     assert response.json()["status"] == "in_progress"
 
-    # in_progress -> completion_requested
     response = client.put(
         f"/api/worker/bookings/{booking.id}/status?new_status=completion_requested",
         headers={"Authorization": f"Bearer {token}"},
@@ -296,7 +299,7 @@ def test_worker_invalid_booking_status_transition(client, worker, customer, db):
     booking = models.Booking(
         customer_id=customer.id,
         worker_id=worker.id,
-        booking_date=date(2026, 8, 20),
+        booking_date=FUTURE_DATE,
         booking_time="10:00",
         address="123 Customer St",
         amount=500,
@@ -354,7 +357,7 @@ def test_unauthenticated_worker_access_rejected(client):
 def test_customer_booking_creates_worker_request(client, customer_token, worker, db):
     payload = {
         "worker_id": worker.id,
-        "booking_date": "2026-08-21",
+        "booking_date": "2099-08-21",
         "booking_time": "14:00",
         "address": "456 Main St",
         "amount": 750,
@@ -376,7 +379,7 @@ def test_customer_booking_creates_worker_request(client, customer_token, worker,
 def test_duplicate_booking_request_prevention(client, customer_token, worker, db):
     payload = {
         "worker_id": worker.id,
-        "booking_date": "2026-08-22",
+        "booking_date": "2099-08-22",
         "booking_time": "09:00",
         "address": "789 Oak Ave",
         "amount": 600,
@@ -398,7 +401,7 @@ def test_invalid_request_status_transition(client, worker, customer, db):
     booking = models.Booking(
         customer_id=customer.id,
         worker_id=worker.id,
-        booking_date=date(2026, 8, 20),
+        booking_date=FUTURE_DATE,
         booking_time="10:00",
         address="123 Customer St",
         amount=500,
