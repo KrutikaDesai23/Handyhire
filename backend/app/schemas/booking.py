@@ -1,7 +1,8 @@
+from datetime import date
+from typing import List, Optional
+
 from pydantic import BaseModel, Field, model_validator
 from pydantic.config import ConfigDict
-from typing import Optional, List
-from datetime import date
 
 
 class BookingCreate(BaseModel):
@@ -13,26 +14,35 @@ class BookingCreate(BaseModel):
     booking_date: date
     booking_time: str = Field(
         ...,
-        min_length=1,
-        max_length=10
+        min_length=5,
+        max_length=5,
+        pattern=r"^(?:[01]\d|2[0-3]):[0-5]\d$",
     )
 
     address: str = Field(
         ...,
         min_length=1,
-        max_length=500
+        max_length=500,
     )
 
     description: Optional[str] = None
     amount: int = Field(..., gt=0)
-    hours: Optional[int] = Field(None, ge=1)
+    hours: Optional[int] = Field(None, ge=1, le=24)
 
     @model_validator(mode="after")
-    def validate_worker_or_team(self):
-        if not self.worker_id and not self.team_id and not self.package_id:
+    def validate_booking_target_and_date(self):
+        targets = [self.worker_id, self.team_id, self.package_id]
+        if sum(target is not None for target in targets) != 1:
             raise ValueError(
-                "Either worker_id, team_id, or package_id must be provided"
+                "Exactly one of worker_id, team_id, or package_id must be provided"
             )
+        if self.booking_date < date.today():
+            raise ValueError("booking_date cannot be in the past")
+        if not self.address.strip():
+            raise ValueError("address cannot be blank")
+        self.address = self.address.strip()
+        if self.description is not None:
+            self.description = self.description.strip() or None
         return self
 
 
@@ -103,9 +113,9 @@ class BookingDetailResponse(BookingResponse):
     customer_phone: Optional[str] = None
     worker_image: Optional[str] = None
     customer_image: Optional[str] = None
-    package_services: List[BookingServiceSummary] = []
-    team_members: List[BookingParticipantResponse] = []
-    before_photos: List[BookingPhotoResponse] = []
-    after_photos: List[BookingPhotoResponse] = []
+    package_services: List[BookingServiceSummary] = Field(default_factory=list)
+    team_members: List[BookingParticipantResponse] = Field(default_factory=list)
+    before_photos: List[BookingPhotoResponse] = Field(default_factory=list)
+    after_photos: List[BookingPhotoResponse] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
