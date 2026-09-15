@@ -1,5 +1,5 @@
 from app.auth import security
-from app.database.connection import test_database_connection
+from app.database.connection import test_database_connection as check_database_connection
 from jose import jwt
 
 SECRET_KEY = security.SECRET_KEY
@@ -7,7 +7,7 @@ ALGORITHM = security.ALGORITHM
 
 
 def test_postgresql_connection():
-    assert test_database_connection() is True
+    assert check_database_connection() is True
 
 
 def test_root(client):
