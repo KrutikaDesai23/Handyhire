@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse
 
@@ -12,6 +13,7 @@ router = APIRouter(prefix="/api/worker", tags=["worker"])
 
 @router.post("/profile-image")
 def upload_profile_image(
+    request: Request,
     file: UploadFile = File(...),
     current_user: models.User = Depends(get_current_worker),
     db: Session = Depends(get_db),
@@ -60,7 +62,6 @@ def upload_profile_image(
     )
 
     import os
-    import uuid
 
     upload_dir = os.path.join(
         os.path.dirname(__file__),
@@ -81,9 +82,8 @@ def upload_profile_image(
     if not worker_profile:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Worker profile not found")
 
-    worker_profile.profile_image = (
-        "http://127.0.0.1:8000/static/profile-images/"
-        + filename
+    worker_profile.profile_image = str(
+        request.url_for("static", path="profile-images/" + filename)
     )
     db.add(worker_profile)
     db.commit()
@@ -130,17 +130,23 @@ def update_worker_profile(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Worker profile not found")
 
     if payload.full_name is not None:
-        current_user.full_name = payload.full_name
+        current_user.full_name = payload.full_name.strip()
     if payload.email is not None:
-        existing = db.query(models.User).filter(models.User.email == payload.email).first()
+        normalized_email = str(payload.email).strip().lower()
+        existing = (
+            db.query(models.User)
+            .filter(func.lower(models.User.email) == normalized_email)
+            .first()
+        )
         if existing and existing.id != current_user.id:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
-        current_user.email = payload.email
+        current_user.email = normalized_email
     if payload.mobile_number is not None:
-        existing = db.query(models.User).filter(models.User.mobile_number == payload.mobile_number).first()
+        normalized_mobile = payload.mobile_number.strip()
+        existing = db.query(models.User).filter(models.User.mobile_number == normalized_mobile).first()
         if existing and existing.id != current_user.id:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Mobile number already registered")
-        current_user.mobile_number = payload.mobile_number
+        current_user.mobile_number = normalized_mobile
     if payload.address is not None:
         current_user.address = payload.address
     if payload.city is not None:
