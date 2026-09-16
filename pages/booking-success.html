@@ -6,15 +6,16 @@
     <meta name="description" content="HandyHire - Your booking request was sent successfully." />
     <meta name="theme-color" content="#173f2b" />
     <title>Booking Request Sent | HandyHire</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="../css/booking-success.css" />
+    <link rel="stylesheet" href="../css/provider-booking-success.css" />
 </head>
 <body>
     <header class="success-topbar" role="banner">
         <div class="success-topbar-inner">
-            <a href="home.html" class="success-brand" aria-label="HandyHire home">
+            <a href="home.html" class="success-brand" aria-label="HandyHire customer home">
                 <span class="success-brand-logo"><img src="../Images/Hamor.jpeg" alt="" /></span>
                 <span class="success-brand-name">HandyHire</span>
             </a>
@@ -29,6 +30,7 @@
                 <div class="success-check-wrap" aria-hidden="true">
                     <span class="success-check-ring"><svg viewBox="0 0 24 24" fill="none"><path d="m6.5 12.5 3.4 3.4L18 7.8" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
                 </div>
+
                 <span class="success-eyebrow">BOOKING REQUEST CREATED</span>
                 <h1 class="success-title" id="successTitle">Booking Request Sent</h1>
                 <p class="success-subtitle" id="successSubtitle">The professional will review your request.</p>
@@ -48,9 +50,11 @@
 
             <div class="success-details-panel">
                 <div class="success-details-heading">
-                    <span class="success-section-kicker">BOOKING SUMMARY</span>
-                    <h2>Your request details</h2>
-                    <p>Everything you need to track this booking in one place.</p>
+                    <div>
+                        <span class="success-section-kicker">BOOKING SUMMARY</span>
+                        <h2>Your request details</h2>
+                        <p>Everything you need to track this booking in one place.</p>
+                    </div>
                 </div>
 
                 <div class="success-summary-card">
@@ -74,11 +78,14 @@
 
                 <div class="success-note">
                     <span class="success-note-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z" stroke="currentColor" stroke-width="1.8"/><path d="M12 10v6M12 7h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-                    <div><strong>What happens next?</strong><p>Track the request from Activity. Once accepted, its status will update there automatically.</p></div>
+                    <div><strong>What happens next?</strong><p>You can track the request from Activity. Once accepted, the booking status will update automatically.</p></div>
                 </div>
 
                 <div class="success-actions">
-                    <a href="activity.html" class="success-btn success-btn--primary">View activity <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+                    <a href="activity.html" class="success-btn success-btn--primary">
+                        View activity
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </a>
                     <a href="home.html" class="success-btn success-btn--secondary">Back to Home</a>
                 </div>
             </div>
@@ -86,6 +93,7 @@
     </main>
 
     <script src="../js/api.js"></script>
+    <script src="../js/quick-hire-success-capture.js"></script>
     <script src="../js/booking-success.js"></script>
 </body>
 </html>

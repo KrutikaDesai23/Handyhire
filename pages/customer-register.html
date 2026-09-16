@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="HandyHire - Customer Registration. Tell us a little about yourself to get started." />
-    <meta name="theme-color" content="#68865C" />
+    <meta name="theme-color" content="#173f2b" />
     <title>Customer Registration | HandyHire</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -15,79 +15,41 @@
 </head>
 <body>
     <main class="register-screen" role="main">
-        <!-- Top tagline above the card -->
-        <p class="brand-tagline" aria-hidden="true">we need to know you</p>
+        <a href="../index.html" class="auth-brand" aria-label="HandyHire home">
+            <span class="brand-logo-shell"><img src="../Images/Hamor.jpeg" alt="" class="brand-logo" /></span>
+            <span class="brand-name">HandyHire</span>
+        </a>
 
-        <!-- Registration Card -->
         <section class="register-card" aria-labelledby="cardTitle">
-            <h1 id="cardTitle" class="card-title">Personal Details</h1>
+            <div class="auth-card-heading">
+                <span class="auth-kicker">CUSTOMER ACCOUNT</span>
+                <h1 id="cardTitle" class="card-title">Create your account</h1>
+                <p class="card-subtitle">Set up your details once, then book trusted local professionals whenever you need help.</p>
+            </div>
 
             <form id="customerRegisterForm" class="register-form" novalidate>
-                <!-- Full Name -->
                 <div class="form-group">
                     <label for="fullName" class="form-label">Full Name</label>
-                    <input
-                        type="text"
-                        id="fullName"
-                        name="fullName"
-                        class="form-input"
-                        placeholder="Enter your full name"
-                        autocomplete="name"
-                        required
-                        aria-required="true"
-                        aria-describedby="fullNameError"
-                    />
+                    <input type="text" id="fullName" name="fullName" class="form-input" placeholder="Enter your full name" autocomplete="name" required aria-required="true" aria-describedby="fullNameError" />
                     <span class="form-error" id="fullNameError" role="alert" aria-live="polite"></span>
                 </div>
 
-                <!-- Mobile Number -->
                 <div class="form-group">
                     <label for="mobileNumber" class="form-label">Mobile Number</label>
-                    <input
-                        type="tel"
-                        id="mobileNumber"
-                        name="mobileNumber"
-                        class="form-input"
-                        placeholder="Enter 10-digit mobile number"
-                        inputmode="numeric"
-                        maxlength="10"
-                        autocomplete="tel"
-                        required
-                        aria-required="true"
-                        aria-describedby="mobileNumberError"
-                    />
+                    <input type="tel" id="mobileNumber" name="mobileNumber" class="form-input" placeholder="Enter 10-digit mobile number" inputmode="numeric" maxlength="10" autocomplete="tel" required aria-required="true" aria-describedby="mobileNumberError" />
                     <span class="form-error" id="mobileNumberError" role="alert" aria-live="polite"></span>
                 </div>
 
-                <!-- Email Address -->
                 <div class="form-group">
                     <label for="emailAddress" class="form-label">Email Address</label>
-                    <input
-                        type="email"
-                        id="emailAddress"
-                        name="emailAddress"
-                        class="form-input"
-                        placeholder="Enter your email address"
-                        autocomplete="email"
-                        required
-                        aria-required="true"
-                        aria-describedby="emailAddressError"
-                    />
+                    <input type="email" id="emailAddress" name="emailAddress" class="form-input" placeholder="Enter your email address" autocomplete="email" required aria-required="true" aria-describedby="emailAddressError" />
                     <span class="form-error" id="emailAddressError" role="alert" aria-live="polite"></span>
                 </div>
 
-                <!-- Address Dropdown -->
                 <div class="form-group">
                     <label for="address" class="form-label">Address</label>
                     <div class="select-wrapper">
-                        <select
-                            id="address"
-                            name="address"
-                            class="form-input form-select"
-                            required
-                            aria-required="true"
-                            aria-describedby="addressError"
-                        >
+                        <select id="address" name="address" class="form-input form-select" required aria-required="true" aria-describedby="addressError">
                             <option value="" disabled selected>Select your address</option>
                             <option value="mumbai">Mumbai</option>
                             <option value="delhi">Delhi</option>
@@ -103,33 +65,17 @@
                     <span class="form-error" id="addressError" role="alert" aria-live="polite"></span>
                 </div>
 
-                <!-- Password -->
-                <div class="form-group">
+                <div class="form-group form-group-wide">
                     <label for="password" class="form-label">Password</label>
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        class="form-input"
-                        placeholder="Create a password"
-                        autocomplete="new-password"
-                        required
-                        aria-required="true"
-                        aria-describedby="passwordError"
-                    />
+                    <input type="password" id="password" name="password" class="form-input" placeholder="Create a password" autocomplete="new-password" required aria-required="true" aria-describedby="passwordError" />
                     <span class="form-error" id="passwordError" role="alert" aria-live="polite"></span>
                 </div>
 
-                <span class="form-error" id="customerRegisterFormError" role="alert" aria-live="polite" style="text-align: center;"></span>
+                <span class="form-error form-error-wide" id="customerRegisterFormError" role="alert" aria-live="polite"></span>
 
-                <!-- Next Button -->
-                <button type="submit" class="next-btn" aria-label="Continue to next step">
-                    Next &rarr;
-                </button>
+                <button type="submit" class="next-btn form-action-wide" aria-label="Continue to next step">Next &rarr;</button>
 
-                <p style="text-align: center; margin-top: 16px; font-size: 14px;">
-                    Already have an account? <a href="login.html" style="color: #68865C; text-decoration: underline; font-weight: 600;">Sign in</a>
-                </p>
+                <p class="auth-switch form-action-wide">Already have an account? <a href="login.html">Sign in</a></p>
             </form>
         </section>
     </main>

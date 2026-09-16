@@ -4,192 +4,37 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="HandyHire - Service Provider Registration Step 2. Provide your contact details." />
-    <meta name="theme-color" content="#68865C" />
+    <meta name="theme-color" content="#173f2b" />
     <title>Provider Registration - Step 2 | HandyHire</title>
-
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-
     <link rel="stylesheet" href="../css/provider-register-step2.css" />
 </head>
 <body>
     <main class="register-screen" role="main">
-        <!-- Top tagline above the card -->
-        <p class="brand-tagline" aria-hidden="true">we need to know you</p>
-
-        <!-- Registration Card -->
+        <a href="../index.html" class="auth-brand" aria-label="HandyHire home">
+            <span class="brand-logo-shell"><img src="../Images/Hamor.jpeg" alt="" class="brand-logo" /></span>
+            <span class="brand-name">HandyHire</span>
+        </a>
         <section class="register-card" aria-labelledby="cardTitle">
-            <h1 id="cardTitle" class="card-title">Contact Details</h1>
-
+            <div class="auth-card-heading">
+                <span class="auth-kicker">PROVIDER SETUP <b>2 / 3</b></span>
+                <h1 id="cardTitle" class="card-title">Set your work details</h1>
+                <p class="card-subtitle">Add your contact details, pricing and booking preference so customers know how to hire you.</p>
+            </div>
             <form id="providerRegisterStep2Form" class="register-form" novalidate>
-                <!-- Mobile Number -->
-                <div class="form-group">
-                    <label for="mobileNumber" class="form-label">Mobile Number</label>
-                    <input
-                        type="tel"
-                        id="mobileNumber"
-                        name="mobileNumber"
-                        class="form-input"
-                        placeholder="Enter 10-digit mobile number"
-                        inputmode="numeric"
-                        maxlength="10"
-                        autocomplete="tel"
-                        required
-                        aria-required="true"
-                        aria-describedby="mobileNumberError"
-                    />
-                    <span class="form-error" id="mobileNumberError" role="alert" aria-live="polite"></span>
-                </div>
-
-                <!-- Email -->
-                <div class="form-group">
-                    <label for="email" class="form-label">Email</label>
-                    <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        class="form-input"
-                        placeholder="Enter your email address"
-                        autocomplete="email"
-                        required
-                        aria-required="true"
-                        aria-describedby="emailError"
-                    />
-                    <span class="form-error" id="emailError" role="alert" aria-live="polite"></span>
-                </div>
-
-                <!-- Password -->
-                <div class="form-group">
-                    <label for="password" class="form-label">Password</label>
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        class="form-input"
-                        placeholder="Create a password"
-                        autocomplete="new-password"
-                        required
-                        aria-required="true"
-                        aria-describedby="passwordError"
-                    />
-                    <span class="form-error" id="passwordError" role="alert" aria-live="polite"></span>
-                </div>
-
-                <!-- Price -->
-                <div class="form-group">
-                    <label for="price" class="form-label">Price (INR)</label>
-                    <input
-                        type="number"
-                        id="price"
-                        name="price"
-                        class="form-input"
-                        placeholder="Enter your price"
-                        inputmode="numeric"
-                        min="1"
-                        required
-                        aria-required="true"
-                        aria-describedby="priceError"
-                    />
-                    <span class="form-error" id="priceError" role="alert" aria-live="polite"></span>
-                </div>
-<!-- Booking Preference -->
-<div class="form-group">
-    <label for="bookingPreference" class="form-label">
-        Booking Preference
-    </label>
-
-    <div class="select-wrapper">
-        <select
-            id="bookingPreference"
-            name="bookingPreference"
-            class="form-input form-select"
-            required
-            aria-required="true"
-            aria-describedby="bookingPreferenceError"
-        >
-            <option value="" disabled selected>
-                Select booking preference
-            </option>
-
-            <option value="pre-booking">
-                Pre-booking
-            </option>
-
-            <option value="on-spot">
-                On-spot
-            </option>
-
-            <option value="both">
-                Both
-            </option>
-        </select>
-
-        <span class="select-arrow" aria-hidden="true">
-            &#9662;
-        </span>
-    </div>
-
-    <span
-        class="form-error"
-        id="bookingPreferenceError"
-        role="alert"
-        aria-live="polite"
-    ></span>
-</div>
-                <!-- Address -->
-                <div class="form-group">
-                    <label for="address" class="form-label">Address</label>
-                    <div class="select-wrapper">
-                        <select
-                            id="address"
-                            name="address"
-                            class="form-input form-select"
-                            required
-                            aria-required="true"
-                            aria-describedby="addressError"
-                        >
-                            <option value="" disabled selected>Select your address</option>
-                            <option value="mumbai">Mumbai</option>
-                            <option value="delhi">Delhi</option>
-                            <option value="bangalore">Bangalore</option>
-                            <option value="hyderabad">Hyderabad</option>
-                            <option value="chennai">Chennai</option>
-                            <option value="kolkata">Kolkata</option>
-                            <option value="pune">Pune</option>
-                            <option value="ahmedabad">Ahmedabad</option>
-                        </select>
-                        <span class="select-arrow" aria-hidden="true">&#9662;</span>
-                    </div>
-                    <span class="form-error" id="addressError" role="alert" aria-live="polite"></span>
-                </div>
-
-                <!-- Navigation Buttons -->
-                <div class="button-row">
-                    <button
-                        type="button"
-                        class="nav-btn back-btn"
-                        id="backBtn"
-                        aria-label="Go back to step 1"
-                    >
-                        &larr; Back
-                    </button>
-                    <button
-                        type="submit"
-                        class="nav-btn next-btn"
-                        aria-label="Continue to step 3"
-                    >
-                        Next &rarr;
-                    </button>
-                </div>
-
-                <p style="text-align: center; margin-top: 16px; font-size: 14px;">
-                    Already have an account? <a href="login.html" style="color: #68865C; text-decoration: underline; font-weight: 600;">Sign in</a>
-                </p>
+                <div class="form-group"><label for="mobileNumber" class="form-label">Mobile Number</label><input type="tel" id="mobileNumber" name="mobileNumber" class="form-input" placeholder="Enter 10-digit mobile number" inputmode="numeric" maxlength="10" autocomplete="tel" required aria-required="true" aria-describedby="mobileNumberError" /><span class="form-error" id="mobileNumberError" role="alert" aria-live="polite"></span></div>
+                <div class="form-group"><label for="email" class="form-label">Email</label><input type="email" id="email" name="email" class="form-input" placeholder="Enter your email address" autocomplete="email" required aria-required="true" aria-describedby="emailError" /><span class="form-error" id="emailError" role="alert" aria-live="polite"></span></div>
+                <div class="form-group"><label for="password" class="form-label">Password</label><input type="password" id="password" name="password" class="form-input" placeholder="Create a password" autocomplete="new-password" required aria-required="true" aria-describedby="passwordError" /><span class="form-error" id="passwordError" role="alert" aria-live="polite"></span></div>
+                <div class="form-group"><label for="price" class="form-label">Price (INR)</label><input type="number" id="price" name="price" class="form-input" placeholder="Enter your price" inputmode="numeric" min="1" required aria-required="true" aria-describedby="priceError" /><span class="form-error" id="priceError" role="alert" aria-live="polite"></span></div>
+                <div class="form-group"><label for="bookingPreference" class="form-label">Booking Preference</label><div class="select-wrapper"><select id="bookingPreference" name="bookingPreference" class="form-input form-select" required aria-required="true" aria-describedby="bookingPreferenceError"><option value="" disabled selected>Select booking preference</option><option value="pre-booking">Pre-booking</option><option value="on-spot">On-spot</option><option value="both">Both</option></select><span class="select-arrow" aria-hidden="true">&#9662;</span></div><span class="form-error" id="bookingPreferenceError" role="alert" aria-live="polite"></span></div>
+                <div class="form-group"><label for="address" class="form-label">Address</label><div class="select-wrapper"><select id="address" name="address" class="form-input form-select" required aria-required="true" aria-describedby="addressError"><option value="" disabled selected>Select your address</option><option value="mumbai">Mumbai</option><option value="delhi">Delhi</option><option value="bangalore">Bangalore</option><option value="hyderabad">Hyderabad</option><option value="chennai">Chennai</option><option value="kolkata">Kolkata</option><option value="pune">Pune</option><option value="ahmedabad">Ahmedabad</option></select><span class="select-arrow" aria-hidden="true">&#9662;</span></div><span class="form-error" id="addressError" role="alert" aria-live="polite"></span></div>
+                <div class="button-row form-action-wide"><button type="button" class="nav-btn back-btn" id="backBtn" aria-label="Go back to step 1">&larr; Back</button><button type="submit" class="nav-btn next-btn" aria-label="Continue to step 3">Next &rarr;</button></div>
+                <p class="auth-switch form-action-wide">Already have an account? <a href="login.html">Sign in</a></p>
             </form>
         </section>
     </main>
-
     <script src="../js/api.js"></script>
     <script src="../js/provider-register-step2.js"></script>
 </body>

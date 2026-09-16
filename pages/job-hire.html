@@ -6,29 +6,31 @@
     <meta name="description" content="HandyHire - Professional details and booking." />
     <meta name="theme-color" content="#173f2b" />
     <title>Professional Details | HandyHire</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="../css/job-hire.css" />
-    <link rel="stylesheet" href="../css/customer-flow-header.css" />
+
+    <link rel="stylesheet" href="../css/provider-job-hire.css" />
+    <link rel="stylesheet" href="../css/provider-flow-header.css" />
 </head>
 <body>
-    <header class="flow-topbar hire-topbar" role="banner">
-        <div class="flow-topbar-inner">
-            <a href="home.html" class="flow-brand brand-mark" aria-label="HandyHire home">
-                <span class="flow-brand-logo"><img src="../Images/Hamor.jpeg" alt="" /></span>
-                <span class="flow-brand-name">HandyHire</span>
+    <header class="hire-topbar" role="banner">
+        <div class="topbar-inner">
+            <a href="home.html" class="brand-mark" aria-label="HandyHire customer home">
+                <span class="brand-logo-shell"><img src="../Images/Hamor.jpeg" alt="" class="brand-logo" /></span>
+                <span class="brand-name">HandyHire</span>
             </a>
         </div>
     </header>
 
     <main class="hire-page" role="main">
         <div class="flow-back-row">
-            <a href="home-prebooking.html" class="flow-page-back" id="backLink" aria-label="Go back">
+            <a href="home-prebooking.html" class="topbar-back flow-page-back" id="backLink" aria-label="Go back">
                 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m15 18-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 <span>Back</span>
             </a>
-            <a href="team-page.html" class="flow-page-back flow-page-back--secondary" id="backToTeamBtn" hidden>Back to Team</a>
+            <a href="team-page.html" class="topbar-back topbar-back--team flow-page-back flow-page-back--secondary" id="backToTeamBtn" hidden>Back to Team</a>
         </div>
 
         <section class="profile-hero-card" aria-label="Professional overview">
@@ -37,13 +39,19 @@
                     <span class="availability-dot" aria-hidden="true"></span>
                     <span class="availability-text" id="availabilityText">Available today</span>
                 </div>
+
                 <section class="hero-profile" aria-label="Professional profile">
-                    <div class="hero-avatar" id="heroAvatar" aria-hidden="true"></div>
+                    <div class="hero-avatar-wrap">
+                        <div class="hero-avatar" id="heroAvatar" aria-hidden="true"></div>
+                        <span class="hero-avatar-status" aria-hidden="true"></span>
+                    </div>
+
                     <div class="hero-profile-copy">
                         <span class="profile-kicker">TRUSTED PROFESSIONAL</span>
                         <h1 class="hero-name" id="heroName">Loading...</h1>
                         <p class="hero-profession" id="heroProfession">Profession</p>
                         <p class="hero-bio" id="heroBio">Professional details will appear here.</p>
+
                         <div class="hero-rating" id="heroRating" aria-label="Overall rating">
                             <span class="hero-stars" id="heroStars" aria-hidden="true">★★★★★</span>
                             <span class="hero-rating-value" id="heroRatingValue">0.0</span>
@@ -55,52 +63,87 @@
             </div>
 
             <aside class="hero-cta-card" aria-label="Booking action">
-                <span class="profile-kicker">READY TO BOOK?</span>
+                <span class="cta-kicker">READY TO BOOK?</span>
                 <h2>Book this professional</h2>
                 <p>Choose your preferred date, time and job details on the next step.</p>
                 <div class="cta-trust-list" aria-hidden="true">
-                    <span><i>✓</i> Clear request</span><span><i>✓</i> Flexible schedule</span><span><i>✓</i> Track in Activity</span>
+                    <span><i>✓</i> Secure request</span>
+                    <span><i>✓</i> Clear pricing</span>
+                    <span><i>✓</i> Booking history</span>
                 </div>
-                <button type="button" class="book-now-btn" id="bookNowBtn">Continue to booking <span aria-hidden="true">→</span></button>
+                <button type="button" class="book-now-btn" id="bookNowBtn">
+                    Continue to booking
+                    <span aria-hidden="true">→</span>
+                </button>
             </aside>
         </section>
 
         <div class="details-layout">
             <div class="details-main-column">
                 <section class="content-card quick-info-section" aria-label="Quick info">
-                    <div class="section-heading"><span class="section-kicker">AT A GLANCE</span><h2 class="section-title">Professional details</h2><p>Everything you need before making a booking decision.</p></div>
-                    <div class="info-grid" id="infoGrid"></div>
+                    <div class="section-heading">
+                        <span class="section-kicker">AT A GLANCE</span>
+                        <h2 class="section-title">Professional details</h2>
+                        <p class="section-subtitle">Everything you need before making a booking decision.</p>
+                    </div>
+                    <ul class="info-grid" id="infoGrid"><!-- Filled by js/job-hire.js --></ul>
                 </section>
 
                 <section class="content-card about-section" aria-label="About professional">
-                    <div class="section-heading"><span class="section-kicker">ABOUT</span><h2 class="section-title">About this professional</h2></div>
+                    <div class="section-heading">
+                        <span class="section-kicker">ABOUT</span>
+                        <h2 class="section-title">About this professional</h2>
+                    </div>
                     <p class="about-text" id="aboutText">Professional details will appear here.</p>
-                    <div class="services-block"><h3 class="services-title">Services offered</h3><ul class="services-pills" id="servicesPills"></ul></div>
+
+                    <div class="services-block">
+                        <h3 class="services-title">Services offered</h3>
+                        <ul class="services-pills" id="servicesPills" aria-label="Services offered"><!-- Pills injected by js/job-hire.js --></ul>
+                    </div>
                 </section>
 
-                <section class="content-card portfolio-section" aria-label="Previous work">
-                    <div class="section-heading"><span class="section-kicker">PORTFOLIO</span><h2 class="section-title">Previous work</h2></div>
-                    <p class="portfolio-empty" id="portfolioEmpty" hidden>No work photos yet.</p>
+                <section class="content-card about-section" aria-label="Previous work">
+                    <div class="section-heading">
+                        <span class="section-kicker">PORTFOLIO</span>
+                        <h2 class="section-title">Previous work</h2>
+                        <p class="section-subtitle">See examples shared by this professional.</p>
+                    </div>
+                    <p class="reviews-empty" id="portfolioEmpty" hidden>No work photos yet.</p>
                     <ul class="portfolio-grid" id="portfolioGrid"></ul>
                 </section>
             </div>
 
             <aside class="details-side-column">
                 <section class="content-card reviews-section" aria-label="Rating and Reviews">
-                    <div class="section-heading"><span class="section-kicker">CUSTOMER TRUST</span><h2 class="section-title">Rating &amp; reviews</h2></div>
+                    <div class="section-heading">
+                        <span class="section-kicker">CUSTOMER TRUST</span>
+                        <h2 class="section-title">Rating &amp; reviews</h2>
+                    </div>
+
                     <div class="reviews-summary">
                         <span class="reviews-summary-score" id="reviewsScore">0.0</span>
-                        <span class="reviews-summary-info"><span class="reviews-summary-stars" id="reviewsSummaryStars">★★★★★</span><span class="reviews-summary-count" id="reviewsSummaryCount">Based on 0 reviews</span></span>
+                        <span class="reviews-summary-info">
+                            <span class="reviews-summary-stars" id="reviewsSummaryStars" aria-hidden="true">★★★★★</span>
+                            <span class="reviews-summary-count" id="reviewsSummaryCount">Based on 0 reviews</span>
+                        </span>
                     </div>
-                    <ul class="reviews-list" id="reviewsList"></ul>
+
+                    <ul class="reviews-list" id="reviewsList"><!-- Reviews injected by js/job-hire.js --></ul>
                     <p class="reviews-empty" id="reviewsEmpty" hidden>No reviews yet for this professional.</p>
                 </section>
-                <section class="confidence-card" aria-label="Booking reassurance"><span class="confidence-icon">✓</span><div><strong>Book with confidence</strong><p>Your booking stays visible in HandyHire Activity and Booking Details.</p></div></section>
+
+                <section class="confidence-card" aria-label="Booking reassurance">
+                    <span class="confidence-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none"><path d="M12 3 5 6v5c0 4.4 2.7 8.1 7 10 4.3-1.9 7-5.6 7-10V6l-7-3Z" stroke="currentColor" stroke-width="1.8"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>
+                    <div><strong>Book with confidence</strong><p>Your booking stays visible in HandyHire activity and booking details.</p></div>
+                </section>
             </aside>
         </div>
     </main>
 
     <script src="../js/api.js"></script>
+    <script src="../js/customer-booking-context-guard.js"></script>
     <script src="../js/job-hire.js"></script>
 </body>
 </html>

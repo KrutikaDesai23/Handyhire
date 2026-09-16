@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="HandyHire - Service Provider Registration Step 1. Tell us about yourself to start offering services." />
-    <meta name="theme-color" content="#68865C" />
+    <meta name="theme-color" content="#173f2b" />
     <title>Provider Registration - Step 1 | HandyHire</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -16,63 +16,35 @@
 </head>
 <body>
     <main class="register-screen" role="main">
-        <!-- Top tagline above the card -->
-        <p class="brand-tagline" aria-hidden="true">we need to know you</p>
+        <a href="../index.html" class="auth-brand" aria-label="HandyHire home">
+            <span class="brand-logo-shell"><img src="../Images/Hamor.jpeg" alt="" class="brand-logo" /></span>
+            <span class="brand-name">HandyHire</span>
+        </a>
 
-        <!-- Registration Card -->
         <section class="register-card" aria-labelledby="cardTitle">
-            <h1 id="cardTitle" class="card-title">Personal Details</h1>
+            <div class="auth-card-heading">
+                <span class="auth-kicker">PROVIDER SETUP <b>1 / 3</b></span>
+                <h1 id="cardTitle" class="card-title">Tell us what you do</h1>
+                <p class="card-subtitle">Build a clear provider profile so customers can find the right professional quickly.</p>
+            </div>
 
             <form id="providerRegisterStep1Form" class="register-form" novalidate>
-                <!-- Full Name -->
-                <div class="form-group">
+                <div class="form-group form-group-wide">
                     <label for="fullName" class="form-label">Full Name</label>
-                    <input
-                        type="text"
-                        id="fullName"
-                        name="fullName"
-                        class="form-input"
-                        placeholder="Enter your full name"
-                        autocomplete="name"
-                        required
-                        aria-required="true"
-                        aria-describedby="fullNameError"
-                    />
+                    <input type="text" id="fullName" name="fullName" class="form-input" placeholder="Enter your full name" autocomplete="name" required aria-required="true" aria-describedby="fullNameError" />
                     <span class="form-error" id="fullNameError" role="alert" aria-live="polite"></span>
                 </div>
 
-                <!-- Age -->
                 <div class="form-group">
                     <label for="age" class="form-label">Age</label>
-                    <input
-                        type="number"
-                        id="age"
-                        name="age"
-                        class="form-input"
-                        placeholder="Enter your age"
-                        inputmode="numeric"
-                        min="18"
-                        max="99"
-                        autocomplete="off"
-                        required
-                        aria-required="true"
-                        aria-describedby="ageError"
-                    />
+                    <input type="number" id="age" name="age" class="form-input" placeholder="Enter your age" inputmode="numeric" min="18" max="99" autocomplete="off" required aria-required="true" aria-describedby="ageError" />
                     <span class="form-error" id="ageError" role="alert" aria-live="polite"></span>
                 </div>
 
-                <!-- Qualification Dropdown -->
                 <div class="form-group">
                     <label for="qualification" class="form-label">Qualification</label>
                     <div class="select-wrapper">
-                        <select
-                            id="qualification"
-                            name="qualification"
-                            class="form-input form-select"
-                            required
-                            aria-required="true"
-                            aria-describedby="qualificationError"
-                        >
+                        <select id="qualification" name="qualification" class="form-input form-select" required aria-required="true" aria-describedby="qualificationError">
                             <option value="" disabled selected>Select your qualification</option>
                             <option value="below-10th">Below 10th</option>
                             <option value="10th">10th Pass</option>
@@ -88,18 +60,10 @@
                     <span class="form-error" id="qualificationError" role="alert" aria-live="polite"></span>
                 </div>
 
-                <!-- Skills Dropdown -->
                 <div class="form-group">
                     <label for="skills" class="form-label">Skills</label>
                     <div class="select-wrapper">
-                        <select
-                            id="skills"
-                            name="skills"
-                            class="form-input form-select"
-                            required
-                            aria-required="true"
-                            aria-describedby="skillsError"
-                        >
+                        <select id="skills" name="skills" class="form-input form-select" required aria-required="true" aria-describedby="skillsError">
                             <option value="" disabled selected>Select your primary skill</option>
                             <option value="plumber">Plumber</option>
                             <option value="electrician">Electrician</option>
@@ -117,18 +81,10 @@
                     <span class="form-error" id="skillsError" role="alert" aria-live="polite"></span>
                 </div>
 
-                <!-- Experience Dropdown -->
                 <div class="form-group">
                     <label for="experience" class="form-label">Experience</label>
                     <div class="select-wrapper">
-                        <select
-                            id="experience"
-                            name="experience"
-                            class="form-input form-select"
-                            required
-                            aria-required="true"
-                            aria-describedby="experienceError"
-                        >
+                        <select id="experience" name="experience" class="form-input form-select" required aria-required="true" aria-describedby="experienceError">
                             <option value="" disabled selected>Select experience</option>
                             <option value="Less than 1 year">Less than 1 year</option>
                             <option value="1–2 years">1–2 years</option>
@@ -141,14 +97,9 @@
                     <span class="form-error" id="experienceError" role="alert" aria-live="polite"></span>
                 </div>
 
-                <!-- Next Button -->
-                <button type="submit" class="next-btn" aria-label="Continue to step 2">
-                    Next &rarr;
-                </button>
+                <button type="submit" class="next-btn form-action-wide" aria-label="Continue to step 2">Next &rarr;</button>
 
-                <p class="auth-switch">
-                    Already have an account? <a href="login.html">Sign in</a>
-                </p>
+                <p class="auth-switch form-action-wide">Already have an account? <a href="login.html">Sign in</a></p>
             </form>
         </section>
     </main>

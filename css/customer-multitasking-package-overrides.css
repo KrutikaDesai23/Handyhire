@@ -1,0 +1,10 @@
+/* Customer-only compatibility for the shared premium package stylesheet. */
+.empty-state[hidden],
+.loading-state[hidden],
+.error-state[hidden] {
+    display: none !important;
+}
+
+@media (max-width: 767px) {
+    body { padding-bottom: 24px; }
+}

@@ -3,69 +3,130 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="description" content="HandyHire - Meet the team behind a service package." />
-    <meta name="theme-color" content="#68865C" />
-    <title>Team | HandyHire</title>
+    <meta name="description" content="HandyHire - Review a team package and its members before booking." />
+    <meta name="theme-color" content="#173f2b" />
+    <title>Team Package | HandyHire</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
-    <link rel="stylesheet" href="../css/team-page.css" />
-    <script src="../js/api.js"></script>
+    <link rel="stylesheet" href="../css/provider-team-page.css" />
+    <link rel="stylesheet" href="../css/provider-page-back.css" />
+    <link rel="stylesheet" href="../css/provider-subpage-header.css" />
 </head>
 <body>
-    <!-- ========== TOP BAR ========== -->
-    <header class="team-topbar" role="banner">
-        <a href="team-package.html" class="back-btn" id="backLink" aria-label="Back to team packages">
-            <span class="back-icon" aria-hidden="true">&#8592;</span>
-            <span class="back-label">Back</span>
-        </a>
-        <h1 class="team-topbar-title">Team</h1>
-        <span class="icon-btn-spacer" aria-hidden="true"></span>
+    <header class="subpage-header" role="banner">
+        <div class="subpage-header-inner">
+            <a href="home.html" class="subpage-brand" aria-label="HandyHire customer home">
+                <span class="subpage-brand-logo-shell">
+                    <img src="../Images/Hamor.jpeg" alt="" class="subpage-brand-logo" />
+                </span>
+                <span>HandyHire</span>
+            </a>
+        </div>
     </header>
 
     <main class="team-page" role="main">
-        <!-- ========== TEAM HEADER ========== -->
-        <section class="team-header" aria-label="Team summary">
-            <div class="team-avatar" id="teamAvatar" aria-hidden="true"></div>
-            <h2 class="team-name" id="teamName">BuildRight Crew</h2>
-            <div class="team-rating" id="teamRating" aria-label="Team rated 4.7 out of 5">
-                <span class="stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9734;</span>
-                <span class="rating-value">4.7</span>
+        <a class="page-back" href="team-package.html" id="backLink" aria-label="Back to team packages">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="m15 18-6-6 6-6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span>Back to Team Packages</span>
+        </a>
+
+        <section class="team-hero" aria-labelledby="teamName">
+            <div class="team-hero-copy">
+                <span class="team-eyebrow">TEAM PACKAGE</span>
+                <h1 id="teamName">Loading team package...</h1>
+                <p id="teamDescription">Review the crew, package details and availability before booking the whole team together.</p>
+
+                <div class="team-hero-chips" aria-label="Team package summary">
+                    <span class="team-chip" id="teamRating">Loading members...</span>
+                    <span class="team-chip team-chip--warm" id="teamPrice">Loading rate...</span>
+                </div>
+            </div>
+
+            <div class="team-hero-art" aria-hidden="true">
+                <div class="team-avatar" id="teamAvatar"></div>
+                <div class="team-art-copy">
+                    <span>COORDINATED CREW</span>
+                    <strong>One booking. One team.</strong>
+                    <small>Every member stays connected to the same package request.</small>
+                </div>
             </div>
         </section>
 
-        <!-- ========== BOOK WHOLE TEAM CTA ========== -->
-        <section class="book-cta-section" aria-label="Book the whole team">
-            <button type="button" class="book-whole-team-btn" id="bookWholeTeamBtn">
-                BOOK WHOLE TEAM
-            </button>
-        </section>
+        <section class="team-workspace" aria-label="Team package details">
+            <div class="workspace-heading">
+                <div>
+                    <span class="section-kicker">PACKAGE OVERVIEW</span>
+                    <h2>Meet the crew before you book</h2>
+                    <p>Check the package details and the professionals included in this team.</p>
+                </div>
 
-        <!-- ========== MEMBER LIST ========== -->
-        <section class="members-section" aria-label="Team members">
-            <p class="members-help">Tap a member to view their details. Selecting a member does not book them individually.</p>
-            <ul class="members-list" id="membersList">
-                <!-- Member cards rendered by js/team-page.js -->
-            </ul>
-        </section>
+                <button type="button" class="book-whole-team-btn" id="bookWholeTeamBtn">
+                    <span>Book whole team</span>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </button>
+            </div>
 
-        <!-- ========== EXPANDABLE ARROW ========== -->
-        <section class="expand-section" aria-label="Show more members">
-            <button
-                type="button"
-                class="expand-btn"
-                id="expandBtn"
-                aria-expanded="false"
-                aria-controls="membersList"
-                aria-label="Show more team members"
-            >
-                <span class="expand-icon" aria-hidden="true">&#9662;</span>
-            </button>
+            <div class="team-facts" aria-label="Package information">
+                <article class="team-fact" id="durationFact">
+                    <span class="team-fact-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                    </span>
+                    <div><small>Duration</small><strong id="teamDuration">Flexible</strong></div>
+                </article>
+
+                <article class="team-fact" id="locationFact">
+                    <span class="team-fact-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none"><path d="M12 21s6-5.2 6-11a6 6 0 1 0-12 0c0 5.8 6 11 6 11Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2" stroke="currentColor" stroke-width="1.8"/></svg>
+                    </span>
+                    <div><small>Location</small><strong id="teamLocation">Flexible</strong></div>
+                </article>
+
+                <article class="team-fact" id="availabilityFact">
+                    <span class="team-fact-icon team-fact-icon--warm" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="15" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 3v4M16 3v4M4 9h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                    </span>
+                    <div><small>Availability</small><strong id="teamAvailability">Check schedule</strong></div>
+                </article>
+            </div>
+
+            <section class="services-panel" id="servicesPanel" hidden aria-label="Services included">
+                <span class="section-kicker">SERVICES INCLUDED</span>
+                <p id="teamServices"></p>
+            </section>
+
+            <section class="members-section" aria-labelledby="membersTitle">
+                <div class="members-heading">
+                    <div>
+                        <span class="section-kicker">TEAM MEMBERS</span>
+                        <h2 id="membersTitle">Professionals in this package</h2>
+                    </div>
+                    <p>Tap a member to view their profile. Booking the package still books the whole team.</p>
+                </div>
+
+                <ul class="members-list" id="membersList">
+                    <li class="team-state">Loading team members...</li>
+                </ul>
+
+                <div class="expand-section">
+                    <button type="button" class="expand-btn" id="expandBtn" aria-expanded="false" aria-controls="membersList" aria-label="Show more team members" hidden>
+                        <span>Show more</span>
+                        <svg class="expand-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="m8 10 4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </button>
+                </div>
+            </section>
         </section>
     </main>
 
+    <script src="../js/api.js"></script>
     <script src="../js/team-page.js"></script>
 </body>
 </html>

@@ -6,60 +6,65 @@
     <meta name="description" content="HandyHire - Schedule a booking with a trusted professional." />
     <meta name="theme-color" content="#173f2b" />
     <title>Booking | HandyHire</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="../css/booking.css" />
-    <link rel="stylesheet" href="../css/customer-flow-header.css" />
+    <link rel="stylesheet" href="../css/provider-booking.css" />
+    <link rel="stylesheet" href="../css/provider-flow-header.css" />
 </head>
 <body>
-    <header class="flow-topbar" role="banner">
-        <div class="flow-topbar-inner">
-            <a href="home.html" class="flow-brand" aria-label="HandyHire home">
-                <span class="flow-brand-logo"><img src="../Images/Hamor.jpeg" alt="" /></span>
-                <span class="flow-brand-name">HandyHire</span>
+    <header class="booking-topbar" role="banner">
+        <div class="booking-topbar-inner">
+            <a href="home.html" class="booking-brand" aria-label="HandyHire customer home">
+                <span class="booking-brand-logo"><img src="../Images/Hamor.jpeg" alt="" /></span>
+                <span class="booking-brand-name">HandyHire</span>
             </a>
         </div>
     </header>
 
     <main class="booking-page" role="main">
         <div class="flow-back-row">
-            <a href="job-hire.html" class="flow-page-back" id="backLink" aria-label="Back">
-                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m15 18-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                <span>Back</span>
+            <a href="job-hire.html" class="back-btn flow-page-back" id="backLink" aria-label="Back">
+                <svg class="back-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span class="back-label">Back</span>
             </a>
         </div>
 
         <section class="booking-heading" aria-labelledby="bookingPageTitle">
             <span class="booking-eyebrow">ONE LAST STEP</span>
-            <h1 id="bookingPageTitle">Set up the service</h1>
-            <p>Choose the schedule, share the job details and review your estimated total before sending the request.</p>
+            <h2 id="bookingPageTitle">Set up the service</h2>
+            <p>Choose the schedule, tell the professional what you need, and review the estimated total before confirming.</p>
         </section>
 
         <div class="booking-layout">
-            <aside class="booking-summary" aria-label="Booking subject">
+            <aside class="booking-summary" aria-label="Selected booking">
                 <span class="summary-kicker">YOU'RE BOOKING</span>
 
-                <div class="worker-header">
+                <section class="worker-header" aria-label="Booking subject">
                     <div class="worker-avatar-wrap">
                         <div class="worker-avatar" id="workerAvatar" aria-hidden="true"></div>
                         <span class="worker-verified" aria-hidden="true">
                             <svg viewBox="0 0 24 24" fill="none"><path d="m7 12 3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                         </span>
                     </div>
+
                     <div class="worker-copy">
-                        <h2 class="worker-name" id="workerName">Loading booking...</h2>
-                        <p class="worker-mode" id="workerMode" hidden>Booking</p>
+                        <h3 class="worker-name" id="workerName">Loading booking...</h3>
+                        <p class="worker-mode" id="workerMode" hidden>Professional</p>
                     </div>
+
                     <hr class="worker-divider" aria-hidden="true" />
-                </div>
+                </section>
 
                 <div class="summary-points" aria-label="Booking benefits">
                     <div class="summary-point">
                         <span class="summary-point-icon" aria-hidden="true">
                             <svg viewBox="0 0 24 24" fill="none"><path d="M12 3 5 6v5c0 4.5 2.8 8 7 10 4.2-2 7-5.5 7-10V6l-7-3Z" stroke="currentColor" stroke-width="1.8"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
                         </span>
-                        <div><strong>Trusted booking</strong><span>Your request stays saved and traceable in HandyHire.</span></div>
+                        <div><strong>Trusted booking</strong><span>Book through HandyHire with a clear request trail.</span></div>
                     </div>
                     <div class="summary-point">
                         <span class="summary-point-icon" aria-hidden="true">
@@ -69,9 +74,9 @@
                     </div>
                     <div class="summary-point">
                         <span class="summary-point-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none"><path d="M5 5h14v14H5z" stroke="currentColor" stroke-width="1.8"/><path d="M8 15h8M8 11h5M8 8h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                            <svg viewBox="0 0 24 24" fill="none"><path d="M5 5h14v14H5z" stroke="currentColor" stroke-width="1.8"/><path d="M8 15h8M8 11h5M8 8h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
                         </span>
-                        <div><strong>Share job details</strong><span>Notes and photos help the professional arrive prepared.</span></div>
+                        <div><strong>Share job details</strong><span>Add notes and photos so the work is clear before arrival.</span></div>
                     </div>
                 </div>
             </aside>
@@ -91,17 +96,25 @@
                             <input type="date" id="scheduleDate" class="form-input" aria-describedby="scheduleHelp" required />
                             <p class="form-help" id="scheduleHelp">Pick a date for the service.</p>
                         </div>
+
                         <div class="form-row">
                             <label class="form-label" for="bookingTime">Starting Time</label>
                             <input type="time" id="bookingTime" class="form-input" aria-describedby="timeHelp" required />
-                            <p class="form-help" id="timeHelp">Choose a convenient start time.</p>
+                            <p class="form-help" id="timeHelp">Choose the preferred start time.</p>
                         </div>
+
                         <div class="form-row form-row--hours">
                             <label class="form-label" for="hoursSelect">Number of Hours</label>
                             <div class="select-wrap">
                                 <select id="hoursSelect" class="form-select">
                                     <option value="" selected disabled>Select hours</option>
-                                    <option value="1">1 hour</option><option value="2">2 hours</option><option value="3">3 hours</option><option value="4">4 hours</option><option value="5">5 hours</option><option value="6">6 hours</option><option value="8">8 hours</option>
+                                    <option value="1">1 hour</option>
+                                    <option value="2">2 hours</option>
+                                    <option value="3">3 hours</option>
+                                    <option value="4">4 hours</option>
+                                    <option value="5">5 hours</option>
+                                    <option value="6">6 hours</option>
+                                    <option value="8">8 hours</option>
                                 </select>
                                 <svg class="select-caret" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m8 10 4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                             </div>
@@ -115,7 +128,7 @@
                         <span class="form-section-icon" aria-hidden="true">
                             <svg viewBox="0 0 24 24" fill="none"><path d="M12 21s6-5.2 6-11a6 6 0 1 0-12 0c0 5.8 6 11 6 11Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2" stroke="currentColor" stroke-width="1.8"/></svg>
                         </span>
-                        <div><span class="form-section-kicker">WHERE &amp; WHAT</span><h3 id="detailsHeading">Service details</h3><p>Help the professional arrive prepared.</p></div>
+                        <div><span class="form-section-kicker">WHERE & WHAT</span><h3 id="detailsHeading">Service details</h3><p>Help the professional arrive prepared.</p></div>
                     </div>
 
                     <div class="form-row">
@@ -141,7 +154,9 @@
 
                     <div class="photo-upload" id="photoUpload">
                         <label class="photo-upload-trigger" for="beforePhotoInput">
-                            <span class="photo-upload-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 16V5M8 9l4-4 4 4M5 14v5h14v-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                            <span class="photo-upload-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none"><path d="M12 16V5M8 9l4-4 4 4M5 14v5h14v-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </span>
                             <span class="photo-upload-copy"><strong>Add before photos</strong><small>JPEG, PNG or WEBP • up to 5 MB each</small></span>
                             <span class="photo-upload-action">Choose files</span>
                         </label>
@@ -157,19 +172,25 @@
                         <p class="total-value" id="totalCost" aria-live="polite">—</p>
                         <p class="checkout-help" id="totalHelp">Select hours to see the estimated total.</p>
                     </div>
-                    <span class="checkout-badge" aria-hidden="true">
+                    <div class="checkout-badge" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none"><path d="M12 3 5 6v5c0 4.5 2.8 8 7 10 4.2-2 7-5.5 7-10V6l-7-3Z" stroke="currentColor" stroke-width="1.8"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    </span>
+                    </div>
                 </section>
 
-                <p class="booking-error" id="bookingError" role="alert" hidden></p>
-                <button type="submit" class="book-btn" id="bookBtn"><span>Confirm booking</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                <p class="booking-form-error" id="bookingError" role="alert" aria-live="polite" hidden></p>
+
+                <button type="submit" class="book-btn" id="bookBtn">
+                    <span>Confirm booking</span>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+
                 <p class="booking-footnote">Your booking request will be sent to the selected professional for confirmation.</p>
             </form>
         </div>
     </main>
 
     <script src="../js/api.js"></script>
+    <script src="../js/customer-booking-context-guard.js"></script>
     <script src="../js/booking.js"></script>
 </body>
 </html>

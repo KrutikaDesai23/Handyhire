@@ -11,6 +11,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="../css/provider-home.css" />
     <link rel="stylesheet" href="../css/provider-shell-lock.css" />
+    <link rel="stylesheet" href="../css/provider-availability-highlight.css" />
+    <link rel="stylesheet" href="../css/live-booking-tracker.css" />
+    <link rel="stylesheet" href="../css/live-booking-eta.css" />
 </head>
 <body>
     <header class="app-header" role="banner">
@@ -52,17 +55,13 @@
                     <div class="showcase-glow"></div>
                     <div class="availability-panel" id="heroAvailability">
                         <div class="availability-copy">
-                            <span class="availability-kicker">YOUR STATUS</span>
-                            <strong class="availability-toggle-label">Available for work</strong>
-                            <span class="availability-sub">Turn this on when you are ready to receive work.</span>
+                            <span class="availability-kicker">LIVE WORK STATUS</span>
+                            <strong class="availability-toggle-label">Quick Hire availability</strong>
+                            <span class="availability-sub">Turn this on when you are ready to accept instant and scheduled work.</span>
                         </div>
                         <button type="button" class="toggle-switch" id="availabilityToggle" role="switch" aria-checked="false" aria-label="Available for work"><span class="toggle-switch__knob" aria-hidden="true"></span></button>
                         <span class="availability-message" id="availabilityMessage" role="alert" hidden></span>
                     </div>
-                    <div class="showcase-card showcase-card--provider-one"><span class="showcase-icon">↗</span><div><strong>Grow your reputation</strong><small>Great service builds trust</small></div></div>
-                    <div class="showcase-card showcase-card--provider-two"><span class="showcase-icon showcase-icon--bolt">⚡</span><div><strong>Stay flexible</strong><small>Choose when you are available</small></div></div>
-                    <div class="showcase-ring showcase-ring--one"></div>
-                    <div class="showcase-ring showcase-ring--two"></div>
                 </div>
             </div>
         </section>
@@ -171,5 +170,7 @@
 
     <script src="../js/api.js"></script>
     <script src="../js/provider-home.js"></script>
+    <script src="../js/live-booking-tracker.js"></script>
+    <script src="../js/live-booking-eta.js"></script>
 </body>
 </html>

@@ -6,89 +6,248 @@
     <meta name="description" content="HandyHire - Booking details and progress." />
     <meta name="theme-color" content="#173f2b" />
     <title>Booking Details | HandyHire</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="../css/booking-details.css" />
-    <link rel="stylesheet" href="../css/customer-flow-header.css" />
+
+    <link rel="stylesheet" href="../css/provider-booking-details.css" />
+    <link rel="stylesheet" href="../css/provider-shell-lock.css" />
+    <link rel="stylesheet" href="../css/provider-booking-details-polish.css" />
+    <link rel="stylesheet" href="../css/customer-shell-overrides.css" />
 </head>
 <body>
-    <header class="flow-topbar" role="banner">
-        <div class="flow-topbar-inner">
-            <a href="home.html" class="flow-brand" aria-label="HandyHire home"><span class="flow-brand-logo"><img src="../Images/Hamor.jpeg" alt="" /></span><span class="flow-brand-name">HandyHire</span></a>
+    <header class="app-header" role="banner">
+        <div class="header-inner">
+            <a href="home.html" class="brand-mark" aria-label="HandyHire customer home">
+                <span class="brand-logo-shell">
+                    <img src="../Images/Hamor.jpeg" alt="" class="brand-logo" />
+                </span>
+                <span class="brand-name">HandyHire</span>
+            </a>
+
+            <nav class="app-nav" aria-label="Primary navigation">
+                <a href="home.html" class="nav-tab">Home</a>
+                <a href="activity.html" class="nav-tab is-active" aria-current="page">Activity</a>
+                <a href="profile.html" class="nav-tab">Profile</a>
+            </nav>
+
+            <span class="header-accent" aria-hidden="true"></span>
         </div>
     </header>
 
-    <main class="detail-page" role="main">
-        <div class="flow-back-row"><a href="activity.html" class="flow-page-back" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m15 18-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Back</span></a></div>
+    <main class="app-main" role="main">
+        <div class="detail-page-back-row">
+            <a href="activity.html" class="detail-page-back" aria-label="Back to Activity">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Back</span>
+            </a>
+        </div>
 
-        <section class="detail-hero" aria-labelledby="detailTitle">
-            <div>
-                <span class="detail-eyebrow">BOOKING OVERVIEW</span>
-                <h1 id="detailTitle">Booking details</h1>
-                <p>See the professional, schedule, status and job proof for this service request.</p>
+        <section class="detail-hero" aria-labelledby="pageTitle">
+            <div class="detail-hero-copy">
+                <span class="detail-eyebrow">BOOKING WORKSPACE</span>
+                <h1 id="pageTitle">Booking Details</h1>
+                <p>Everything you need for this booking — schedule, contact, progress, location and job proof — in one place.</p>
             </div>
+
             <div class="detail-hero-art" aria-hidden="true">
-                <span><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="15" rx="3" stroke="currentColor" stroke-width="1.7"/><path d="M8 3v4M16 3v4M7.5 11h9M7.5 15h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>
-                <div><strong>Your booking stays organised</strong><small>Contact, progress and job details in one place.</small></div>
+                <div class="detail-art-icon">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <rect x="4" y="5" width="16" height="15" rx="3" stroke="currentColor" stroke-width="1.7"/>
+                        <path d="M8 3v4M16 3v4M7.5 11h9M7.5 15h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div>
+                    <strong>Stay on top of the booking</strong>
+                    <span>Keep contact, progress and every service detail close at hand.</span>
+                </div>
             </div>
         </section>
 
-        <div id="loadingState" class="state-message" hidden>Loading booking details...</div>
-        <div id="errorState" class="state-message state-message--error" hidden></div>
-        <div id="unauthorizedState" class="state-message state-message--error" hidden>You are not authorized to view this booking.<br /><a href="activity.html" class="back-link">Back to Activity</a></div>
+        <section class="detail-workspace" aria-label="Customer booking details">
+            <div id="loadingState" class="state-message" hidden>Loading booking details...</div>
+            <div id="errorState" class="state-message state-message--error" hidden></div>
+            <div id="unauthorizedState" class="state-message state-message--error" hidden>
+                You are not authorized to view this booking.
+                <br />
+                <a href="activity.html" class="back-link">Back to Activity</a>
+            </div>
 
-        <section id="bookingDetails" class="booking-details" hidden>
-            <div class="booking-heading-row"><div><span class="section-kicker">BOOKING REFERENCE</span><span id="bookingId" class="detail-id"></span></div><span id="bookingStatus" class="detail-status"></span></div>
-
-            <div class="details-grid">
-                <div class="details-main-column">
-                    <article class="card contact-card">
-                        <div class="contact-avatar"><img id="contactImage" src="" alt="" hidden /><span id="contactInitial" class="avatar-initial"></span></div>
-                        <div class="contact-body"><span class="card-kicker">YOUR PROFESSIONAL</span><h2 id="providerName" class="contact-name"></h2><p id="contactAvailability" class="contact-note"></p></div>
-                        <div class="contact-buttons">
-                            <a id="callButton" class="btn btn-call" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8.4 3.5 10 7.2a1.7 1.7 0 0 1-.4 1.9L8.3 10.4a14 14 0 0 0 5.3 5.3l1.3-1.3a1.7 1.7 0 0 1 1.9-.4l3.7 1.6a1.7 1.7 0 0 1 1 1.6v2.3a2 2 0 0 1-2.1 2c-9.3-.7-16.2-7.6-16.9-16.9a2 2 0 0 1 2-2.1h2.3a1.7 1.7 0 0 1 1.6 1Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Call</span></a>
-                            <a id="whatsappButton" class="btn btn-whatsapp" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-11.8 7l-4.2 1.1 1.1-4A8 8 0 1 1 20 11.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 8.5c.4 2.8 2.2 4.7 5 5.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span>WhatsApp</span></a>
-                        </div>
-                    </article>
-
-                    <article class="card summary-card">
-                        <div class="summary-main">
-                            <div class="summary-left"><div class="summary-icon-box"><span id="summaryIcon" class="summary-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 7h14M7 4v6M17 4v6M6 11h12v8H6z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div><div class="summary-text"><span class="card-kicker">SERVICE</span><h3 id="serviceName" class="summary-name"></h3><span id="bookingTypeBadge" class="type-badge"></span></div></div>
-                            <span id="bookingAmount" class="summary-amount"></span>
-                        </div>
-                        <div class="summary-meta">
-                            <div class="meta-item"><span class="meta-icon"><svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="5" width="17" height="15" rx="2.5" stroke="currentColor" stroke-width="1.7"/><path d="M8 3v4M16 3v4M4 9.5h16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span><span id="bookingDate" class="meta-text"></span></div>
-                            <div class="meta-item"><span class="meta-icon"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.7"/><path d="M12 7.5V12l3 2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span id="bookingTime" class="meta-text"></span></div>
-                            <div class="meta-item"><span class="meta-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M19 10c0 5-7 10-7 10S5 15 5 10a7 7 0 1 1 14 0Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.2" stroke="currentColor" stroke-width="1.7"/></svg></span><span id="bookingAddress" class="meta-text"></span></div>
-                        </div>
-                        <a id="mapsButton" class="maps-action" href="#" target="_blank" rel="noopener"><span>View location in Google Maps</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-                    </article>
-
-                    <article id="descriptionSection" class="card description-card" hidden><span class="card-kicker">JOB BRIEF</span><h3 class="card-title">Job Description</h3><p id="bookingDescription" class="description-text"></p></article>
-
-                    <article id="jobPhotosSection" class="card photos-card" hidden>
-                        <div class="photos-heading"><div><span class="card-kicker">JOB PROOF</span><h3 class="card-title">Job Photos</h3></div><span class="photos-hint">Before &amp; after</span></div>
-                        <div id="beforePhotosBlock" class="photo-block" hidden><h4 class="photo-block-title">Before Job</h4><div id="beforePhotosGrid" class="photo-grid"></div></div>
-                        <div id="afterPhotosBlock" class="photo-block" hidden><h4 class="photo-block-title">After Job</h4><div id="afterPhotosGrid" class="photo-grid"></div></div>
-                        <div id="addAfterPhotos" class="add-after-photos" hidden>
-                            <label class="add-after-trigger" for="afterPhotoInput"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3.5" y="6" width="17" height="13" rx="2.5" stroke="currentColor" stroke-width="1.7"/><path d="m8 6 1.2-2h5.6L16 6M12 10v5M9.5 12.5h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Add After Photos</span></label>
-                            <input type="file" id="afterPhotoInput" class="photo-upload-input" accept="image/jpeg,image/png,image/webp" multiple hidden />
-                            <p id="afterPhotoError" class="photo-upload-error" role="alert" hidden></p>
-                        </div>
-                    </article>
-
-                    <article id="packageServicesSection" class="card list-card" hidden><span class="card-kicker">PACKAGE</span><h3 class="card-title">Included Services</h3><ul id="packageServicesList" class="simple-list"></ul></article>
-                    <article id="teamMembersSection" class="card list-card" hidden><span class="card-kicker">TEAM</span><h3 class="card-title">Team Members</h3><ul id="teamMembersList" class="simple-list"></ul></article>
+            <div id="bookingDetails" class="booking-details" hidden>
+                <div class="detail-top-row">
+                    <div class="detail-reference">
+                        <span class="detail-reference-label">REFERENCE</span>
+                        <span id="bookingId" class="detail-id"></span>
+                    </div>
+                    <span id="bookingStatus" class="detail-status"></span>
                 </div>
 
-                <aside class="details-side-column">
-                    <article class="card timeline-card"><span class="card-kicker">PROGRESS</span><h3 class="card-title">Booking Status</h3><div id="statusTimeline" class="timeline"></div><div id="completionActions" class="completion-actions" hidden></div></article>
-                    <article class="booking-help-card"><span class="booking-help-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z" stroke="currentColor" stroke-width="1.8"/><path d="M12 10v6M12 7h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><div><strong>Need to check something?</strong><p>Use Call or WhatsApp when contact is available, and follow status updates here.</p></div></article>
-                </aside>
+                <div class="detail-primary-grid">
+                    <div class="card summary-card">
+                        <div class="card-kicker">BOOKING SUMMARY</div>
+                        <div class="summary-main">
+                            <div class="summary-left">
+                                <div class="summary-icon-box" aria-hidden="true">
+                                    <span id="summaryIcon" class="summary-icon">
+                                        <svg viewBox="0 0 24 24" fill="none">
+                                            <path d="M5 7h14M7 4v6M17 4v6M6 11h12v8H6z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </span>
+                                </div>
+                                <div class="summary-text">
+                                    <h2 id="serviceName" class="summary-name"></h2>
+                                    <span id="bookingTypeBadge" class="type-badge"></span>
+                                </div>
+                            </div>
+                            <div class="summary-price-wrap">
+                                <span class="summary-price-label">AMOUNT</span>
+                                <span id="bookingAmount" class="summary-amount"></span>
+                            </div>
+                        </div>
+
+                        <div class="summary-meta">
+                            <div class="meta-item">
+                                <span class="meta-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="5" width="17" height="15" rx="2.5" stroke="currentColor" stroke-width="1.7"/><path d="M8 3v4M16 3v4M4 9.5h16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                                </span>
+                                <span class="meta-copy"><small>Date</small><span id="bookingDate" class="meta-text"></span></span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.7"/><path d="M12 7.5V12l3 2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                </span>
+                                <span class="meta-copy"><small>Time</small><span id="bookingTime" class="meta-text"></span></span>
+                            </div>
+                            <div class="meta-item meta-item--location">
+                                <span class="meta-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none"><path d="M19 10c0 5-7 10-7 10S5 15 5 10a7 7 0 1 1 14 0Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.2" stroke="currentColor" stroke-width="1.7"/></svg>
+                                </span>
+                                <span class="meta-copy"><small>Location</small><span id="bookingAddress" class="meta-text"></span></span>
+                            </div>
+                        </div>
+
+                        <a id="mapsButton" class="maps-action" href="#" target="_blank" rel="noopener">
+                            <span>Open in Google Maps</span>
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </a>
+                    </div>
+
+                    <div class="card contact-card">
+                        <div class="card-kicker">BOOKING CONTACT</div>
+                        <div class="contact-profile">
+                            <div class="contact-avatar">
+                                <img id="contactImage" src="" alt="" hidden />
+                                <span id="contactInitial" class="avatar-initial"></span>
+                            </div>
+                            <div class="contact-body">
+                                <h2 id="providerName" class="contact-name"></h2>
+                                <p id="contactAvailability" class="contact-note"></p>
+                            </div>
+                        </div>
+
+                        <div class="contact-buttons">
+                            <a id="callButton" class="btn btn-call" href="#" target="_blank" rel="noopener">
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8.4 3.5 10 7.2a1.7 1.7 0 0 1-.4 1.9L8.3 10.4a14 14 0 0 0 5.3 5.3l1.3-1.3a1.7 1.7 0 0 1 1.9-.4l3.7 1.6a1.7 1.7 0 0 1 1 1.6v2.3a2 2 0 0 1-2.1 2c-9.3-.7-16.2-7.6-16.9-16.9a2 2 0 0 1 2-2.1h2.3a1.7 1.7 0 0 1 1.6 1Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                <span>Call</span>
+                            </a>
+                            <a id="whatsappButton" class="btn btn-whatsapp" href="#" target="_blank" rel="noopener">
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-11.8 7l-4.2 1.1 1.1-4A8 8 0 1 1 20 11.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 8.5c.4 2.8 2.2 4.7 5 5.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                                <span>WhatsApp</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-secondary-grid">
+                    <div class="card timeline-card">
+                        <div class="card-heading-row">
+                            <div>
+                                <span class="card-kicker">JOB PROGRESS</span>
+                                <h3 class="card-title">Booking status</h3>
+                            </div>
+                            <span class="timeline-hint">Live workflow</span>
+                        </div>
+                        <div id="statusTimeline" class="timeline"></div>
+                        <div id="completionActions" class="status-actions" hidden></div>
+                    </div>
+
+                    <div id="descriptionSection" class="card description-card" hidden>
+                        <span class="card-kicker">JOB NOTES</span>
+                        <h3 class="card-title">Job description</h3>
+                        <p id="bookingDescription" class="description-text"></p>
+                    </div>
+                </div>
+
+                <div id="packageServicesSection" class="card list-card" hidden>
+                    <div class="card-heading-row">
+                        <div>
+                            <span class="card-kicker">PACKAGE DETAILS</span>
+                            <h3 class="card-title">Included services</h3>
+                        </div>
+                    </div>
+                    <ul id="packageServicesList" class="simple-list"></ul>
+                </div>
+
+                <div id="teamMembersSection" class="card list-card" hidden>
+                    <div class="card-heading-row">
+                        <div>
+                            <span class="card-kicker">CREW</span>
+                            <h3 class="card-title">Team members</h3>
+                        </div>
+                    </div>
+                    <ul id="teamMembersList" class="simple-list"></ul>
+                </div>
+
+                <div id="jobPhotosSection" class="card photos-card" hidden>
+                    <div class="card-heading-row">
+                        <div>
+                            <span class="card-kicker">JOB PROOF</span>
+                            <h3 class="card-title">Job photos</h3>
+                        </div>
+                        <span class="photos-hint">Before &amp; after</span>
+                    </div>
+
+                    <div id="beforePhotosBlock" class="photo-block" hidden>
+                        <h4 class="photo-block-title">Before job</h4>
+                        <div id="beforePhotosGrid" class="photo-grid"></div>
+                    </div>
+
+                    <div id="afterPhotosBlock" class="photo-block" hidden>
+                        <h4 class="photo-block-title">After job</h4>
+                        <div id="afterPhotosGrid" class="photo-grid"></div>
+                    </div>
+
+                    <div id="addAfterPhotos" class="add-after-photos" hidden>
+                        <label class="add-after-trigger" for="afterPhotoInput">
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3.5" y="6" width="17" height="13" rx="2.5" stroke="currentColor" stroke-width="1.7"/><path d="m8 6 1.2-2h5.6L16 6M12 10v5M9.5 12.5h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            <span>Add after photos</span>
+                        </label>
+                        <input type="file" id="afterPhotoInput" class="photo-upload-input" accept="image/jpeg,image/png,image/webp" multiple hidden />
+                        <p class="photo-upload-help">JPG, PNG or WEBP • up to 5 MB each</p>
+                        <p id="afterPhotoError" class="photo-upload-error" role="alert" hidden></p>
+                    </div>
+                </div>
             </div>
         </section>
     </main>
+
+    <nav class="mobile-bottom-nav" aria-label="Customer mobile navigation">
+        <a href="home.html" class="mobile-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3V10.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+            <span>Home</span>
+        </a>
+        <a href="activity.html" class="mobile-nav-item is-active" aria-current="page">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12h4l2.1-5 3.6 10 2.1-5H20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>Activity</span>
+        </a>
+        <a href="profile.html" class="mobile-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="3.2" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 20c.7-4 3-6 6.5-6s5.8 2 6.5 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <span>Profile</span>
+        </a>
+    </nav>
 
     <script src="../js/api.js"></script>
     <script src="../js/booking-details.js"></script>

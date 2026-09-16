@@ -1,26 +1,16 @@
 /* =========================================================
-   HandyHire - Multitasking Packages JavaScript
-   Renders a vertical list of package cards with avatar,
-   name, skills and star rating. Live filtering is supported
-   via the search input. Navigation is intentionally not
-   connected yet.
+   HandyHire - Customer Multitasking Packages
+   Uses the provider package card structure and state blocks
+   while preserving customer booking navigation.
    ========================================================= */
 
 (function () {
     'use strict';
 
-    /**
-     * Published multitasking packages loaded from the backend.
-     */
     let allPackages = [];
 
-    /**
-     * Escape user-supplied text before injecting as HTML.
-     * @param {string} str
-     * @returns {string}
-     */
     function escapeHtml(str) {
-        return String(str)
+        return String(str == null ? '' : str)
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
@@ -28,331 +18,160 @@
             .replace(/'/g, '&#39;');
     }
 
-    /**
-     * Generate a placeholder avatar data URL so cards
-     * render meaningfully without external images.
-     * @param {string} name
-     * @returns {string} CSS background value
-     */
-    function buildAvatar(name) {
-        const initials = name
-            .split(' ')
-            .filter(Boolean)
-            .map((part) => part.charAt(0).toUpperCase())
-            .slice(0, 2)
-            .join('') || '?';
-
-        const hue = Array.from(name).reduce(
-            (sum, ch) => sum + ch.charCodeAt(0),
-            0
-        ) % 360;
-
-        const svg = `
-            <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'>
-                <defs>
-                    <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
-                        <stop offset='0%' stop-color='hsl(${hue}, 35%, 70%)'/>
-                        <stop offset='100%' stop-color='hsl(${(hue + 40) % 360}, 30%, 55%)'/>
-                    </linearGradient>
-                </defs>
-                <circle cx='40' cy='40' r='40' fill='url(#g)'/>
-                <text x='50%' y='54%' text-anchor='middle'
-                      font-family='Inter, sans-serif' font-size='30'
-                      font-weight='700' fill='#ffffff' dominant-baseline='middle'>
-                    ${initials}
-                </text>
-            </svg>
-        `.trim();
-
-        return `url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}")`;
-    }
-
-    /**
-      * Format a price for display as Indian Rupees.
-      * @param {number|string} price
-      * @returns {string}
-      */
     function formatPrice(price) {
-        return '\u20B9' + Number(price || 0).toLocaleString();
+        return '\u20B9' + Number(price || 0).toLocaleString('en-IN');
     }
 
-    /**
-      * Render a single package card as an <li>.
-     * @param {Object} pkg
-     * @returns {string} HTML string
-     */
     function renderCard(pkg) {
-        var skillsLine = (pkg.services || [])
-            .map(function (service) {
-                return escapeHtml(service.name);
-            })
-            .join(' \u2022 ');
+        const servicesLine = (pkg.services || [])
+            .map(function (service) { return escapeHtml(service.name); })
+            .join(' • ');
 
-        var metaTags = [];
-
+        const metaTags = [];
         if (pkg.duration) {
-            metaTags.push(
-                '<span class="package-meta-tag">' +
-                    '<span class="package-meta-icon">⏱</span>' +
-                    escapeHtml(pkg.duration) +
-                '</span>'
-            );
+            metaTags.push('<span class="package-meta-tag"><span class="package-meta-icon">⏱</span>' + escapeHtml(pkg.duration) + '</span>');
         }
-
         if (pkg.location) {
-            metaTags.push(
-                '<span class="package-meta-tag">' +
-                    '<span class="package-meta-icon">⌖</span>' +
-                    escapeHtml(pkg.location) +
-                '</span>'
-            );
+            metaTags.push('<span class="package-meta-tag"><span class="package-meta-icon">⌖</span>' + escapeHtml(pkg.location) + '</span>');
         }
-
         if (pkg.availability) {
-            metaTags.push(
-                '<span class="package-meta-tag">' +
-                    '<span class="package-meta-icon">◷</span>' +
-                    escapeHtml(pkg.availability) +
-                '</span>'
-            );
+            metaTags.push('<span class="package-meta-tag"><span class="package-meta-icon">◷</span>' + escapeHtml(pkg.availability) + '</span>');
         }
 
         return (
             '<li>' +
-                '<article ' +
-                    'class="package-card" ' +
-                    'tabindex="0" ' +
-                    'data-package-id="' +
-                    pkg.id +
-                    '" ' +
-                    'aria-label="View ' +
-                    escapeHtml(pkg.name) +
-                    '">' +
+                '<article class="package-card" tabindex="0" data-package-id="' + escapeHtml(String(pkg.id)) + '" aria-label="View ' + escapeHtml(pkg.name) + '">' +
                     '<div class="package-card-header">' +
                         '<div class="package-title-area">' +
-                            '<h3 class="package-name">' +
-                                escapeHtml(pkg.name) +
-                            '</h3>' +
-                            (
-                                pkg.description
-                                    ? '<p class="package-description">' +
-                                        escapeHtml(pkg.description) +
-                                      '</p>'
-                                    : ''
-                            ) +
+                            '<h3 class="package-name">' + escapeHtml(pkg.name) + '</h3>' +
+                            (pkg.description ? '<p class="package-description">' + escapeHtml(pkg.description) + '</p>' : '') +
                         '</div>' +
-                        '<div class="package-price">' +
-                            formatPrice(pkg.price) +
-                        '</div>' +
+                        '<div class="package-price">' + formatPrice(pkg.price) + '</div>' +
                     '</div>' +
-                    (
-                        skillsLine
-                            ? '<div class="package-service-box">' +
-                                '<span class="package-section-label">' +
-                                    'Services included' +
-                                '</span>' +
-                                '<p class="package-services">' +
-                                    skillsLine +
-                                '</p>' +
-                              '</div>'
-                            : ''
-                    ) +
-                    (
-                        metaTags.length
-                            ? '<div class="package-meta-row">' +
-                                metaTags.join('') +
-                              '</div>'
-                            : ''
-                    ) +
+                    (servicesLine
+                        ? '<div class="package-service-box">' +
+                            '<span class="package-section-label">Services included</span>' +
+                            '<p class="package-services">' + servicesLine + '</p>' +
+                          '</div>'
+                        : '') +
+                    (metaTags.length ? '<div class="package-meta-row">' + metaTags.join('') + '</div>' : '') +
                 '</article>' +
             '</li>'
         );
     }
 
-    /**
-     * Render the full package list into the container.
-     * @param {Array} packages
-     * @param {HTMLElement} container
-     * @param {HTMLElement} emptyState
-     */
-    function renderList(packages, container, emptyState) {
-        container.innerHTML = packages.map(renderCard).join('');
-        if (emptyState) emptyState.hidden = packages.length > 0;
+    function renderList(packages) {
+        const list = document.getElementById('packageList');
+        const empty = document.getElementById('emptyState');
+        if (!list) return;
+        list.innerHTML = packages.map(renderCard).join('');
+        if (empty) empty.hidden = packages.length > 0;
     }
 
-    /**
-     * Live-filter packages against the search query.
-     * Empty query returns the full list.
-     * @param {string} query
-     * @returns {Array}
-     */
-    function filterPackages(query) {
-        var q = String(query || '').trim().toLowerCase();
-        if (!q) return allPackages.slice();
-
-        return allPackages.filter(function (pkg) {
-            var skillText = (pkg.services || [])
-                .map(function (service) { return service.name; })
-                .join(' ')
-                .toLowerCase();
-            return (
-                String(pkg.name || '').toLowerCase().includes(q) ||
-                skillText.includes(q)
-            );
-        });
-    }
-
-    /**
-     * Wire up the search input so the list updates as the
-     * user types.
-     */
-    function initSearch(container, emptyState) {
+    function applyFilter() {
         const input = document.getElementById('packageSearch');
-        if (!input) return;
-
-        input.addEventListener('input', function () {
-            const filtered = filterPackages(input.value);
-            if (emptyState && !filtered.length) {
-                emptyState.textContent = 'No packages match your search.';
-            }
-            renderList(filtered, container, emptyState);
+        const empty = document.getElementById('emptyState');
+        const q = input ? String(input.value || '').trim().toLowerCase() : '';
+        const filtered = !q ? allPackages.slice() : allPackages.filter(function (pkg) {
+            const searchable = [
+                pkg.name,
+                pkg.description,
+                (pkg.services || []).map(function (service) { return service.name; }).join(' '),
+            ].join(' ').toLowerCase();
+            return searchable.includes(q);
         });
+        if (empty && !filtered.length) empty.textContent = 'No packages match your search.';
+        renderList(filtered);
     }
 
-    /**
-     * Wire up click + Enter / Space activation on each
-     * package card so it routes to booking.html with the
-     * selected package_id. Direct-worker booking is not
-     * affected by this flow.
-     */
-    function initCardNavigation(container) {
-        if (!container) return;
+    function initCardNavigation() {
+        const list = document.getElementById('packageList');
+        if (!list) return;
 
-        container.addEventListener('click', function (event) {
-            var card = event.target.closest('.package-card');
-            if (!card || !container.contains(card)) return;
+        function openCard(card) {
+            const packageId = card.getAttribute('data-package-id');
+            if (!packageId) return;
             try {
                 sessionStorage.setItem('handyhire.customer.previousPage', 'multitasking-package.html');
             } catch (e) {}
-            var packageId = card.getAttribute('data-package-id');
-            if (packageId) {
-                window.location.href = 'booking.html?package_id=' + encodeURIComponent(packageId);
-            } else {
-                window.location.href = 'booking.html';
-            }
+            window.location.href = 'booking.html?package_id=' + encodeURIComponent(packageId);
+        }
+
+        list.addEventListener('click', function (event) {
+            const card = event.target.closest('.package-card');
+            if (!card || !list.contains(card)) return;
+            openCard(card);
         });
 
-        container.addEventListener('keydown', function (event) {
-            var card = event.target.closest('.package-card');
-            if (!card || !container.contains(card)) return;
-            if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                try {
-                    sessionStorage.setItem('handyhire.customer.previousPage', 'multitasking-package.html');
-                } catch (e) {}
-                var packageId = card.getAttribute('data-package-id');
-                if (packageId) {
-                    window.location.href = 'booking.html?package_id=' + encodeURIComponent(packageId);
-                } else {
-                    window.location.href = 'booking.html';
-                }
-            }
+        list.addEventListener('keydown', function (event) {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            const card = event.target.closest('.package-card');
+            if (!card || !list.contains(card)) return;
+            event.preventDefault();
+            openCard(card);
         });
     }
 
-    /**
-     * Set the Back button href from sessionStorage so it
-     * returns to the exact previous customer page rather
-     * than a hardcoded fallback, and wire up an explicit
-     * click handler so navigation always fires.
-     */
     function initBackButton() {
         const back = document.getElementById('backLink');
         if (!back) return;
-        try {
-            const prev = sessionStorage.getItem('handyhire.customer.previousPage');
-            if (prev && prev.trim()) {
-                back.setAttribute('href', prev.trim());
-            }
-        } catch (e) {
-            // Keep the HTML fallback.
-        }
         back.addEventListener('click', function (event) {
             event.preventDefault();
-            const href = back.getAttribute('href');
-            if (href) {
-                window.location.href = href;
-            }
+            window.location.href = 'home.html';
         });
     }
 
-    /**
-     * Fetch multitasking packages from the backend and
-     * render them.
-     */
     async function loadPackages() {
         const list = document.getElementById('packageList');
-        const emptyState = document.getElementById('emptyState');
+        const loading = document.getElementById('loadingState');
+        const error = document.getElementById('errorState');
+        const empty = document.getElementById('emptyState');
         if (!list) return;
 
-        if (emptyState) {
-            emptyState.textContent = 'Loading packages...';
-            emptyState.hidden = false;
-        }
+        if (loading) loading.hidden = false;
+        if (error) error.hidden = true;
+        if (empty) empty.hidden = true;
         list.innerHTML = '';
 
         if (!(window.HandyHireAPI && typeof window.HandyHireAPI.apiFetch === 'function')) {
-            if (emptyState) {
-                emptyState.textContent = 'Unable to load packages. Please try again.';
-                emptyState.hidden = false;
-            }
+            if (loading) loading.hidden = true;
+            if (error) error.hidden = false;
             return;
         }
 
         try {
-            const resp = await window.HandyHireAPI.apiFetch('/api/packages?package_type=multitasking');
-
-            if (!resp.ok) {
-                throw new Error('API returned ' + resp.status);
-            }
-
-            const data = await resp.json();
+            const response = await window.HandyHireAPI.apiFetch('/api/packages?package_type=multitasking');
+            if (!response.ok) throw new Error('API returned ' + response.status);
+            const data = await response.json();
             allPackages = Array.isArray(data) ? data.slice() : [];
+            if (loading) loading.hidden = true;
 
             if (!allPackages.length) {
-                if (emptyState) {
-                    emptyState.textContent = 'No packages available.';
-                    emptyState.hidden = false;
+                if (empty) {
+                    empty.textContent = 'No packages available.';
+                    empty.hidden = false;
                 }
                 return;
             }
-
-            if (emptyState) emptyState.hidden = true;
-            renderList(allPackages, list, emptyState);
+            applyFilter();
         } catch (e) {
-            if (emptyState) {
-                emptyState.textContent = 'Unable to load packages. Please try again.';
-                emptyState.hidden = false;
-            }
+            allPackages = [];
+            if (loading) loading.hidden = true;
+            if (error) error.hidden = false;
+            if (empty) empty.hidden = true;
         }
     }
 
-    /**
-     * Initialize the Multitasking Packages page.
-     */
     function init() {
         if (!(window.HandyHireAPI && window.HandyHireAPI.requireRole('customer'))) return;
-        const list = document.getElementById('packageList');
-        const emptyState = document.getElementById('emptyState');
-        if (!list) return;
 
-        initSearch(list, emptyState);
-        initCardNavigation(list);
+        const input = document.getElementById('packageSearch');
+        if (input) input.addEventListener('input', applyFilter);
+        initCardNavigation();
         initBackButton();
         loadPackages();
     }
 
-    // Run after DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
