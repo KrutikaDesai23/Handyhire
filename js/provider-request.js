@@ -313,6 +313,7 @@ function toUiStatus(backendStatus) {
     }
 
     function renderModal(request, status) {
+        const isPackage = request.bookingType === 'package' || request.bookingType === 'team';
         const typeLabel = request.bookingType === 'team'
             ? 'TEAM PACKAGE'
             : request.bookingType === 'package'
@@ -434,246 +435,153 @@ function toUiStatus(backendStatus) {
             return;
         }
 
-        panelEl.innerHTML = items.map(function (req) {
-            return renderCard(req, req.status);
+        panelEl.innerHTML = items.map(function (request) {
+            return renderCard(request, activeTab);
         }).join('');
     }
 
-    /* ---------------------------------------------------------
-       Backend fetch + actions
-       --------------------------------------------------------- */
-    function showLoadingState(panelEl) {
+    function setLoading() {
+        const panelEl = document.getElementById('rqPanel');
         if (panelEl) panelEl.innerHTML = renderLoading();
     }
 
-    function showErrorState(panelEl, message) {
-        if (!panelEl) return;
-        panelEl.innerHTML = renderError(message);
-        updateBadges();
-    }
-
-    function fetchRequests() {
-        const panelEl = document.getElementById('rqPanel');
-        showLoadingState(panelEl);
-
-        const api = getApi();
-        if (!api) {
-            showErrorState(panelEl, 'Request service is unavailable right now. Please try again later.');
-            return;
-        }
-
-        api.apiFetch('/api/worker/requests')
-            .then(function (response) {
-                if (response.status === 401) {
-                    redirectToLogin();
-                    return null;
-                }
-                if (response.status === 403) {
-                    showErrorState(panelEl, 'You are not allowed to view these requests.');
-                    return null;
-                }
-                if (!response.ok) {
-                    showErrorState(panelEl, 'Unable to load your requests right now. Please try again.');
-                    return null;
-                }
-                return response.json();
-            })
-            .then(function (data) {
-                if (!data) return;
-                loadedRequests = (Array.isArray(data) ? data : []).map(mapRequest);
-                render();
-                updateBadges();
-            })
-            .catch(function () {
-                showErrorState(panelEl, 'Unable to connect to HandyHire right now. Please try again.');
-            });
-    }
-
-    function submitDecision(requestId, action) {
-        const api = getApi();
-        if (!api) return;
-
-        const panelEl = document.getElementById('rqPanel');
-        const endpoint = '/api/worker/requests/' + encodeURIComponent(String(requestId)) + '/' + action;
-
-        api.apiFetch(endpoint, { method: 'PUT' })
-            .then(function (response) {
-                if (response.status === 401) {
-                    redirectToLogin();
-                    return null;
-                }
-                if (response.status === 403) {
-                    showErrorState(panelEl, 'You are not allowed to take this action.');
-                    return null;
-                }
-                if (response.status === 404) {
-                    showErrorState(panelEl, 'This request could not be found.');
-                    return null;
-                }
-                if (response.status === 400 || response.status === 409) {
-                    showErrorState(panelEl, 'This request can no longer be updated.');
-                    return null;
-                }
-                if (!response.ok) {
-                    showErrorState(panelEl, 'Unable to update this request right now. Please try again.');
-                    return null;
-                }
-                return response.json();
-            })
-            .then(function (updated) {
-                if (!updated) return;
-                // Apply the backend response to the local list, then re-render.
-                const idx = loadedRequests.findIndex(function (r) { return String(r.id) === String(updated.id); });
-                if (idx >= 0) {
-                    loadedRequests[idx] = mapRequest(updated);
-                } else {
-                    loadedRequests.push(mapRequest(updated));
-                }
-                render();
-                updateBadges();
-            })
-            .catch(function () {
-                showErrorState(panelEl, 'Unable to connect to HandyHire right now. Please try again.');
-            });
-    }
-
     /* ---------------------------------------------------------
-       Event wiring
+       Modal helpers
        --------------------------------------------------------- */
-    function initTabs() {
-        const tabsEl = document.getElementById('rqTabs');
-        const panelEl = document.getElementById('rqPanel');
-        if (!tabsEl || !panelEl) return;
-
-        tabsEl.addEventListener('click', function (event) {
-            const tab = event.target.closest('.rq-tab');
-            if (!tab || !tabsEl.contains(tab)) return;
-            panelEl.dataset.tab = tab.dataset.tab;
-            render();
-        });
-    }
-
-    function initActions() {
-        const panelEl = document.getElementById('rqPanel');
-        if (!panelEl) return;
-
-        panelEl.addEventListener('click', function (event) {
-            const btn = event.target.closest('[data-action]');
-            if (!btn || !panelEl.contains(btn)) return;
-            const action = btn.dataset.action;
-            const id = btn.dataset.id;
-            const request = loadedRequests.find(function (r) { return String(r.id) === String(id); });
-
-            if (action === 'accept' || action === 'decline') {
-                if (!request) return;
-                btn.disabled = true;
-                btn.textContent = (action === 'accept') ? 'Accepting...' : 'Declining...';
-                const backendAction = (action === 'accept') ? 'accept' : 'reject';
-                submitDecision(id, backendAction);
-                return;
-            }
-
-            if (action === 'view') {
-                if (!request) return;
-                openModal(id);
-                return;
-            }
-        });
-    }
-
-    function openModal(id) {
-        const request = loadedRequests.find(function (r) { return String(r.id) === String(id); });
-        if (!request) return;
-
-        const existing = document.getElementById('rqModal');
-        if (existing) existing.remove();
-
-        const host = document.body;
-        const wrapper = document.createElement('div');
-        wrapper.innerHTML = renderModal(request, request.status);
-        host.appendChild(wrapper.firstChild);
-
-        document.body.style.overflow = 'hidden';
-    }
-
     function closeModal() {
         const modal = document.getElementById('rqModal');
         if (modal) modal.remove();
-        document.body.style.overflow = '';
     }
 
-    function initModal() {
-        document.addEventListener('click', function (event) {
-            const closer = event.target.closest('[data-action="close-modal"]');
-            if (closer) closeModal();
+    function openModal(requestId) {
+        closeModal();
+        const request = loadedRequests.find(function (item) {
+            return String(item.id) === String(requestId);
         });
-        document.addEventListener('keydown', function (event) {
-            if (event.key === 'Escape') closeModal();
-        });
+        if (!request) return;
+
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = renderModal(request, request.status);
+        const modal = wrapper.firstElementChild;
+        if (!modal) return;
+        document.body.appendChild(modal);
+
+        const closeBtn = modal.querySelector('.rq-modal-close');
+        if (closeBtn) closeBtn.focus();
     }
 
     /* ---------------------------------------------------------
-       Pending count badge for worker nav / other pages.
-       Computed from the real backend-fetched list; writes a
-       compatibility snapshot so provider-home nav badges can
-       reflect the current request set.
+       Backend loading
        --------------------------------------------------------- */
-    function updateBadges() {
-        let pending = 0;
-        loadedRequests.forEach(function (req) {
-            if (req.status === 'pending') pending++;
-        });
+    async function loadRequests() {
+        const api = getApi();
+        if (!api) {
+            const panelEl = document.getElementById('rqPanel');
+            if (panelEl) panelEl.innerHTML = renderError('API client unavailable.');
+            return;
+        }
 
-        document.querySelectorAll('[data-request-count]').forEach(function (el) {
-            if (el.closest('script')) return;
-            el.textContent = String(pending);
-            if (pending === 0) {
-                el.setAttribute('hidden', '');
-            } else {
-                el.removeAttribute('hidden');
+        if (!hasSession()) {
+            redirectToLogin();
+            return;
+        }
+
+        setLoading();
+
+        try {
+            const response = await api.apiFetch('/api/worker/requests');
+            if (response.status === 401 || response.status === 403) {
+                redirectToLogin();
+                return;
             }
-        });
-
-        writeCompatSnapshot();
-    }
-
-    function initBadgeSync() {
-        updateBadges();
-        window.addEventListener(STATE_EVENT, updateBadges);
-    }
-
-    /* ---------------------------------------------------------
-       Boot
-       --------------------------------------------------------- */
-    function init() {
-        if (!(window.HandyHireAPI && window.HandyHireAPI.requireRole('worker'))) return;
-        if (document.getElementById('rqPanel')) {
-            initTabs();
-            initActions();
-            fetchRequests();
+            if (!response.ok) {
+                throw new Error('Could not load requests.');
+            }
+            const rows = await response.json();
+            loadedRequests = Array.isArray(rows) ? rows.map(mapRequest) : [];
+            writeCompatSnapshot();
+            render();
+        } catch (error) {
+            const panelEl = document.getElementById('rqPanel');
+            if (panelEl) panelEl.innerHTML = renderError('Please check your connection and try again.');
         }
-        initModal();
-        initBadgeSync();
     }
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
+    async function mutateRequest(requestId, action) {
+        const api = getApi();
+        if (!api) return;
 
-    /* ---------------------------------------------------------
-       Public API - lets other worker pages refresh the badge
-       from the real backend-backed request list.
-       --------------------------------------------------------- */
-    window.HandyHireWorkerRequests = {
-        refresh: updateBadges,
-        count: function () {
-            let pending = 0;
-            loadedRequests.forEach(function (req) {
-                if (req.status === 'pending') pending++;
+        const suffix = action === 'accept' ? 'accept' : 'reject';
+        const button = document.querySelector('[data-action="' + (action === 'accept' ? 'accept' : 'decline') + '"][data-id="' + requestId + '"]');
+        if (button) {
+            button.disabled = true;
+            button.textContent = action === 'accept' ? 'Accepting...' : 'Declining...';
+        }
+
+        try {
+            const response = await api.apiFetch('/api/worker/requests/' + encodeURIComponent(String(requestId)) + '/' + suffix, {
+                method: 'PUT'
             });
-            return pending;
+            if (response.status === 401 || response.status === 403) {
+                redirectToLogin();
+                return;
+            }
+            if (!response.ok) {
+                let detail = 'Unable to update request.';
+                try {
+                    const data = await response.json();
+                    detail = data && data.detail ? data.detail : detail;
+                } catch (e) {
+                    // Keep default error.
+                }
+                throw new Error(detail);
+            }
+            await loadRequests();
+        } catch (error) {
+            if (button) {
+                button.disabled = false;
+                button.textContent = action === 'accept' ? 'Accept' : 'Decline';
+            }
+            window.alert(error && error.message ? error.message : 'Unable to update request.');
         }
-    };
+    }
+
+    /* ---------------------------------------------------------
+       Events
+       --------------------------------------------------------- */
+    document.addEventListener('click', function (event) {
+        const tab = event.target.closest('.rq-tab');
+        if (tab) {
+            const panelEl = document.getElementById('rqPanel');
+            if (panelEl) panelEl.dataset.tab = tab.dataset.tab || 'pending';
+            render();
+            return;
+        }
+
+        const actionButton = event.target.closest('[data-action]');
+        if (!actionButton) return;
+
+        const action = actionButton.dataset.action;
+        const requestId = actionButton.dataset.id;
+
+        if (action === 'accept' || action === 'decline') {
+            mutateRequest(requestId, action === 'accept' ? 'accept' : 'reject');
+            return;
+        }
+
+        if (action === 'view') {
+            openModal(requestId);
+            return;
+        }
+
+        if (action === 'close-modal') {
+            closeModal();
+        }
+    });
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') closeModal();
+    });
+
+    document.addEventListener('DOMContentLoaded', loadRequests);
 })();
