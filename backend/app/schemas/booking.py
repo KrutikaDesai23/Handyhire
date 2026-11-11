@@ -57,6 +57,8 @@ class BookingResponse(BaseModel):
 
     amount: int
     status: str
+    # Provider-specific progress for team bookings; overall status stays in status.
+    viewer_status: Optional[str] = None
 
     created_at: Optional[str] = None
 
