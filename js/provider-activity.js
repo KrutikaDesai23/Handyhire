@@ -454,6 +454,15 @@
             return '';
         }
 
+        // Team-package requests are accepted or rejected from the Requests
+        // page so the booking and all team-member request records stay in sync.
+        if (
+            booking.package_type === 'team' &&
+            booking.statusKey === 'pending'
+        ) {
+            return '';
+        }
+
         const actions =
             ACTIONS[
                 booking.statusKey
