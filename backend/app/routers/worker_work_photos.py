@@ -9,17 +9,9 @@ from typing import Optional
 from app import models
 from app.auth.dependencies import get_current_worker
 from app.database.connection import get_db
+from app.image_uploads import validate_image_upload
 
 router = APIRouter(prefix="/api/worker/work-photos", tags=["worker"])
-
-ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp"}
-EXT_MAP = {
-    "image/jpeg": ".jpg",
-    "image/png": ".png",
-    "image/webp": ".webp",
-}
-MAX_BYTES = 5 * 1024 * 1024
-
 
 class WorkPhotoCreate(BaseModel):
     worker_id: Optional[int] = None
@@ -36,33 +28,6 @@ def _upload_dir():
     return os.path.abspath(
         os.path.join(os.path.dirname(__file__), "..", "..", "uploads", "worker-work-photos")
     )
-
-
-def _validate_image(file: UploadFile):
-    if not file.content_type or not file.content_type.startswith("image/"):
-        raise HTTPException(
-            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            detail="Only image files are allowed.",
-        )
-
-    if file.content_type not in ALLOWED_TYPES:
-        raise HTTPException(
-            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            detail="Allowed image types: JPG, PNG, WEBP.",
-        )
-
-    try:
-        file.file.seek(0, 2)
-        size = file.file.tell()
-        file.file.seek(0)
-    except Exception:
-        size = None
-
-    if size is not None and size > MAX_BYTES:
-        raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail="Maximum image size is 5 MB.",
-        )
 
 
 def _serialize(photo):
@@ -82,16 +47,14 @@ def upload_work_photo(
     db: Session = Depends(get_db),
 ):
     """Upload a work photo. worker_id ALWAYS comes from the authenticated worker."""
-    _validate_image(file)
-
-    suffix = EXT_MAP.get(file.content_type, ".bin")
+    data, suffix = validate_image_upload(file)
     filename = "work-" + str(current_user.id) + "-" + uuid.uuid4().hex + suffix
 
     upload_dir = _upload_dir()
     os.makedirs(upload_dir, exist_ok=True)
     destination = os.path.join(upload_dir, filename)
     with open(destination, "wb") as buffer:
-        buffer.write(file.file.read())
+        buffer.write(data)
 
     worker_work_photo = models.WorkerWorkPhoto(
         worker_id=current_user.id,
