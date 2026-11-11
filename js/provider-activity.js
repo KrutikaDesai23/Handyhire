@@ -336,6 +336,7 @@
     ) {
         const statusKey =
             String(
+                booking.viewer_status ||
                 booking.status ||
                 'pending'
             ).toLowerCase();
