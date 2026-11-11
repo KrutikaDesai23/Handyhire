@@ -282,3 +282,53 @@ def test_team_package_decisions_must_use_requests_flow(client, db, customer, new
     assert booking.status == "pending"
     assert leader_assignment.status == "pending"
     assert member_assignment.status == "pending"
+
+
+
+def test_team_activity_returns_viewer_specific_progress(client, db, customer):
+    owner = _make_worker(db, "Activity Owner", "activity-owner@example.com", "1111111181", "Manager")
+    leader = _make_worker(db, "Activity Leader", "activity-leader@example.com", "2222222281", "Electrician")
+    member = _make_worker(db, "Activity Member", "activity-member@example.com", "3333333381", "Plumber")
+
+    package = models.Package(
+        name="Activity Team Package",
+        description="Team progress test",
+        package_type="team",
+        price=1500,
+        status="published",
+        owner_id=owner.id,
+    )
+    db.add(package)
+    db.flush()
+    db.add_all([
+        models.PackageWorker(package_id=package.id, worker_id=leader.id, is_leader=True),
+        models.PackageWorker(package_id=package.id, worker_id=member.id, is_leader=False),
+    ])
+
+    booking = models.Booking(
+        customer_id=customer.id,
+        worker_id=leader.id,
+        package_id=package.id,
+        booking_date=date(2026, 11, 20),
+        booking_time="10:00",
+        address="Competition demo address",
+        amount=1500,
+        status="accepted",
+    )
+    db.add(booking)
+    db.flush()
+    db.add_all([
+        models.BookingWorker(booking_id=booking.id, worker_id=leader.id, status="in_progress"),
+        models.BookingWorker(booking_id=booking.id, worker_id=member.id, status="accepted"),
+    ])
+    db.commit()
+
+    response = client.get(
+        "/api/worker/bookings",
+        headers=_worker_headers(leader),
+    )
+
+    assert response.status_code == 200
+    item = next(row for row in response.json() if row["id"] == booking.id)
+    assert item["status"] == "accepted"
+    assert item["viewer_status"] == "in_progress"
