@@ -382,10 +382,9 @@
         hourlyRate = packagePrice;
 
         if (rateHelp) {
-            rateHelp.textContent =
-                'Package rate: ' +
-                formatRupees(packagePrice) +
-                ' (total = rate × hours).';
+            rateHelp.textContent = pkg.package_type === 'team'
+                ? formatRupees(packagePrice) + ' / hour (total = rate × hours).'
+                : 'Fixed package price.';
         }
 
         updateTotal();
@@ -530,7 +529,9 @@
 
     function getTotal() {
         if (selectedPackage) {
-            return getHours() * packagePrice;
+            return selectedPackage.package_type === 'team'
+                ? getHours() * packagePrice
+                : packagePrice;
         }
         return getHours() * hourlyRate;
     }
