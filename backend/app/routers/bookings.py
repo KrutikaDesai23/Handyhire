@@ -390,7 +390,8 @@ def create_booking(
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You cannot book your own package")
 
         service_id = None
-        booking_amount = int(package.price) * hours
+        # Package price is fixed; selected hours apply only to hourly worker bookings.
+        booking_amount = int(package.price)
 
         if package.package_type == "team":
             team_workers = db.query(models.PackageWorker).filter(models.PackageWorker.package_id == package.id).all()
