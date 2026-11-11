@@ -519,11 +519,35 @@ def get_worker_package(
     current_user: models.User = Depends(get_current_worker),
     db: Session = Depends(get_db),
 ):
-    package = _load_owned_package(
-        package_id,
-        current_user.id,
-        db,
+    package = (
+        db.query(models.Package)
+        .filter(models.Package.id == package_id)
+        .first()
     )
+    if not package:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Package not found",
+        )
+
+    # Team members can view packages that appear in their team-package list,
+    # but only the owner can update, publish, unpublish, or archive them.
+    is_owner = package.owner_id == current_user.id
+    is_team_member = (
+        package.package_type == "team"
+        and db.query(models.PackageWorker)
+        .filter(
+            models.PackageWorker.package_id == package_id,
+            models.PackageWorker.worker_id == current_user.id,
+        )
+        .first()
+        is not None
+    )
+    if not is_owner and not is_team_member:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Package not found",
+        )
 
     return _build_package_response(
         package,
