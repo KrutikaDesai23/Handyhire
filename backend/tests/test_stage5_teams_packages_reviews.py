@@ -1016,3 +1016,41 @@ def test_public_packages_excludes_draft_and_archived(client, db):
     assert any(p["name"] == "Published Pkg" for p in data)
     assert not any(p["name"] == "Draft Pkg" for p in data)
     assert not any(p["name"] == "Archived Pkg" for p in data)
+
+
+
+def test_customer_can_list_their_existing_reviews(client, customer, worker, db):
+    booking = models.Booking(
+        customer_id=customer.id,
+        worker_id=worker.id,
+        booking_date=date(2026, 8, 20),
+        booking_time="10:00",
+        address="123 Customer St",
+        amount=500,
+        status="completed",
+    )
+    db.add(booking)
+    db.commit()
+    db.refresh(booking)
+
+    review = models.Review(
+        booking_id=booking.id,
+        customer_id=customer.id,
+        worker_id=worker.id,
+        rating=5,
+        comment="Already reviewed",
+    )
+    db.add(review)
+    db.commit()
+
+    token = security.create_access_token({"sub": str(customer.id), "role": customer.role})
+    response = client.get(
+        "/api/reviews/customer",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]["booking_id"] == booking.id
+    assert data[0]["rating"] == 5
