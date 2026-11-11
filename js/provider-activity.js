@@ -336,6 +336,7 @@
     ) {
         const statusKey =
             String(
+                booking.viewer_status ||
                 booking.status ||
                 'pending'
             ).toLowerCase();
@@ -450,6 +451,15 @@
         if (
             booking.mode !==
             'received'
+        ) {
+            return '';
+        }
+
+        // Team-package requests are accepted or rejected from the Requests
+        // page so the booking and all team-member request records stay in sync.
+        if (
+            booking.package_type === 'team' &&
+            booking.statusKey === 'pending'
         ) {
             return '';
         }

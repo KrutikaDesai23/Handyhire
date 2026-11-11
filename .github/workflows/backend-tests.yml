@@ -2,11 +2,72 @@ name: Backend tests
 
 on:
   push:
-    branches: [main]
+    branches: [main, competition-readiness-fixes]
   pull_request:
     branches: [main]
 
 jobs:
+  frontend-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Check JavaScript syntax
+        run: find js -type f -name '*.js' -print0 | xargs -0 -n1 node --check
+
+      - name: Check local script references
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+
+          function walk(dir) {
+            return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+              const full = path.join(dir, entry.name);
+              return entry.isDirectory() ? walk(full) : [full];
+            });
+          }
+
+          const htmlFiles = walk('pages').filter((file) => file.endsWith('.html'));
+          const missing = [];
+
+          for (const htmlFile of htmlFiles) {
+            const html = fs.readFileSync(htmlFile, 'utf8');
+            const scripts = [...html.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["']/gi)];
+            let apiLoaded = false;
+            for (const match of scripts) {
+              const src = match[1];
+              if (/^(?:[a-z]+:)?\/\//i.test(src)) continue;
+              const target = path.resolve(path.dirname(htmlFile), src);
+              if (!fs.existsSync(target)) {
+                missing.push(`${htmlFile} -> ${src}`);
+                continue;
+              }
+              if (/(?:^|\/)api\.js(?:[?#].*)?$/.test(src)) {
+                apiLoaded = true;
+                continue;
+              }
+              const script = fs.readFileSync(target, 'utf8');
+              if (!apiLoaded && /\bHandyHireAPI\b/.test(script)) {
+                missing.push(`${htmlFile} -> ${src} uses HandyHireAPI before ../js/api.js is loaded`);
+              }
+            }
+          }
+
+          if (missing.length) {
+            console.error('Missing local JavaScript files:\n' + missing.join('\n'));
+            process.exit(1);
+          }
+
+          console.log(`Checked local script references in ${htmlFiles.length} pages.`);
+          NODE
+
   pytest:
     runs-on: ubuntu-latest
     defaults:

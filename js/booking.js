@@ -21,6 +21,7 @@
      */
     let selectedPackage = null;
     const PACKAGE_HOURLY_RATE = 250;
+    let selectedWorkerRate = null;
 
     /**
      * Customer-selected BEFORE job photos (File objects) to
@@ -245,8 +246,8 @@
     /**
      * Read the currently selected hours, recompute the
      * total cost, and write it into the #totalCost element.
-     * For package bookings the total is the fixed package
-     * price; for direct-worker bookings it is hourly.
+     * Multitasking packages are fixed-price; team packages
+     * and direct-worker bookings are priced by selected hours.
      */
     function updateTotal() {
         const select = document.getElementById('hoursSelect');
@@ -255,11 +256,28 @@
         if (!total) return;
 
         if (isPackageBooking() && selectedPackage) {
-            total.textContent = formatRupees(selectedPackage.price);
-            if (help) {
-                help.textContent = 'Fixed package price.';
+            if (selectedPackage.package_type === 'team') {
+                const rawValue = String(select && select.value || '').trim();
+                if (!rawValue) {
+                    total.textContent = '\u2014';
+                    if (help) help.textContent = 'Select hours to calculate the team package total.';
+                } else {
+                    const hours = Math.max(1, Number(rawValue) || 1);
+                    total.textContent = formatRupees(Number(selectedPackage.price) * hours);
+                    if (help) {
+                        help.textContent = formatRupees(selectedPackage.price) + ' / hour × ' + hours + (hours === 1 ? ' hour' : ' hours') + '.';
+                    }
+                }
+            } else {
+                total.textContent = formatRupees(selectedPackage.price);
+                if (help) help.textContent = 'Fixed package price.';
             }
         } else if (select) {
+            if (!isTeamBooking() && readWorkerId() && !selectedWorkerRate) {
+                total.textContent = '\u2014';
+                if (help) help.textContent = 'Loading the selected professional\'s hourly rate...';
+                return;
+            }
             const rawValue = String(select.value || '').trim();
             if (!rawValue) {
                 total.textContent = '\u2014';
@@ -268,26 +286,24 @@
                 }
             } else {
                 const hours = Math.max(1, Number(rawValue) || 1);
-                total.textContent = formatRupees(hours * PACKAGE_HOURLY_RATE);
+                const hourlyRate = selectedWorkerRate || PACKAGE_HOURLY_RATE;
+                total.textContent = formatRupees(hours * hourlyRate);
                 if (help) {
-                    help.textContent = 'Auto-calculated at \u20B9250 / hour.';
+                    help.textContent = 'Auto-calculated at ' + formatRupees(hourlyRate) + ' / hour.';
                 }
             }
         }
     }
 
     /**
-     * Wire up the hour dropdown so the total updates live.
-     * For package bookings the total is fixed and does not
-     * change with the hours selector.
+     * Wire up the hour dropdown so hourly totals update live.
+     * Fixed-price multitasking packages remain unchanged.
      */
     function initTotalLiveUpdate() {
         const select = document.getElementById('hoursSelect');
         if (!select) return;
 
-        if (!isPackageBooking()) {
-            select.addEventListener('change', updateTotal);
-        }
+        select.addEventListener('change', updateTotal);
         // Run once so the initial value matches the markup.
         updateTotal();
     }
@@ -385,12 +401,14 @@
             booking_time: timeValue,
             address: addressValue,
             description: trimmed || null,
-            amount: hours * PACKAGE_HOURLY_RATE,
+            amount: hours * (selectedWorkerRate || PACKAGE_HOURLY_RATE),
         };
 
         if (isPackageBooking() && selectedPackage) {
             payload.package_id = Number(selectedPackage.id);
-            payload.amount = Number(selectedPackage.price);
+            payload.amount = selectedPackage.package_type === 'team'
+                ? Number(selectedPackage.price) * hours
+                : Number(selectedPackage.price);
         } else if (isTeamBooking()) {
             const teamId = getSelectedTeamId();
             if (teamId) {
@@ -572,6 +590,33 @@
                     btn.textContent = 'Book';
                 }
             });
+    }
+
+    async function loadSelectedWorkerRate() {
+        const workerId = readWorkerId();
+        if (!workerId || isTeamBooking() || isPackageBooking()) return;
+
+        const api = getApi();
+        if (!api) return;
+
+        try {
+            const response = await api.apiFetch('/api/workers/' + encodeURIComponent(workerId));
+            if (!response.ok) {
+                throw new Error('Unable to load the selected professional rate.');
+            }
+
+            const worker = await response.json();
+            const rate = Number(worker && worker.price);
+            if (!Number.isFinite(rate) || rate <= 0) {
+                throw new Error('The selected professional does not have a valid hourly rate.');
+            }
+
+            selectedWorkerRate = rate;
+            updateTotal();
+        } catch (error) {
+            const help = document.getElementById('totalHelp');
+            if (help) help.textContent = 'The final hourly rate will be calculated by HandyHire.';
+        }
     }
 
     /**
@@ -849,6 +894,7 @@
         initTotalLiveUpdate();
         initBookingSubmit();
         initPhotoUpload();
+        loadSelectedWorkerRate();
 
         if (isPackageBooking()) {
             var packageId = readPackageId();

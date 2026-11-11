@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse
+import os
+import uuid
 
 from app import models
 from app.auth.dependencies import get_current_worker
@@ -53,15 +55,12 @@ def upload_profile_image(
     }
     suffix = ext_map.get(file.content_type, ".bin")
 
-    filename = (
-        "profile-"
-        + str(current_user.id)
-        + "-"
-        + str(abs(hash(file.filename or "")))
-        + suffix
-    )
+    # Confirm the profile exists before writing a file, avoiding orphan uploads.
+    worker_profile = db.query(models.WorkerProfile).filter(models.WorkerProfile.user_id == current_user.id).first()
+    if not worker_profile:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Worker profile not found")
 
-    import os
+    filename = "profile-" + str(current_user.id) + "-" + uuid.uuid4().hex + suffix
 
     upload_dir = os.path.join(
         os.path.dirname(__file__),
@@ -77,10 +76,6 @@ def upload_profile_image(
 
     with open(destination, "wb") as buffer:
         buffer.write(file.file.read())
-
-    worker_profile = db.query(models.WorkerProfile).filter(models.WorkerProfile.user_id == current_user.id).first()
-    if not worker_profile:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Worker profile not found")
 
     worker_profile.profile_image = str(
         request.url_for("static", path="profile-images/" + filename)
