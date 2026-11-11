@@ -687,7 +687,7 @@ VALID_STATUS_TRANSITIONS = {
 
 PARTICIPANT_STATUS_TRANSITIONS = {
     "pending": ["accepted"],
-    "accepted": ["in_progress"],
+    "accepted": ["in_progress", "cancelled"],
     "in_progress": ["completion_requested"],
 }
 
@@ -783,6 +783,15 @@ def update_worker_booking_status(
             )
 
         bw.status = new_status
+
+        # A team-package booking is one shared job. If an assigned member
+        # cancels before work starts, cancel the booking for every member.
+        if new_status == "cancelled":
+            db.query(models.BookingWorker).filter(
+                models.BookingWorker.booking_id == booking_id
+            ).update({"status": "cancelled"}, synchronize_session=False)
+            booking.status = "cancelled"
+
         db.flush()
 
         if new_status == "in_progress":
