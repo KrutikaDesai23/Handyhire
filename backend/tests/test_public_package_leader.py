@@ -122,3 +122,42 @@ def test_package_booking_uses_fixed_package_price_even_when_hours_selected(clien
 
     assert response.status_code == 201
     assert response.json()["amount"] == 1500
+
+
+
+def test_team_package_booking_multiplies_price_by_selected_hours(client, db, customer):
+    owner = _make_worker(db, "Hourly Team Owner", "hourlyteamowner@example.com", "9100000021", "Manager")
+    leader = _make_worker(db, "Hourly Team Leader", "hourlyteamleader@example.com", "9100000022", "Electrician")
+    member = _make_worker(db, "Hourly Team Member", "hourlyteammember@example.com", "9100000023", "Plumber")
+
+    package = models.Package(
+        name="Hourly Team Package",
+        description="Hourly team service",
+        package_type="team",
+        price=1500,
+        status="published",
+        owner_id=owner.id,
+    )
+    db.add(package)
+    db.flush()
+    db.add_all([
+        models.PackageWorker(package_id=package.id, worker_id=leader.id, is_leader=True),
+        models.PackageWorker(package_id=package.id, worker_id=member.id, is_leader=False),
+    ])
+    db.commit()
+
+    token = security.create_access_token({"sub": str(customer.id), "role": customer.role})
+    response = client.post(
+        "/api/bookings",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "package_id": package.id,
+            "booking_date": "2026-11-20",
+            "booking_time": "10:00",
+            "hours": 3,
+            "address": "Competition demo address",
+        },
+    )
+
+    assert response.status_code == 201
+    assert response.json()["amount"] == 4500
