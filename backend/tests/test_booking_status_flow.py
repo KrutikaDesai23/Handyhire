@@ -332,3 +332,40 @@ def test_team_activity_returns_viewer_specific_progress(client, db, customer):
     item = next(row for row in response.json() if row["id"] == booking.id)
     assert item["status"] == "accepted"
     assert item["viewer_status"] == "in_progress"
+
+
+def test_customer_completion_response_preserves_package_type(client, worker, customer, db):
+    package = models.Package(
+        name="Completion Package",
+        description="Package completion response regression",
+        package_type="multitasking",
+        price=1500,
+        status="published",
+        owner_id=worker.id,
+    )
+    db.add(package)
+    db.flush()
+
+    booking = models.Booking(
+        customer_id=customer.id,
+        worker_id=worker.id,
+        package_id=package.id,
+        booking_date=date(2026, 11, 20),
+        booking_time="10:00",
+        address="123 Test St",
+        amount=1500,
+        status="completion_requested",
+    )
+    db.add(booking)
+    db.commit()
+    db.refresh(booking)
+
+    response = client.put(
+        f"/api/customer/bookings/{booking.id}/confirm-completion",
+        headers=_customer_headers(customer),
+    )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "completed"
+    assert response.json()["package_id"] == package.id
+    assert response.json()["package_type"] == "multitasking"
