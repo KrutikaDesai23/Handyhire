@@ -110,6 +110,37 @@ def list_worker_reviews(worker_id: int, db: Session = Depends(get_db)):
     return response
 
 
+@router.get("/customer", response_model=list[ReviewResponse])
+def list_customer_reviews(
+    current_user: models.User = Depends(get_current_customer),
+    db: Session = Depends(get_db),
+):
+    """Return the authenticated customer's reviews for Activity history."""
+    reviews = (
+        db.query(models.Review)
+        .filter(models.Review.customer_id == current_user.id)
+        .order_by(models.Review.created_at.desc())
+        .all()
+    )
+    response = []
+    for review in reviews:
+        worker = db.query(models.User).filter(models.User.id == review.worker_id).first()
+        response.append(
+            ReviewResponse(
+                id=review.id,
+                booking_id=review.booking_id,
+                customer_id=review.customer_id,
+                worker_id=review.worker_id,
+                rating=review.rating,
+                comment=review.comment,
+                created_at=review.created_at.isoformat() if review.created_at else None,
+                customer_name=current_user.full_name,
+                worker_name=worker.full_name if worker else None,
+            )
+        )
+    return response
+
+
 @router.get("/{review_id}", response_model=ReviewResponse)
 def get_review(review_id: int, db: Session = Depends(get_db)):
     review = db.query(models.Review).filter(models.Review.id == review_id).first()
