@@ -722,6 +722,27 @@ def update_worker_booking_status(
             detail="Booking not found",
         )
 
+    # Team-package acceptance/rejection updates the booking, all member
+    # assignments, and the leader's request together. Keep that decision in
+    # the Requests workflow instead of allowing a partial Activity update.
+    package = (
+        db.query(models.Package)
+        .filter(models.Package.id == booking.package_id)
+        .first()
+        if booking.package_id
+        else None
+    )
+    if (
+        package
+        and package.package_type == "team"
+        and booking.status == "pending"
+        and new_status in {"accepted", "rejected"}
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Team package requests must be accepted or rejected from the Requests page",
+        )
+
     if is_participant:
         bw = (
             db.query(models.BookingWorker)
