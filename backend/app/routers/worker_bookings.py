@@ -36,6 +36,7 @@ router = APIRouter(
 def _build_booking_response(
     booking: models.Booking,
     db: Session,
+    viewer_status: Optional[str] = None,
 ) -> BookingResponse:
     customer = (
         db.query(models.User)
@@ -93,6 +94,7 @@ def _build_booking_response(
         description=booking.description,
         amount=booking.amount,
         status=booking.status,
+        viewer_status=viewer_status or booking.status,
         created_at=(
             booking.created_at.isoformat()
             if booking.created_at
@@ -382,13 +384,24 @@ def list_worker_bookings(
         .all()
     )
 
-    return [
-        _build_booking_response(
-            booking,
-            db,
+    responses = []
+    for booking in bookings:
+        participant = (
+            db.query(models.BookingWorker)
+            .filter(
+                models.BookingWorker.booking_id == booking.id,
+                models.BookingWorker.worker_id == current_user.id,
+            )
+            .first()
         )
-        for booking in bookings
-    ]
+        responses.append(
+            _build_booking_response(
+                booking,
+                db,
+                viewer_status=participant.status if participant else booking.status,
+            )
+        )
+    return responses
 
 
 # Keep this route above /bookings/{booking_id}.
@@ -831,4 +844,5 @@ def update_worker_booking_status(
     return _build_booking_response(
         booking,
         db,
+        viewer_status=bw.status if is_participant else booking.status,
     )
