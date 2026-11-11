@@ -382,7 +382,7 @@
         }
     }
 
-    function loadBookings(container, emptyState) {
+    async function loadBookings(container, emptyState) {
         const api = getApi();
         if (!api) {
             showError(container, emptyState, 'Booking service is unavailable right now. Please try again later.');
@@ -391,41 +391,55 @@
 
         showLoading(container, emptyState);
 
-        api.apiFetch('/api/bookings/customer/bookings')
-            .then(function (response) {
-                if (response.status === 401) {
-                    redirectToLogin();
-                    return null;
-                }
-                if (response.status === 403) {
-                    showError(container, emptyState, 'You are not allowed to view these bookings.');
-                    return null;
-                }
-                if (response.status === 404) {
-                    showError(container, emptyState, 'Your bookings could not be found.');
-                    return null;
-                }
-                if (!response.ok) {
-                    showError(container, emptyState, 'Unable to load your bookings. Please try again.');
-                    return null;
-                }
-                return response.json();
-            })
-            .then(function (data) {
-                if (!data) return;
+        try {
+            const response = await api.apiFetch('/api/bookings/customer/bookings');
+            if (response.status === 401) {
+                redirectToLogin();
+                return;
+            }
+            if (response.status === 403) {
+                showError(container, emptyState, 'You are not allowed to view these bookings.');
+                return;
+            }
+            if (response.status === 404) {
+                showError(container, emptyState, 'Your bookings could not be found.');
+                return;
+            }
+            if (!response.ok) {
+                showError(container, emptyState, 'Unable to load your bookings. Please try again.');
+                return;
+            }
 
-                currentBookings = (Array.isArray(data) ? data : []).map(mapBooking);
-                if (!currentBookings.length) {
-                    container.innerHTML = '';
-                    showEmpty(emptyState);
-                    return;
-                }
+            const data = await response.json();
+            currentBookings = (Array.isArray(data) ? data : []).map(mapBooking);
+            reviewedBookingIds.clear();
 
-                renderCurrent();
-            })
-            .catch(function () {
-                showError(container, emptyState, 'Unable to connect to HandyHire. Please try again.');
-            });
+            // Review history is loaded from the backend so completed cards
+            // show "Reviewed" instead of offering a duplicate submission.
+            const reviewsResponse = await api.apiFetch('/api/reviews/customer');
+            if (reviewsResponse.status === 401) {
+                redirectToLogin();
+                return;
+            }
+            if (reviewsResponse.ok) {
+                const reviews = await reviewsResponse.json();
+                (Array.isArray(reviews) ? reviews : []).forEach(function (review) {
+                    if (review.booking_id != null) {
+                        reviewedBookingIds.add(String(review.booking_id));
+                    }
+                });
+            }
+
+            if (!currentBookings.length) {
+                container.innerHTML = '';
+                showEmpty(emptyState);
+                return;
+            }
+
+            renderCurrent();
+        } catch (error) {
+            showError(container, emptyState, 'Unable to connect to HandyHire. Please try again.');
+        }
     }
 
     async function updateCustomerBookingStatus(bookingId, newStatus) {
