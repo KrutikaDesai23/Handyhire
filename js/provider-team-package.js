@@ -139,6 +139,13 @@ function openTeamPackage(pkg) {
      * Render a single team package card as an <li>.
      */
  function renderCard(pkg, isMine) {
+    var currentUser = api.getCurrentUser ? api.getCurrentUser() : null;
+    var canManage = Boolean(
+        isMine &&
+        currentUser &&
+        Number(currentUser.id) === Number(pkg.owner_id)
+    );
+
     var servicesLine = (pkg.services || [])
         .map(function (service) {
             return escapeHtml(service.name);
@@ -202,7 +209,7 @@ function openTeamPackage(pkg) {
 
     var controlsHtml = '';
 
-    if (isMine) {
+    if (canManage) {
         var editHref =
             'provider-create-package.html?type=' +
             encodeURIComponent(pkg.package_type) +
