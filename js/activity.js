@@ -425,6 +425,7 @@
                 const reviews = await reviewsResponse.json();
                 (Array.isArray(reviews) ? reviews : []).forEach(function (review) {
                     if (review.booking_id != null) {
+                        reviewedBookingIds.add(Number(review.booking_id));
                         reviewedBookingIds.add(String(review.booking_id));
                     }
                 });
