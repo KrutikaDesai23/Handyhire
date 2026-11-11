@@ -225,3 +225,60 @@ def test_team_member_cannot_skip_to_completion(client, db, customer):
         headers=_worker_headers(m1),
     )
     assert resp.status_code == 400
+
+
+@pytest.mark.parametrize("new_status", ["accepted", "rejected"])
+def test_team_package_decisions_must_use_requests_flow(client, db, customer, new_status):
+    owner = _make_worker(db, "Package Owner", "team-owner@example.com", "1111111191", "Manager")
+    leader = _make_worker(db, "Package Leader", "team-leader@example.com", "2222222291", "Electrician")
+    member = _make_worker(db, "Package Member", "team-member@example.com", "3333333391", "Plumber")
+
+    package = models.Package(
+        name="Team Package",
+        description="Competition team package",
+        package_type="team",
+        price=1500,
+        status="published",
+        owner_id=owner.id,
+    )
+    db.add(package)
+    db.flush()
+    db.add(models.PackageWorker(package_id=package.id, worker_id=leader.id, is_leader=True))
+    db.add(models.PackageWorker(package_id=package.id, worker_id=member.id, is_leader=False))
+
+    booking = models.Booking(
+        customer_id=customer.id,
+        worker_id=leader.id,
+        package_id=package.id,
+        booking_date=date(2026, 11, 20),
+        booking_time="10:00",
+        address="Competition demo address",
+        amount=package.price,
+        status="pending",
+    )
+    db.add(booking)
+    db.flush()
+    leader_assignment = models.BookingWorker(booking_id=booking.id, worker_id=leader.id, status="pending")
+    member_assignment = models.BookingWorker(booking_id=booking.id, worker_id=member.id, status="pending")
+    db.add_all([leader_assignment, member_assignment])
+    db.add(models.BookingRequest(
+        booking_id=booking.id,
+        worker_id=leader.id,
+        customer_id=customer.id,
+        status="pending",
+    ))
+    db.commit()
+
+    response = client.put(
+        f"/api/worker/bookings/{booking.id}/status?new_status={new_status}",
+        headers=_worker_headers(leader),
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"].startswith("Team package requests must be accepted or rejected")
+    db.refresh(booking)
+    db.refresh(leader_assignment)
+    db.refresh(member_assignment)
+    assert booking.status == "pending"
+    assert leader_assignment.status == "pending"
+    assert member_assignment.status == "pending"
