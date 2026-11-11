@@ -426,3 +426,53 @@ def test_existing_customer_tests_still_pass(client):
 
     response = client.get("/api/health")
     assert response.status_code == 200
+
+
+def test_worker_dashboard_counts_team_assigned_bookings(client, worker, customer, db):
+    team_owner = User(
+        full_name="Team Package Owner",
+        email="dashboard-team-owner@example.com",
+        mobile_number="7777777781",
+        password_hash=security.hash_password("password123"),
+        role="worker",
+    )
+    db.add(team_owner)
+    db.flush()
+    db.add(WorkerProfile(user_id=team_owner.id, profession="Manager", location="Suburb", price=500))
+
+    package = models.Package(
+        name="Dashboard Team Package",
+        description="Team dashboard count test",
+        package_type="team",
+        price=1000,
+        status="published",
+        owner_id=team_owner.id,
+    )
+    db.add(package)
+    db.flush()
+
+    for booking_status, booking_time in [("accepted", "10:00"), ("completed", "12:00")]:
+        booking = models.Booking(
+            customer_id=customer.id,
+            worker_id=team_owner.id,
+            package_id=package.id,
+            booking_date=FUTURE_DATE,
+            booking_time=booking_time,
+            address="123 Customer St",
+            amount=1000,
+            status=booking_status,
+        )
+        db.add(booking)
+        db.flush()
+        db.add_all([
+            models.BookingWorker(booking_id=booking.id, worker_id=worker.id, status=booking_status),
+            models.BookingWorker(booking_id=booking.id, worker_id=team_owner.id, status=booking_status),
+        ])
+
+    db.commit()
+    token = security.create_access_token({"sub": str(worker.id), "role": worker.role})
+    response = client.get("/api/worker/dashboard", headers={"Authorization": f"Bearer {token}"})
+
+    assert response.status_code == 200
+    assert response.json()["accepted_bookings"] == 1
+    assert response.json()["completed_bookings"] == 1
