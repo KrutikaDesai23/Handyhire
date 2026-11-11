@@ -85,15 +85,19 @@ def _build_customer_booking_response(
     if booking.service_id:
         service = db.query(models.Service).filter(models.Service.id == booking.service_id).first()
     package_name = None
+    package_type = None
     if booking.package_id:
         pkg = db.query(models.Package).filter(models.Package.id == booking.package_id).first()
         package_name = pkg.name if pkg else None
+        package_type = pkg.package_type if pkg else None
     return BookingResponse(
         id=booking.id,
         customer_id=booking.customer_id,
         worker_id=booking.worker_id,
         service_id=booking.service_id,
         package_id=booking.package_id,
+        team_id=booking.team_id,
+        package_type=package_type,
         booking_date=booking.booking_date,
         booking_time=booking.booking_time,
         hours=getattr(booking, "hours", 1) or 1,
