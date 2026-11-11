@@ -369,3 +369,29 @@ def test_customer_completion_response_preserves_package_type(client, worker, cus
     assert response.json()["status"] == "completed"
     assert response.json()["package_id"] == package.id
     assert response.json()["package_type"] == "multitasking"
+
+
+def test_team_member_can_cancel_accepted_team_booking(client, db, customer):
+    owner = _make_worker(db, "Owner Cancel", "owner-cancel@example.com", "1111111198", "Manager")
+    member = _make_worker(db, "Member Cancel", "member-cancel@example.com", "2222222298", "Electrician")
+    other = _make_worker(db, "Other Cancel", "other-cancel@example.com", "3333333398", "Plumber")
+    package = models.Package(name="Team Cancel", description="Team", package_type="team", price=1000, status="published", owner_id=owner.id)
+    db.add(package)
+    db.flush()
+    booking = models.Booking(customer_id=customer.id, worker_id=member.id, package_id=package.id, booking_date=date(2026, 11, 20), booking_time="10:00", address="123 Test St", amount=1000, status="accepted")
+    db.add(booking)
+    db.flush()
+    first = models.BookingWorker(booking_id=booking.id, worker_id=member.id, status="accepted")
+    second = models.BookingWorker(booking_id=booking.id, worker_id=other.id, status="accepted")
+    db.add_all([first, second])
+    db.commit()
+    response = client.put(f"/api/worker/bookings/{booking.id}/status?new_status=cancelled", headers=_worker_headers(member))
+    assert response.status_code == 200
+    assert response.json()["status"] == "cancelled"
+    assert response.json()["viewer_status"] == "cancelled"
+    db.refresh(booking)
+    db.refresh(first)
+    db.refresh(second)
+    assert booking.status == "cancelled"
+    assert first.status == "cancelled"
+    assert second.status == "cancelled"
