@@ -245,8 +245,8 @@
     /**
      * Read the currently selected hours, recompute the
      * total cost, and write it into the #totalCost element.
-     * For package bookings the total is the fixed package
-     * price; for direct-worker bookings it is hourly.
+     * Multitasking packages are fixed-price; team packages
+     * and direct-worker bookings are priced by selected hours.
      */
     function updateTotal() {
         const select = document.getElementById('hoursSelect');
@@ -255,9 +255,21 @@
         if (!total) return;
 
         if (isPackageBooking() && selectedPackage) {
-            total.textContent = formatRupees(selectedPackage.price);
-            if (help) {
-                help.textContent = 'Fixed package price.';
+            if (selectedPackage.package_type === 'team') {
+                const rawValue = String(select && select.value || '').trim();
+                if (!rawValue) {
+                    total.textContent = '\u2014';
+                    if (help) help.textContent = 'Select hours to calculate the team package total.';
+                } else {
+                    const hours = Math.max(1, Number(rawValue) || 1);
+                    total.textContent = formatRupees(Number(selectedPackage.price) * hours);
+                    if (help) {
+                        help.textContent = formatRupees(selectedPackage.price) + ' / hour × ' + hours + (hours === 1 ? ' hour' : ' hours') + '.';
+                    }
+                }
+            } else {
+                total.textContent = formatRupees(selectedPackage.price);
+                if (help) help.textContent = 'Fixed package price.';
             }
         } else if (select) {
             const rawValue = String(select.value || '').trim();
@@ -277,17 +289,14 @@
     }
 
     /**
-     * Wire up the hour dropdown so the total updates live.
-     * For package bookings the total is fixed and does not
-     * change with the hours selector.
+     * Wire up the hour dropdown so hourly totals update live.
+     * Fixed-price multitasking packages remain unchanged.
      */
     function initTotalLiveUpdate() {
         const select = document.getElementById('hoursSelect');
         if (!select) return;
 
-        if (!isPackageBooking()) {
-            select.addEventListener('change', updateTotal);
-        }
+        select.addEventListener('change', updateTotal);
         // Run once so the initial value matches the markup.
         updateTotal();
     }
@@ -390,7 +399,9 @@
 
         if (isPackageBooking() && selectedPackage) {
             payload.package_id = Number(selectedPackage.id);
-            payload.amount = Number(selectedPackage.price);
+            payload.amount = selectedPackage.package_type === 'team'
+                ? Number(selectedPackage.price) * hours
+                : Number(selectedPackage.price);
         } else if (isTeamBooking()) {
             const teamId = getSelectedTeamId();
             if (teamId) {
