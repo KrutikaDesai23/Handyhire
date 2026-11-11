@@ -24,7 +24,8 @@ class BookingCreate(BaseModel):
     )
 
     description: Optional[str] = None
-    amount: int = Field(..., gt=0)
+    # Booking prices are calculated by the backend; clients may omit this field.
+    amount: Optional[int] = Field(None, gt=0)
     hours: Optional[int] = Field(None, ge=1, le=24)
 
     @model_validator(mode="after")
