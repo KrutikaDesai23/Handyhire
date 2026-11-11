@@ -28,7 +28,17 @@ def get_current_user(
     except JWTError:
         raise credentials_exception
 
-    user = db.query(User).filter(User.id == int(user_id)).first()
+    # A signed token can still contain a malformed subject. Treat it as
+    # invalid credentials rather than allowing int() to raise a 500 error.
+    try:
+        parsed_user_id = int(user_id)
+    except (TypeError, ValueError):
+        raise credentials_exception
+
+    if parsed_user_id <= 0:
+        raise credentials_exception
+
+    user = db.query(User).filter(User.id == parsed_user_id).first()
     if user is None:
         raise credentials_exception
 
