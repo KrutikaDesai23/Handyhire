@@ -21,6 +21,7 @@
      */
     let selectedPackage = null;
     const PACKAGE_HOURLY_RATE = 250;
+    let selectedWorkerRate = null;
 
     /**
      * Customer-selected BEFORE job photos (File objects) to
@@ -272,6 +273,11 @@
                 if (help) help.textContent = 'Fixed package price.';
             }
         } else if (select) {
+            if (!isTeamBooking() && readWorkerId() && !selectedWorkerRate) {
+                total.textContent = '\u2014';
+                if (help) help.textContent = 'Loading the selected professional\'s hourly rate...';
+                return;
+            }
             const rawValue = String(select.value || '').trim();
             if (!rawValue) {
                 total.textContent = '\u2014';
@@ -280,9 +286,10 @@
                 }
             } else {
                 const hours = Math.max(1, Number(rawValue) || 1);
-                total.textContent = formatRupees(hours * PACKAGE_HOURLY_RATE);
+                const hourlyRate = selectedWorkerRate || PACKAGE_HOURLY_RATE;
+                total.textContent = formatRupees(hours * hourlyRate);
                 if (help) {
-                    help.textContent = 'Auto-calculated at \u20B9250 / hour.';
+                    help.textContent = 'Auto-calculated at ' + formatRupees(hourlyRate) + ' / hour.';
                 }
             }
         }
@@ -394,7 +401,7 @@
             booking_time: timeValue,
             address: addressValue,
             description: trimmed || null,
-            amount: hours * PACKAGE_HOURLY_RATE,
+            amount: hours * (selectedWorkerRate || PACKAGE_HOURLY_RATE),
         };
 
         if (isPackageBooking() && selectedPackage) {
@@ -583,6 +590,33 @@
                     btn.textContent = 'Book';
                 }
             });
+    }
+
+    async function loadSelectedWorkerRate() {
+        const workerId = readWorkerId();
+        if (!workerId || isTeamBooking() || isPackageBooking()) return;
+
+        const api = getApi();
+        if (!api) return;
+
+        try {
+            const response = await api.apiFetch('/api/workers/' + encodeURIComponent(workerId));
+            if (!response.ok) {
+                throw new Error('Unable to load the selected professional rate.');
+            }
+
+            const worker = await response.json();
+            const rate = Number(worker && worker.price);
+            if (!Number.isFinite(rate) || rate <= 0) {
+                throw new Error('The selected professional does not have a valid hourly rate.');
+            }
+
+            selectedWorkerRate = rate;
+            updateTotal();
+        } catch (error) {
+            const help = document.getElementById('totalHelp');
+            if (help) help.textContent = 'The final hourly rate will be calculated by HandyHire.';
+        }
     }
 
     /**
@@ -860,6 +894,7 @@
         initTotalLiveUpdate();
         initBookingSubmit();
         initPhotoUpload();
+        loadSelectedWorkerRate();
 
         if (isPackageBooking()) {
             var packageId = readPackageId();
