@@ -25,6 +25,13 @@ if [ ! -f "$INSTALL_MARKER" ] || [ "$REQUIREMENTS" -nt "$INSTALL_MARKER" ]; then
     touch "$INSTALL_MARKER"
 fi
 
+mkdir -p "$BACKEND_DIR/uploads/profile-images" \
+    "$BACKEND_DIR/uploads/worker-work-photos" \
+    "$BACKEND_DIR/uploads/booking-photos"
+
 cd "$BACKEND_DIR"
+echo "Creating any missing database tables (existing data is preserved)..."
+"$PYTHON" -m app.create_tables
+
 echo "Starting HandyHire backend at http://127.0.0.1:8000"
 exec "$PYTHON" -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000

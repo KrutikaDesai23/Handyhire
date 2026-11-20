@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Creates the local Python environment if needed and starts the HandyHire API.
+Creates the local Python environment if needed, prepares the database, and starts the HandyHire API.
 
 USAGE
   Run from the repository root:
@@ -50,7 +50,20 @@ if ($listener) {
     throw "Port $port is already in use. Stop the process using it, then retry."
 }
 
+$uploadDirs = @(
+    (Join-Path $backendDir 'uploads/profile-images'),
+    (Join-Path $backendDir 'uploads/worker-work-photos'),
+    (Join-Path $backendDir 'uploads/booking-photos')
+)
+New-Item -ItemType Directory -Force -Path $uploadDirs | Out-Null
+
 Set-Location $backendDir
+Write-Host 'Creating any missing database tables (existing data is preserved)...' -ForegroundColor Cyan
+& $pythonExe -m app.create_tables
+if ($LASTEXITCODE -ne 0) {
+    throw 'Database table initialization failed.'
+}
+
 Write-Host ''
 Write-Host 'Starting HandyHire backend at http://127.0.0.1:8000' -ForegroundColor Green
 Write-Host 'API documentation: http://127.0.0.1:8000/docs'

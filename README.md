@@ -41,7 +41,7 @@ From the repository root:
 .\start-backend.ps1
 ```
 
-The startup scripts create a local `.venv` when needed, install `backend/requirements.txt`, and start FastAPI on `http://127.0.0.1:8000`. The environment is local to your computer and is not committed to Git.
+The startup scripts create a local `.venv` when needed, install `backend/requirements.txt`, create any missing database tables without dropping existing data, prepare the upload folders, and start FastAPI on `http://127.0.0.1:8000`. The environment is local to your computer and is not committed to Git.
 
 Open the interactive API documentation at:
 
