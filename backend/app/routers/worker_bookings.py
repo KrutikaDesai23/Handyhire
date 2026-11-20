@@ -36,6 +36,7 @@ router = APIRouter(
 def _build_booking_response(
     booking: models.Booking,
     db: Session,
+    viewer_status: Optional[str] = None,
 ) -> BookingResponse:
     customer = (
         db.query(models.User)
@@ -93,6 +94,7 @@ def _build_booking_response(
         description=booking.description,
         amount=booking.amount,
         status=booking.status,
+        viewer_status=viewer_status or booking.status,
         created_at=(
             booking.created_at.isoformat()
             if booking.created_at
@@ -382,13 +384,24 @@ def list_worker_bookings(
         .all()
     )
 
-    return [
-        _build_booking_response(
-            booking,
-            db,
+    responses = []
+    for booking in bookings:
+        participant = (
+            db.query(models.BookingWorker)
+            .filter(
+                models.BookingWorker.booking_id == booking.id,
+                models.BookingWorker.worker_id == current_user.id,
+            )
+            .first()
         )
-        for booking in bookings
-    ]
+        responses.append(
+            _build_booking_response(
+                booking,
+                db,
+                viewer_status=participant.status if participant else booking.status,
+            )
+        )
+    return responses
 
 
 # Keep this route above /bookings/{booking_id}.
@@ -674,7 +687,7 @@ VALID_STATUS_TRANSITIONS = {
 
 PARTICIPANT_STATUS_TRANSITIONS = {
     "pending": ["accepted"],
-    "accepted": ["in_progress"],
+    "accepted": ["in_progress", "cancelled"],
     "in_progress": ["completion_requested"],
 }
 
@@ -722,6 +735,27 @@ def update_worker_booking_status(
             detail="Booking not found",
         )
 
+    # Team-package acceptance/rejection updates the booking, all member
+    # assignments, and the leader's request together. Keep that decision in
+    # the Requests workflow instead of allowing a partial Activity update.
+    package = (
+        db.query(models.Package)
+        .filter(models.Package.id == booking.package_id)
+        .first()
+        if booking.package_id
+        else None
+    )
+    if (
+        package
+        and package.package_type == "team"
+        and booking.status == "pending"
+        and new_status in {"accepted", "rejected"}
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Team package requests must be accepted or rejected from the Requests page",
+        )
+
     if is_participant:
         bw = (
             db.query(models.BookingWorker)
@@ -749,6 +783,15 @@ def update_worker_booking_status(
             )
 
         bw.status = new_status
+
+        # A team-package booking is one shared job. If an assigned member
+        # cancels before work starts, cancel the booking for every member.
+        if new_status == "cancelled":
+            db.query(models.BookingWorker).filter(
+                models.BookingWorker.booking_id == booking_id
+            ).update({"status": "cancelled"}, synchronize_session=False)
+            booking.status = "cancelled"
+
         db.flush()
 
         if new_status == "in_progress":
@@ -810,4 +853,5 @@ def update_worker_booking_status(
     return _build_booking_response(
         booking,
         db,
+        viewer_status=bw.status if is_participant else booking.status,
     )

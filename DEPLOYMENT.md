@@ -1,5 +1,11 @@
 # HandyHire Deployment
 
+## Important: keep the frontend and backend URLs aligned
+
+The checked-in root `api-config.json` currently points to a Render backend URL. The Railway instructions below describe a Railway deployment. These are separate hosting choices: after deploying or moving the backend, update `api-config.json` so the frontend points to the backend that is actually running.
+
+Do not assume that changing the deployment instructions changes the live API URL. Verify the backend health endpoint after deployment and then update the frontend configuration.
+
 ## Backend: Railway
 
 Deploy the `backend` directory as the FastAPI service.
@@ -57,7 +63,15 @@ Do not include a trailing slash.
 Finally, set Railway `CORS_ORIGINS` to the exact Vercel origin, for example:
 
 ```text
-CORS_ORIGINS=https://handyhire.vercel.app
+CORS_ORIGINS=https://handyhiree.vercel.app
 ```
 
 If both a production and preview/custom domain should work, provide a comma-separated list.
+
+## Before a release
+
+- Confirm the deployed backend URL responds at `/api/health`.
+- Confirm `api-config.json` uses that same backend URL.
+- Confirm `CORS_ORIGINS` includes the deployed frontend origin.
+- Confirm the production database and persistent upload storage are configured.
+- Never commit production `.env` files, credentials or database connection strings.

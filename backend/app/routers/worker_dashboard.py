@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 
 from app import models
 from app.auth.dependencies import get_current_worker
@@ -46,23 +47,25 @@ def get_worker_dashboard(
         .count()
     )
 
-    accepted_bookings = (
-        db.query(models.Booking)
-        .filter(
-            models.Booking.worker_id == current_user.id,
-            models.Booking.status == "accepted",
-        )
-        .count()
+    assigned_booking_ids = db.query(models.BookingWorker.booking_id).filter(
+        models.BookingWorker.worker_id == current_user.id
     )
 
-    completed_bookings = (
-        db.query(models.Booking)
-        .filter(
-            models.Booking.worker_id == current_user.id,
-            models.Booking.status == "completed",
+    def count_worker_bookings(booking_status: str) -> int:
+        return (
+            db.query(models.Booking)
+            .filter(
+                or_(
+                    models.Booking.worker_id == current_user.id,
+                    models.Booking.id.in_(assigned_booking_ids),
+                ),
+                models.Booking.status == booking_status,
+            )
+            .count()
         )
-        .count()
-    )
+
+    accepted_bookings = count_worker_bookings("accepted")
+    completed_bookings = count_worker_bookings("completed")
 
     reviews = (
         db.query(models.Review)

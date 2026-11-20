@@ -321,3 +321,22 @@ def test_provider_request_includes_team(client, db, customer):
     assert by_id[m1.id]["is_leader"] is True
     assert by_id[m1.id]["profession"] == "Electrician"
     assert by_id[m2.id]["profession"] == "Plumber"
+
+
+# ---------------------------------------------------------
+# J. Team members can open packages listed in their workspace
+# ---------------------------------------------------------
+def test_team_member_can_view_team_package(client, db):
+    owner = _make_worker(db, "Package Owner", "pkgowner@example.com", "5555555551", "Manager")
+    leader = _make_worker(db, "Team Leader", "pkgleader@example.com", "5555555552", "Electrician")
+    member = _make_worker(db, "Team Member", "pkgmember@example.com", "5555555553", "Plumber")
+    pkg = _make_team_package(db, owner, [leader, member], leader)
+
+    response = client.get(
+        f"/api/worker/packages/{pkg.id}",
+        headers=_worker_headers(member),
+    )
+
+    assert response.status_code == 200
+    assert response.json()["id"] == pkg.id
+    assert {worker["worker_id"] for worker in response.json()["workers"]} == {leader.id, member.id}

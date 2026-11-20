@@ -90,36 +90,31 @@
         </section>
     </main>
 
+    <script src="../js/api.js"></script>
     <script src="../js/provider-home-nearme.js"></script>
     <script>
         (function () {
-            var REQ_KEY = 'handyhire.workerRequests';
-            var REQ_EVENT = 'handyhire:workerRequests-updated';
-            function refresh() {
-                var state = {};
+            async function syncProviderRequestBadge() {
+                var api = window.HandyHireAPI;
+                if (!api || typeof api.apiFetch !== 'function') return;
                 try {
-                    var raw = localStorage.getItem(REQ_KEY);
-                    if (raw) {
-                        var parsed = JSON.parse(raw);
-                        if (parsed && typeof parsed === 'object') state = parsed;
-                    }
-                } catch (e) {}
-                var count = 3;
-                Object.keys(state).forEach(function (id) {
-                    if (state[id] !== 'pending') count--;
-                });
-                if (count < 0) count = 0;
-                document.querySelectorAll('[data-request-count]').forEach(function (el) {
-                    el.textContent = String(count);
-                    if (count === 0) el.setAttribute('hidden', '');
-                    else el.removeAttribute('hidden');
-                });
+                    var response = await api.apiFetch('/api/worker/requests');
+                    if (!response.ok) return;
+                    var data = await response.json();
+                    var pending = (Array.isArray(data) ? data : []).filter(function (item) {
+                        return String(item && item.status || 'pending').toLowerCase() === 'pending';
+                    }).length;
+                    document.querySelectorAll('[data-request-count]').forEach(function (badge) {
+                        badge.textContent = String(pending);
+                        if (pending > 0) badge.removeAttribute('hidden');
+                        else badge.setAttribute('hidden', '');
+                    });
+                } catch (error) {
+                    /* Badge is non-blocking. */
+                }
             }
-            refresh();
-            window.addEventListener(REQ_EVENT, refresh);
-            window.addEventListener('storage', function (e) {
-                if (e.key === REQ_KEY) refresh();
-            });
+            syncProviderRequestBadge();
+            window.addEventListener('focus', syncProviderRequestBadge);
         })();
     </script>
 </body>
