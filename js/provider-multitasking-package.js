@@ -147,6 +147,13 @@ function openPackageBooking(pkg) {
         .join(' • ');
 
 
+    var professionalHtml = pkg.owner_name
+        ? '<div class="package-team-info">' +
+            '<span class="package-team-label">Professional</span>' +
+            '<span class="package-team-members">' + escapeHtml(pkg.owner_name) + '</span>' +
+          '</div>'
+        : '';
+
     var metaTags = [];
 
     if (pkg.duration) {
@@ -266,6 +273,8 @@ function openPackageBooking(pkg) {
                         : ''
                 ) +
 
+
+                professionalHtml +
 
                 (
                     metaTags.length
