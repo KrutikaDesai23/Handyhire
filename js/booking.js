@@ -336,7 +336,8 @@
     function friendlyErrorFor(status) {
         if (status === 401) return 'Your session has expired. Please log in again.';
         if (status === 403) return 'You are not allowed to create this booking.';
-        if (status === 404) return 'The selected worker could not be found.';
+        if (status === 404) return 'The selected worker or package could not be found.';
+        if (status === 409) return 'One or more team members are already booked for that time. Please choose another time.';
         if (status === 422) return 'Please check the booking details.';
         if (status === 500) return 'Unable to create your booking right now. Please try again.';
         return 'Unable to create your booking right now. Please try again.';
@@ -678,7 +679,14 @@
                     throw new Error('auth');
                 }
                 if (!response.ok) {
-                    throw { status: response.status };
+                    return response.json().catch(function () {
+                        return {};
+                    }).then(function (body) {
+                        throw {
+                            status: response.status,
+                            detail: body && typeof body.detail === 'string' ? body.detail : '',
+                        };
+                    });
                 }
                 return response.json();
             })
@@ -686,7 +694,7 @@
                 finishBookingFlow(booking, hours, payload, btn);
             })
             .catch(function (err) {
-                showError(friendlyErrorFor(err && err.status));
+                showError((err && err.detail) || friendlyErrorFor(err && err.status));
                 if (btn) {
                     btn.disabled = false;
                     btn.textContent = 'Book';
