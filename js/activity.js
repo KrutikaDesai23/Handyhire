@@ -42,6 +42,7 @@
     let reviewedBookingIds = new Set();
     let currentReviewBookingId = null;
     let selectedRating = 0;
+    let lastAutoRefreshAt = 0;
 
     function getApi() {
         const api = window.HandyHireAPI;
@@ -392,7 +393,7 @@
 
         showLoading(container, emptyState);
 
-        api.apiFetch('/api/bookings/customer/bookings')
+        api.apiFetch('/api/bookings/customer/bookings', { cache: 'no-store' })
             .then(function (response) {
                 if (response.status === 401) {
                     redirectToLogin();
@@ -717,6 +718,17 @@
         initReviewModal();
         initFeedActions();
         loadBookings(feed, emptyState);
+
+        function refreshActivityOnFocus() {
+            const now = Date.now();
+            if (now - lastAutoRefreshAt < 1500) return;
+            lastAutoRefreshAt = now;
+            loadBookings(feed, emptyState);
+        }
+        window.addEventListener('focus', refreshActivityOnFocus);
+        document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'visible') refreshActivityOnFocus();
+        });
     }
 
     if (document.readyState === 'loading') {
