@@ -1,0 +1,28 @@
+/* Provider Requests badge on desktop and mobile navigation. */
+.nav-tab, .bottom-nav-item { position: relative; }
+.nav-count {
+    position: absolute;
+    top: -5px;
+    right: -3px;
+    min-width: 19px;
+    height: 19px;
+    padding: 0 5px;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 999px;
+    background: #bb4b4b;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1;
+    box-shadow: 0 0 0 3px #fff;
+}
+.nav-count[hidden] { display: none !important; }
+.bottom-nav-item .nav-count {
+    top: 3px;
+    right: calc(50% - 27px);
+    min-width: 17px;
+    height: 17px;
+    font-size: 9px;
+    box-shadow: 0 0 0 2px #fff;
+}
