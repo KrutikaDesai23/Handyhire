@@ -154,6 +154,7 @@ def _build_customer_booking_detail_response(booking, db: Session):
         amount=booking.amount,
         status=booking.status,
         created_at=booking.created_at.isoformat() if booking.created_at else None,
+        has_reviewed=db.query(models.Review.id).filter(models.Review.booking_id == booking.id).first() is not None,
         worker_name=contact_worker.full_name if contact_worker else None,
         service_name=service.name if service else None,
         customer_name=customer.full_name if customer else None,
