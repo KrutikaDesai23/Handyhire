@@ -29,3 +29,17 @@
 }
 
 .customer-requests-view .activity-mode-tabs[hidden] { display: none !important; }
+
+/* Four destinations now fit the customer mobile navigation. */
+.bottom-nav,
+.mobile-bottom-nav { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.bottom-nav-item,
+.mobile-nav-item { position: relative; }
+.mobile-nav-item .nav-count {
+    top: 3px;
+    right: calc(50% - 27px);
+    min-width: 17px;
+    height: 17px;
+    font-size: 9px;
+    box-shadow: 0 0 0 2px #fff;
+}
