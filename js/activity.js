@@ -37,8 +37,7 @@
         reject_completion: 'reject-completion'
     };
 
-    const requestsView = new URLSearchParams(window.location.search).get('view') === 'requests';
-    let activeMode = requestsView ? 'requests' : 'all';
+    let activeMode = 'all';
     let currentBookings = [];
     let reviewedBookingIds = new Set();
     let currentReviewBookingId = null;
@@ -307,9 +306,7 @@
         return currentBookings.filter(function (booking) {
             const modeMatch = activeMode === 'completed'
                 ? booking.statusKey === 'completed'
-                : activeMode === 'requests'
-                    ? booking.statusKey !== 'completed'
-                    : true;
+                : true;
             return modeMatch && matchesSearch(booking, query);
         });
     }
@@ -419,9 +416,6 @@
                 if (!data) return;
 
                 currentBookings = (Array.isArray(data) ? data : []).map(mapBooking);
-                if (requestsView && window.HandyHireUnreadRequests && typeof window.HandyHireUnreadRequests.markViewed === 'function') {
-                    window.HandyHireUnreadRequests.markViewed(data);
-                }
                 if (!currentBookings.length) {
                     container.innerHTML = '';
                     showEmpty(emptyState);
@@ -717,25 +711,6 @@
         if (!feed) return;
 
         if (!(window.HandyHireAPI && window.HandyHireAPI.requireRole('customer'))) return;
-
-        if (requestsView) {
-            document.body.classList.add('customer-requests-view');
-            document.title = 'Requests | HandyHire';
-            const title = document.getElementById('activityTitle');
-            const eyebrow = document.querySelector('.activity-eyebrow');
-            const sectionTitle = document.querySelector('.activity-toolbar-copy h2');
-            if (title) title.textContent = 'Your requests';
-            if (eyebrow) eyebrow.textContent = 'BOOKING REQUESTS';
-            if (sectionTitle) sectionTitle.textContent = 'Your service requests';
-            const tabs = document.getElementById('activityModeTabs');
-            if (tabs) tabs.hidden = true;
-            document.querySelectorAll('.app-nav a, .mobile-bottom-nav a').forEach(function (link) {
-                const isRequestsLink = link.id === 'requestsTab' || link.id === 'requestsTabBottom';
-                link.classList.toggle('is-active', isRequestsLink);
-                if (isRequestsLink) link.setAttribute('aria-current', 'page');
-                else link.removeAttribute('aria-current');
-            });
-        }
 
         initModeTabs();
         initSearch();
