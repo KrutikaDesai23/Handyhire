@@ -61,6 +61,7 @@ class PackageResponse(BaseModel):
     availability: Optional[str] = None
     status: str
     owner_id: int
+    owner_name: Optional[str] = None
     services: List[ServiceSummary] = []
     workers: List[PackageWorkerSummary] = []
 
@@ -77,6 +78,7 @@ class PackageSummary(BaseModel):
     location: Optional[str] = None
     availability: Optional[str] = None
     status: str
+    owner_name: Optional[str] = None
     services: List[ServiceSummary] = []
     workers: List[PackageWorkerSummary] = []
 
