@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="../css/provider-home-nearme.css" />
+    <link rel="stylesheet" href="../css/provider-unread-requests.css" />
 </head>
 <body>
     <!-- ========== HEADER ========== -->
@@ -90,37 +91,9 @@
         </section>
     </main>
 
+    <script src="../js/api.js"></script>
+    <script src="../js/provider-unread-requests.js"></script>
     <script src="../js/provider-home-nearme.js"></script>
-    <script>
-        (function () {
-            var REQ_KEY = 'handyhire.workerRequests';
-            var REQ_EVENT = 'handyhire:workerRequests-updated';
-            function refresh() {
-                var state = {};
-                try {
-                    var raw = localStorage.getItem(REQ_KEY);
-                    if (raw) {
-                        var parsed = JSON.parse(raw);
-                        if (parsed && typeof parsed === 'object') state = parsed;
-                    }
-                } catch (e) {}
-                var count = 3;
-                Object.keys(state).forEach(function (id) {
-                    if (state[id] !== 'pending') count--;
-                });
-                if (count < 0) count = 0;
-                document.querySelectorAll('[data-request-count]').forEach(function (el) {
-                    el.textContent = String(count);
-                    if (count === 0) el.setAttribute('hidden', '');
-                    else el.removeAttribute('hidden');
-                });
-            }
-            refresh();
-            window.addEventListener(REQ_EVENT, refresh);
-            window.addEventListener('storage', function (e) {
-                if (e.key === REQ_KEY) refresh();
-            });
-        })();
-    </script>
+    
 </body>
 </html>
