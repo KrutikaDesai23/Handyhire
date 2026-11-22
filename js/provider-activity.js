@@ -121,6 +121,7 @@
     let activeMode = 'received';
     let loadedBookings = [];
     let loadVersion = 0;
+    let lastAutoRefreshAt = 0;
 
     function getApi() {
         const api =
@@ -780,7 +781,8 @@
                 await api.apiFetch(
                     MODES[
                         requestedMode
-                    ].endpoint
+                    ].endpoint,
+                    { cache: 'no-store' }
                 );
 
             if (
@@ -1163,6 +1165,17 @@
 
         initCardNavigation();
         loadBookings();
+
+        function refreshActivityOnFocus() {
+            const now = Date.now();
+            if (now - lastAutoRefreshAt < 1500) return;
+            lastAutoRefreshAt = now;
+            loadBookings();
+        }
+        window.addEventListener('focus', refreshActivityOnFocus);
+        document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'visible') refreshActivityOnFocus();
+        });
     }
 
     if (
