@@ -580,3 +580,91 @@ button { font: inherit; }
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; scroll-behavior: auto !important; }
 }
+
+
+/* Booking CTA placement: keep the action aligned with the profile content
+   and give it a dedicated, full-width row on customer and provider views. */
+.profile-hero-card {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+}
+
+.profile-hero-main {
+    min-width: 0;
+}
+
+.hero-cta-card {
+    width: 100%;
+    max-width: none;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(190px, 240px);
+    grid-template-rows: auto auto auto 1fr;
+    column-gap: 28px;
+    align-items: center;
+    padding: 22px 26px;
+}
+
+.hero-cta-card .cta-kicker,
+.hero-cta-card h2,
+.hero-cta-card > p,
+.hero-cta-card .cta-trust-list {
+    grid-column: 1;
+}
+
+.hero-cta-card .cta-kicker { align-self: end; }
+.hero-cta-card h2 { margin-top: 4px; }
+.hero-cta-card > p { margin-top: 6px; }
+.hero-cta-card .cta-trust-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px 18px;
+    margin: 12px 0 0;
+}
+
+.hero-cta-card .book-now-btn {
+    grid-column: 2;
+    grid-row: 1 / 5;
+    align-self: center;
+    width: 100%;
+    min-height: 56px;
+    justify-content: center;
+    gap: 12px;
+    white-space: normal;
+    text-align: center;
+}
+
+@media (max-width: 767px) {
+    .profile-hero-card {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 18px;
+    }
+
+    .hero-cta-card {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto;
+        gap: 0;
+        padding: 20px;
+    }
+
+    .hero-cta-card .cta-kicker,
+    .hero-cta-card h2,
+    .hero-cta-card > p,
+    .hero-cta-card .cta-trust-list,
+    .hero-cta-card .book-now-btn {
+        grid-column: 1;
+        grid-row: auto;
+    }
+
+    .hero-cta-card .cta-trust-list {
+        display: grid;
+        gap: 8px;
+        margin: 14px 0 16px;
+    }
+
+    .hero-cta-card .book-now-btn {
+        width: 100%;
+        min-height: 54px;
+        margin: 0;
+        justify-content: center;
+    }
+}
