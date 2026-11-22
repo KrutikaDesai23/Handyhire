@@ -48,6 +48,7 @@ def _build_booking_response(booking, db: Session, team_name=None):
         package_name=package.name if package else None,
         package_type=package.package_type if package else None,
         team_name=team_name,
+        has_reviewed=db.query(models.Review.id).filter(models.Review.booking_id == booking.id).first() is not None,
     )
 
 
