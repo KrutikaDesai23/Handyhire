@@ -131,7 +131,7 @@
 
             nextOptions.body = JSON.stringify(payload);
 
-            return originalApiFetch('/api/bookings/team-package', nextOptions)
+            return originalApiFetch('/api/bookings', nextOptions)
                 .then(function (response) {
                     if (response.status === 400 || response.status === 409) {
                         response.clone().json()
