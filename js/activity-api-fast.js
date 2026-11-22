@@ -1,36 +1,18 @@
 /* =========================================================
-   HandyHire - Activity API Fast Path
-   Redirects only Activity LIST reads to optimized backend
-   endpoints. Status updates/details keep their existing routes.
+   HandyHire - Activity API Compatibility
+   Keep Activity pages on their real backend routes:
+   - Customer: /api/bookings/customer/bookings
+   - Provider received: /api/worker/bookings
+   - Provider sent: /api/worker/bookings/sent
+
+   The old fast-path rewrote these to /api/activity/* routes,
+   but no such router is registered by the backend.
    ========================================================= */
 
 (function () {
     'use strict';
 
-    var api = window.HandyHireAPI;
-    if (!api || typeof api.apiFetch !== 'function' || api.__activityFastPath) {
-        return;
-    }
-
-    var originalApiFetch = api.apiFetch.bind(api);
-
-    api.apiFetch = function (path, options) {
-        var method = String(options && options.method ? options.method : 'GET').toUpperCase();
-        var target = path;
-
-        if (method === 'GET') {
-            // Customer bookings are served by the existing /api/bookings
-            // router. Do not redirect this request to the unregistered
-            // /api/activity/customer endpoint.
-            if (path === '/api/worker/bookings') {
-                target = '/api/activity/provider/received';
-            } else if (path === '/api/worker/bookings/sent') {
-                target = '/api/activity/provider/sent';
-            }
-        }
-
-        return originalApiFetch(target, options);
-    };
-
-    api.__activityFastPath = true;
+    // Intentionally do not rewrite Activity API requests.
+    // The routes used by activity.js and provider-activity.js
+    // are implemented by the existing bookings routers.
 })();
