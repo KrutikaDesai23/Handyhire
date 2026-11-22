@@ -175,7 +175,8 @@
             amount: booking.amount,
             address: booking.address || '--',
             description: booking.description || '',
-            workerId: booking.worker_id || null
+            workerId: booking.worker_id || null,
+            hasReviewed: Boolean(booking.has_reviewed)
         };
     }
 
@@ -193,7 +194,7 @@
     function renderReview(booking) {
         if (booking.statusKey !== 'completed') return '';
 
-        if (reviewedBookingIds.has(booking.id)) {
+        if (booking.hasReviewed || reviewedBookingIds.has(booking.id) || reviewedBookingIds.has(String(booking.id))) {
             return '<div class="booking-actions"><span class="booking-status booking-status--confirmed">Reviewed</span></div>';
         }
 
