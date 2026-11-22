@@ -466,8 +466,20 @@ ul { list-style: none; padding: 0; }
     background: #f8faf7;
 }
 .package-team-info {
-    background: #fff9f1;
-    border-color: #f1dfc7;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    background: linear-gradient(135deg, #f5faf5, #ffffff);
+    border-color: #dce9de;
+}
+.package-team-label { color: #4d855f; }
+.package-team-members {
+    display: block;
+    color: #173f2b;
+    font-size: 13px;
+    font-weight: 750;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
 }
 .package-section-label,
 .package-team-label {
@@ -489,7 +501,7 @@ ul { list-style: none; padding: 0; }
 }
 .package-team-members {
     display: block;
-    color: #6d5436;
+    color: #173f2b;
 }
 
 .package-meta-row {
