@@ -625,33 +625,29 @@ def update_package(
                 .filter(models.PackageWorker.package_id == package.id)
                 .all()
             )
-            current_member_ids = [
-                row.worker_id
-                for row in current_rows
-            ]
-
-            _validate_team_workers(
+            current_member_ids = list(dict.fromkeys(
+                [row.worker_id for row in current_rows] + [current_user.id]
+            ))
+            validated_worker_ids = _validate_team_workers(
                 current_member_ids,
                 current_user.id,
                 db,
             )
-
-            if payload.leader_worker_id is not None:
-                _validate_team_leader(
-                    current_member_ids,
-                    payload.leader_worker_id,
-                )
-            else:
-                leaders = [
-                    row.worker_id
-                    for row in current_rows
-                    if row.is_leader
-                ]
-                if len(leaders) != 1:
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="Team package must have exactly one leader",
-                    )
+            current_leader = next(
+                (row.worker_id for row in current_rows if row.is_leader),
+                current_user.id,
+            )
+            leader_worker_id = (
+                payload.leader_worker_id
+                if payload.leader_worker_id is not None
+                else current_leader
+            )
+            if leader_worker_id not in validated_worker_ids:
+                leader_worker_id = current_user.id
+            _validate_team_leader(
+                validated_worker_ids,
+                leader_worker_id,
+            )
     else:
         if payload.worker_ids:
             raise HTTPException(
