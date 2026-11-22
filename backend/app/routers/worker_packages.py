@@ -82,12 +82,6 @@ def _validate_team_workers(
             detail="A team package must include at least 2 different workers",
         )
 
-    if current_user_id in selected_ids:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You cannot add yourself as a team member",
-        )
-
     workers = (
         db.query(models.User)
         .filter(
@@ -449,14 +443,20 @@ def create_package(
     team_worker_ids = []
 
     if payload.package_type == "team":
+        # The package creator is automatically included as a team member.
         team_worker_ids = _validate_team_workers(
-            payload.worker_ids,
+            list(payload.worker_ids or []) + [current_user.id],
             current_user.id,
             db,
         )
+        leader_worker_id = (
+            payload.leader_worker_id
+            if payload.leader_worker_id is not None
+            else current_user.id
+        )
         _validate_team_leader(
             team_worker_ids,
-            payload.leader_worker_id,
+            leader_worker_id,
         )
     else:
         if payload.worker_ids:
@@ -496,7 +496,9 @@ def create_package(
             package.id,
             team_worker_ids,
             db,
-            leader_worker_id=payload.leader_worker_id,
+            leader_worker_id=(
+                leader_worker_id if payload.package_type == "team" else None
+            ),
         )
 
     db.commit()
@@ -592,13 +594,30 @@ def update_package(
     if target_type == "team":
         if payload.worker_ids is not None:
             validated_worker_ids = _validate_team_workers(
-                payload.worker_ids,
+                list(payload.worker_ids or []) + [current_user.id],
                 current_user.id,
                 db,
             )
+            current_leader = (
+                db.query(models.PackageWorker)
+                .filter(
+                    models.PackageWorker.package_id == package.id,
+                    models.PackageWorker.is_leader.is_(True),
+                )
+                .first()
+            )
+            leader_worker_id = (
+                payload.leader_worker_id
+                if payload.leader_worker_id is not None
+                else (
+                    current_leader.worker_id
+                    if current_leader and current_leader.worker_id in validated_worker_ids
+                    else current_user.id
+                )
+            )
             _validate_team_leader(
                 validated_worker_ids,
-                payload.leader_worker_id,
+                leader_worker_id,
             )
         else:
             current_rows = (
@@ -681,7 +700,7 @@ def update_package(
                 package.id,
                 validated_worker_ids,
                 db,
-                leader_worker_id=payload.leader_worker_id,
+                leader_worker_id=leader_worker_id,
             )
         elif payload.leader_worker_id is not None:
             db.query(models.PackageWorker).filter(
