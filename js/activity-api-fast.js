@@ -19,9 +19,10 @@
         var target = path;
 
         if (method === 'GET') {
-            if (path === '/api/bookings/customer/bookings') {
-                target = '/api/activity/customer';
-            } else if (path === '/api/worker/bookings') {
+            // Customer bookings are served by the existing /api/bookings
+            // router. Do not redirect this request to the unregistered
+            // /api/activity/customer endpoint.
+            if (path === '/api/worker/bookings') {
                 target = '/api/activity/provider/received';
             } else if (path === '/api/worker/bookings/sent') {
                 target = '/api/activity/provider/sent';
