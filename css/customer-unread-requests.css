@@ -27,3 +27,5 @@
     font-size: 9px;
     box-shadow: 0 0 0 2px #fff;
 }
+
+.customer-requests-view .activity-mode-tabs[hidden] { display: none !important; }
