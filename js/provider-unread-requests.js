@@ -59,6 +59,12 @@
                     paint(0);
                     return;
                 }
+                var rawSeen = localStorage.getItem(storageKey);
+                if (rawSeen === null) {
+                    localStorage.setItem(storageKey, JSON.stringify(current));
+                    paint(0);
+                    return;
+                }
                 var seen = seenState();
                 var unread = Object.keys(current).filter(function (id) {
                     return !Object.prototype.hasOwnProperty.call(seen, id) || seen[id] !== current[id];
