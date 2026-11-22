@@ -764,7 +764,14 @@
                     throw new Error('auth');
                 }
                 if (!response.ok) {
-                    throw { status: response.status };
+                    return response.json().catch(function () {
+                        return {};
+                    }).then(function (body) {
+                        throw {
+                            status: response.status,
+                            detail: body && typeof body.detail === 'string' ? body.detail : '',
+                        };
+                    });
                 }
                 return response.json();
             })
