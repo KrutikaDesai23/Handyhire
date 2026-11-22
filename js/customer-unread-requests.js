@@ -23,6 +23,19 @@
         });
     }
 
+    function markViewed(rows) {
+        var snapshot = {};
+        (Array.isArray(rows) ? rows : []).forEach(function (booking) {
+            if (booking && booking.id != null) {
+                snapshot[String(booking.id)] = String(booking.status || 'pending').toLowerCase();
+            }
+        });
+        try { localStorage.setItem(storageKey, JSON.stringify(snapshot)); } catch (error) {}
+        paint(0);
+    }
+
+    window.HandyHireUnreadRequests = { markViewed: markViewed };
+
     function refresh() {
         api.apiFetch('/api/bookings/customer/bookings')
             .then(function (response) {
