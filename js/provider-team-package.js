@@ -613,14 +613,29 @@ api.apiFetch('/api/worker/packages?package_type=team').then(function (response) 
         var q = searchInput ? String(searchInput.value || '').trim().toLowerCase() : '';
 
         var source = currentTab === 'explore' ? allPackages : myPackages;
-        var filtered = source;
-        if (q) {
-            filtered = source.filter(function (pkg) {
-                return pkg.name.toLowerCase().includes(q) ||
-                    (pkg.description || '').toLowerCase().includes(q) ||
-                    (pkg.services || []).some(function (s) { return s.name.toLowerCase().includes(q); });
-            });
-        }
+        var teamSizeSelect = document.getElementById('teamSizeSelect');
+        var sizeFilter = teamSizeSelect ? String(teamSizeSelect.value || 'all') : 'all';
+
+        var filtered = source.filter(function (pkg) {
+            var workers = getPackageWorkers(pkg);
+            var size = workers.length;
+            var matchesSize = currentTab !== 'explore' || sizeFilter === 'all' ||
+                (sizeFilter === '5' ? size >= 5 : size === Number(sizeFilter));
+
+            if (!matchesSize) return false;
+            if (!q) return true;
+
+            var searchable = [
+                pkg.name,
+                pkg.description,
+                (pkg.services || []).map(function (service) { return service.name || ''; }).join(' '),
+                workers.map(function (worker) {
+                    return worker.full_name || worker.name || worker.profession || '';
+                }).join(' ')
+            ].join(' ').toLowerCase();
+
+            return searchable.includes(q);
+        });
 
         if (error) error.hidden = true;
         renderList(filtered, list, empty);
