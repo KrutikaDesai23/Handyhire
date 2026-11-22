@@ -730,10 +730,10 @@
             const tabs = document.getElementById('activityModeTabs');
             if (tabs) tabs.hidden = true;
             document.querySelectorAll('.app-nav a, .mobile-bottom-nav a').forEach(function (link) {
-                if (link.id === 'requestsTab' || link.id === 'requestsTabBottom') {
-                    link.classList.add('is-active');
-                    link.setAttribute('aria-current', 'page');
-                }
+                const isRequestsLink = link.id === 'requestsTab' || link.id === 'requestsTabBottom';
+                link.classList.toggle('is-active', isRequestsLink);
+                if (isRequestsLink) link.setAttribute('aria-current', 'page');
+                else link.removeAttribute('aria-current');
             });
         }
 
