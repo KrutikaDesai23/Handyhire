@@ -98,56 +98,9 @@
         });
     }
 
-    api.apiFetch = function (path, options) {
-        var isBookingCreate = (
-            path === '/api/bookings' &&
-            options &&
-            String(options.method || 'GET').toUpperCase() === 'POST'
-        );
-
-        if (!isBookingCreate) {
-            return originalApiFetch(path, options);
-        }
-
-        return loadPackage().then(function (pkg) {
-            if (!pkg) {
-                return originalApiFetch(path, options);
-            }
-
-            var nextOptions = Object.assign({}, options);
-            var payload = {};
-            try {
-                payload = JSON.parse(String(options.body || '{}'));
-            } catch (e) {
-                payload = {};
-            }
-
-            var hours = getHours();
-            payload.package_id = Number(pkg.id);
-            payload.hours = hours;
-            payload.amount = (Number(pkg.price) || 0) * hours;
-            delete payload.worker_id;
-            delete payload.team_id;
-
-            nextOptions.body = JSON.stringify(payload);
-
-            return originalApiFetch('/api/bookings', nextOptions)
-                .then(function (response) {
-                    if (response.status === 400 || response.status === 409) {
-                        response.clone().json()
-                            .then(function (body) {
-                                lastTeamError = body && body.detail
-                                    ? String(body.detail)
-                                    : '';
-                            })
-                            .catch(function () {});
-                    } else {
-                        lastTeamError = '';
-                    }
-                    return response;
-                });
-        });
-    };
+    // Booking payloads already include package_id and hours from booking.js.
+    // Keep this bridge limited to display enhancements so a package lookup
+    // can never hold the booking POST request open.
 
     function init() {
         loadPackage().then(function (pkg) {
