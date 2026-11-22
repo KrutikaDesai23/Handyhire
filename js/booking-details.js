@@ -8,7 +8,6 @@
     const STATUS_FLOW = [
         { key: 'pending', label: 'Requested' },
         { key: 'accepted', label: 'Accepted' },
-        { key: 'confirmed', label: 'Accepted' },
         { key: 'in_progress', label: 'In Progress' },
         { key: 'completion_requested', label: 'Completion Requested' },
         { key: 'completed', label: 'Completed' },
@@ -142,7 +141,9 @@
         const container = document.getElementById('statusTimeline');
         if (!container) return;
 
-        const key = String(status || 'pending').toLowerCase();
+        let key = String(status || 'pending').toLowerCase();
+        // The backend may return either value for the same accepted state.
+        if (key === 'confirmed') key = 'accepted';
         const currentIndex = STATUS_FLOW.findIndex(function (s) { return s.key === key; });
 
         container.innerHTML = STATUS_FLOW.map(function (step, index) {
