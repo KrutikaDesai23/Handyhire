@@ -13,6 +13,7 @@
 
     <link rel="stylesheet" href="../css/provider-worker-profile.css" />
     <link rel="stylesheet" href="../css/provider-shell-lock.css" />
+    <link rel="stylesheet" href="../css/provider-unread-requests.css" />
 </head>
 <body>
     <header class="app-header" role="banner">
@@ -216,32 +217,8 @@
     </nav>
 
     <script src="../js/api.js"></script>
-    <script>
-    (function () {
-        async function syncProviderRequestBadge() {
-            var api = window.HandyHireAPI;
-            if (!api || typeof api.apiFetch !== 'function') return;
-            try {
-                var response = await api.apiFetch('/api/worker/requests');
-                if (!response.ok) return;
-                var data = await response.json();
-                var pending = (Array.isArray(data) ? data : []).filter(function (item) {
-                    var status = String(item && item.status || 'pending').toLowerCase();
-                    return status === 'pending';
-                }).length;
-                document.querySelectorAll('[data-request-count]').forEach(function (badge) {
-                    badge.textContent = String(pending);
-                    if (pending > 0) badge.removeAttribute('hidden');
-                    else badge.setAttribute('hidden', '');
-                });
-            } catch (error) {
-                /* Request badge is non-blocking. */
-            }
-        }
-        syncProviderRequestBadge();
-        window.addEventListener('focus', syncProviderRequestBadge);
-    })();
-    </script>
+    <script src="../js/provider-unread-requests.js"></script>
+    
     <script src="../js/provider-worker-profile.js"></script>
 </body>
 </html>
