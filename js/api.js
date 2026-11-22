@@ -146,6 +146,7 @@
                 method: options.method || 'GET',
                 headers: headers,
                 body: options.body || undefined,
+                cache: options.cache || 'default',
             }).then(function (response) {
                 if (response.status === 401) {
                     debugAuthState('apiFetch:' + path + ' -> 401 clearAuth');
