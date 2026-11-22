@@ -60,6 +60,22 @@ def list_packages(
             .filter(PackageService.package_id == package.id)
             .all()
         )
+        package_workers = (
+            db.query(models.User)
+            .join(PackageWorker, PackageWorker.worker_id == models.User.id)
+            .filter(PackageWorker.package_id == package.id)
+            .all()
+        )
+        package_worker_rows = (
+            db.query(PackageWorker)
+            .filter(PackageWorker.package_id == package.id)
+            .all()
+        )
+        leader_map = {
+            row.worker_id: bool(row.is_leader)
+            for row in package_worker_rows
+        }
+
         response.append(
             PackageSummary(
                 id=package.id,
@@ -80,6 +96,19 @@ def list_packages(
                         base_price=s.base_price,
                     )
                     for s in services
+                ],
+                workers=[
+                    PackageWorkerSummary(
+                        worker_id=worker.id,
+                        full_name=worker.full_name,
+                        profession=(
+                            worker.worker_profile.profession
+                            if worker.worker_profile
+                            else None
+                        ),
+                        is_leader=leader_map.get(worker.id, False),
+                    )
+                    for worker in package_workers
                 ],
             )
         )
