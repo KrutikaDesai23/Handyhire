@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="../css/provider-activity.css" />
     <link rel="stylesheet" href="../css/customer-activity-extras.css" />
+    <link rel="stylesheet" href="../css/customer-unread-requests.css" />
 </head>
 <body>
     <header class="app-header" role="banner">
@@ -25,6 +26,7 @@
 
             <nav class="app-nav" aria-label="Primary navigation">
                 <a href="home.html" class="nav-tab">Home</a>
+                <a href="activity.html?view=requests" class="nav-tab" id="requestsTab">Requests<span class="nav-count" data-customer-request-count hidden>0</span></a>
                 <a href="activity.html" class="nav-tab is-active" aria-current="page">Activity</a>
                 <a href="profile.html" class="nav-tab">Profile</a>
             </nav>
@@ -155,6 +157,10 @@
             <span>Home</span>
         </a>
 
+        <a href="activity.html?view=requests" class="mobile-nav-item" id="requestsTabBottom">
+            <span aria-hidden="true">□</span><span>Requests</span><span class="nav-count" data-customer-request-count hidden>0</span>
+        </a>
+
         <a href="activity.html" class="mobile-nav-item is-active" aria-current="page">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M4 12h4l2.1-5 3.6 10 2.1-5H20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -172,6 +178,7 @@
     </nav>
 
     <script src="../js/api.js"></script>
+    <script src="../js/customer-unread-requests.js"></script>
     <script src="../js/activity-api-fast.js"></script>
     <script src="../js/activity.js"></script>
     <script src="../js/collapsible-card-lists.js"></script>
