@@ -317,6 +317,7 @@ def _build_package_response(
         pw.worker_id: pw.is_leader
         for pw in package_worker_rows
     }
+    owner = db.query(models.User).filter(models.User.id == package.owner_id).first()
 
     return PackageResponse(
         id=package.id,
@@ -329,6 +330,7 @@ def _build_package_response(
         availability=package.availability,
         status=package.status,
         owner_id=package.owner_id,
+        owner_name=owner.full_name if owner else None,
 
         services=[
             ServiceSummary(
