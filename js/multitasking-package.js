@@ -27,6 +27,13 @@
             .map(function (service) { return escapeHtml(service.name); })
             .join(' • ');
 
+        const professionalHtml = pkg.owner_name
+            ? '<div class="package-team-info">' +
+                '<span class="package-team-label">Professional</span>' +
+                '<span class="package-team-members">' + escapeHtml(pkg.owner_name) + '</span>' +
+              '</div>'
+            : '';
+
         const metaTags = [];
         if (pkg.duration) {
             metaTags.push('<span class="package-meta-tag"><span class="package-meta-icon">⏱</span>' + escapeHtml(pkg.duration) + '</span>');
@@ -54,6 +61,7 @@
                             '<p class="package-services">' + servicesLine + '</p>' +
                           '</div>'
                         : '') +
+                    professionalHtml +
                     (metaTags.length ? '<div class="package-meta-row">' + metaTags.join('') + '</div>' : '') +
                 '</article>' +
             '</li>'
