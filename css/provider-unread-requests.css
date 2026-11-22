@@ -26,3 +26,13 @@
     font-size: 9px;
     box-shadow: 0 0 0 2px #fff;
 }
+
+.mobile-nav-item { position: relative; }
+.mobile-nav-item .nav-count {
+    top: 3px;
+    right: calc(50% - 27px);
+    min-width: 17px;
+    height: 17px;
+    font-size: 9px;
+    box-shadow: 0 0 0 2px #fff;
+}
