@@ -65,6 +65,7 @@ class BookingResponse(BaseModel):
     package_name: Optional[str] = None
     package_type: Optional[str] = None
     team_name: Optional[str] = None
+    has_reviewed: bool = False
 
     model_config = ConfigDict(from_attributes=True)
 
