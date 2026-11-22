@@ -390,7 +390,8 @@
 
         if (isPackageBooking() && selectedPackage) {
             payload.package_id = Number(selectedPackage.id);
-            payload.amount = Number(selectedPackage.price);
+            payload.hours = hours;
+            payload.amount = Number(selectedPackage.price) * hours;
         } else if (isTeamBooking()) {
             const teamId = getSelectedTeamId();
             if (teamId) {
