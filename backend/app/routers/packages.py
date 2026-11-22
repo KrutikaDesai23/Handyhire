@@ -54,6 +54,7 @@ def list_packages(
     packages = query.all()
     response = []
     for package in packages:
+        owner = db.query(models.User).filter(models.User.id == package.owner_id).first()
         services = (
             db.query(Service)
             .join(PackageService, PackageService.service_id == Service.id)
@@ -87,6 +88,7 @@ def list_packages(
                 location=package.location,
                 availability=package.availability,
                 status=package.status,
+                owner_name=owner.full_name if owner else None,
                 services=[
                     ServiceSummary(
                         id=s.id,
@@ -151,6 +153,8 @@ def get_package(package_id: int, db: Session = Depends(get_db)):
         for row in package_worker_rows
     }
 
+    owner = db.query(models.User).filter(models.User.id == package.owner_id).first()
+
     return PackageSummary(
         id=package.id,
         name=package.name,
@@ -161,6 +165,7 @@ def get_package(package_id: int, db: Session = Depends(get_db)):
         location=package.location,
         availability=package.availability,
         status=package.status,
+        owner_name=owner.full_name if owner else None,
         services=[
             ServiceSummary(
                 id=s.id,
