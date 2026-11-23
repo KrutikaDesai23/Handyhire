@@ -98,25 +98,29 @@ def _get_team_leader_id(booking, db):
     return leader.worker_id if leader else None
 
 
-def _assert_request_visible_to_worker(request, current_user, db):
+def _worker_can_access_request(request, current_user, db):
     booking = db.query(models.Booking).filter(models.Booking.id == request.booking_id).first()
     if not booking:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Request not found")
-
-    if _get_team_leader_id(booking, db) is not None:
-        membership = (
-            db.query(models.BookingWorker)
-            .filter(
-                models.BookingWorker.booking_id == booking.id,
-                models.BookingWorker.worker_id == current_user.id,
-            )
-            .first()
+        return False
+    if request.worker_id == current_user.id:
+        return True
+    if _get_team_package(booking, db) is None:
+        return False
+    return (
+        db.query(models.BookingWorker)
+        .filter(
+            models.BookingWorker.booking_id == booking.id,
+            models.BookingWorker.worker_id == current_user.id,
         )
-        if not membership:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Request not found")
-    elif request.worker_id != current_user.id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Request not found")
+        .first()
+        is not None
+    )
 
+
+def _assert_request_visible_to_worker(request, current_user, db):
+    booking = db.query(models.Booking).filter(models.Booking.id == request.booking_id).first()
+    if not booking or not _worker_can_access_request(request, current_user, db):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Request not found")
     return booking
 
 
@@ -165,29 +169,48 @@ def list_worker_requests(
     current_user: models.User = Depends(get_current_worker),
     db: Session = Depends(get_db),
 ):
-    query = db.query(models.BookingRequest).filter(models.BookingRequest.worker_id == current_user.id)
+    # Direct bookings belong to the assigned worker. Team bookings are
+    # shared: every BookingWorker member sees one canonical request per booking.
+    direct_query = (
+        db.query(models.BookingRequest)
+        .join(models.Booking, models.Booking.id == models.BookingRequest.booking_id)
+        .filter(
+            models.BookingRequest.worker_id == current_user.id,
+            models.Booking.package_id.is_(None),
+        )
+    )
     if status:
-        query = query.filter(models.BookingRequest.status == status)
+        direct_query = direct_query.filter(models.BookingRequest.status == status)
+    visible_by_booking = {r.booking_id: r for r in direct_query.all()}
 
-    requests = query.order_by(models.BookingRequest.created_at.desc()).all()
-    visible_requests = []
-    for request in requests:
-        booking = db.query(models.Booking).filter(models.Booking.id == request.booking_id).first()
-        if not booking:
+    memberships = (
+        db.query(models.BookingWorker)
+        .filter(models.BookingWorker.worker_id == current_user.id)
+        .all()
+    )
+    for membership in memberships:
+        booking = db.query(models.Booking).filter(models.Booking.id == membership.booking_id).first()
+        if not booking or _get_team_package(booking, db) is None:
             continue
-        if _get_team_leader_id(booking, db) is not None:
-            membership = (
-                db.query(models.BookingWorker)
-                .filter(
-                    models.BookingWorker.booking_id == booking.id,
-                    models.BookingWorker.worker_id == current_user.id,
-                )
-                .first()
+        team_query = db.query(models.BookingRequest).filter(
+            models.BookingRequest.booking_id == booking.id
+        )
+        if status:
+            team_query = team_query.filter(models.BookingRequest.status == status)
+        team_requests = team_query.order_by(models.BookingRequest.created_at.asc()).all()
+        if team_requests:
+            leader_id = _get_team_leader_id(booking, db)
+            canonical = next(
+                (r for r in team_requests if r.worker_id == leader_id),
+                team_requests[0],
             )
-            if not membership:
-                continue
-        visible_requests.append(request)
+            visible_by_booking[booking.id] = canonical
 
+    visible_requests = sorted(
+        visible_by_booking.values(),
+        key=lambda r: r.created_at,
+        reverse=True,
+    )
     return [_build_request_response(r, db) for r in visible_requests]
 
 
@@ -198,7 +221,7 @@ def get_worker_request(
     db: Session = Depends(get_db),
 ):
     request = db.query(models.BookingRequest).filter(models.BookingRequest.id == request_id).first()
-    if not request or request.worker_id != current_user.id:
+    if not request or not _worker_can_access_request(request, current_user, db):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Request not found")
 
     _assert_request_visible_to_worker(request, current_user, db)
@@ -212,7 +235,7 @@ def accept_worker_request(
     db: Session = Depends(get_db),
 ):
     request = db.query(models.BookingRequest).filter(models.BookingRequest.id == request_id).first()
-    if not request or request.worker_id != current_user.id:
+    if not request or not _worker_can_access_request(request, current_user, db):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Request not found")
 
     if request.status != "pending":
@@ -275,7 +298,7 @@ def reject_worker_request(
     db: Session = Depends(get_db),
 ):
     request = db.query(models.BookingRequest).filter(models.BookingRequest.id == request_id).first()
-    if not request or request.worker_id != current_user.id:
+    if not request or not _worker_can_access_request(request, current_user, db):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Request not found")
 
     if request.status != "pending":
