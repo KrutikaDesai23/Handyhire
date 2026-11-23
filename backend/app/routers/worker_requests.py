@@ -103,8 +103,18 @@ def _assert_request_visible_to_worker(request, current_user, db):
     if not booking:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Request not found")
 
-    leader_id = _get_team_leader_id(booking, db)
-    if leader_id is not None and current_user.id != leader_id:
+    if _get_team_leader_id(booking, db) is not None:
+        membership = (
+            db.query(models.BookingWorker)
+            .filter(
+                models.BookingWorker.booking_id == booking.id,
+                models.BookingWorker.worker_id == current_user.id,
+            )
+            .first()
+        )
+        if not membership:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Request not found")
+    elif request.worker_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Request not found")
 
     return booking
@@ -165,9 +175,17 @@ def list_worker_requests(
         booking = db.query(models.Booking).filter(models.Booking.id == request.booking_id).first()
         if not booking:
             continue
-        leader_id = _get_team_leader_id(booking, db)
-        if leader_id is not None and current_user.id != leader_id:
-            continue
+        if _get_team_leader_id(booking, db) is not None:
+            membership = (
+                db.query(models.BookingWorker)
+                .filter(
+                    models.BookingWorker.booking_id == booking.id,
+                    models.BookingWorker.worker_id == current_user.id,
+                )
+                .first()
+            )
+            if not membership:
+                continue
         visible_requests.append(request)
 
     return [_build_request_response(r, db) for r in visible_requests]
