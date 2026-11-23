@@ -262,9 +262,11 @@
                     '<div class="hh-live-meta-item"><span>Estimated total</span><strong>' + escapeHtml(amount) + '</strong></div>' +
                 '</div>' +
                 '<div class="hh-live-progress" aria-label="Quick Hire progress">' + progressHtml(info.step, terminal) + '</div>' +
-                '<div class="hh-live-actions">' +
+                '<div class="hh-live-actions' + (userRole === 'customer' && status === 'accepted' ? ' hh-live-actions--customer' : '') + '">' +
                     '<a class="hh-live-btn" href="' + detailsHref + '">View booking ' + arrowSvg() + '</a>' +
-                    '<span class="hh-live-chip">Booking #' + escapeHtml(bookingId) + '</span>' +
+                    (userRole === 'customer' && status === 'accepted'
+                        ? '<button type="button" class="hh-live-btn hh-live-btn--cancel" data-booking-id="' + escapeHtml(bookingId) + '">Cancel Booking</button>'
+                        : '<span class="hh-live-chip">Booking #' + escapeHtml(bookingId) + '</span>') +
                 '</div>' +
             '</div>'
         );
@@ -273,6 +275,36 @@
         if (close) {
             close.addEventListener('click', function () {
                 dismissOwnStatus(bookingId, status);
+            });
+        }
+
+        const cancelButton = card.querySelector('.hh-live-btn--cancel');
+        if (cancelButton) {
+            cancelButton.addEventListener('click', async function () {
+                if (!window.confirm('Are you sure you want to cancel this booking?')) return;
+                cancelButton.disabled = true;
+                cancelButton.textContent = 'Cancelling...';
+                try {
+                    const response = await getApi().apiFetch('/api/bookings/' + encodeURIComponent(String(bookingId)) + '/cancel', {
+                        method: 'POST'
+                    });
+                    if (!response.ok) {
+                        let message = 'Unable to cancel booking. Please try again.';
+                        try {
+                            const error = await response.json();
+                            if (error && error.detail) message = error.detail;
+                        } catch (e) {}
+                        window.alert(message);
+                        cancelButton.disabled = false;
+                        cancelButton.textContent = 'Cancel Booking';
+                        return;
+                    }
+                    await refreshOwnQuickHire(user);
+                } catch (e) {
+                    window.alert('Unable to cancel booking. Please try again.');
+                    cancelButton.disabled = false;
+                    cancelButton.textContent = 'Cancel Booking';
+                }
             });
         }
 
