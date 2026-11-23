@@ -171,17 +171,16 @@ def list_worker_requests(
 ):
     # Direct bookings belong to the assigned worker. Team bookings are
     # shared: every BookingWorker member sees one canonical request per booking.
-    direct_query = (
-        db.query(models.BookingRequest)
-        .join(models.Booking, models.Booking.id == models.BookingRequest.booking_id)
-        .filter(
-            models.BookingRequest.worker_id == current_user.id,
-            models.Booking.package_id.is_(None),
-        )
+    direct_query = db.query(models.BookingRequest).filter(
+        models.BookingRequest.worker_id == current_user.id
     )
     if status:
         direct_query = direct_query.filter(models.BookingRequest.status == status)
-    visible_by_booking = {r.booking_id: r for r in direct_query.all()}
+    visible_by_booking = {}
+    for request in direct_query.all():
+        booking = db.query(models.Booking).filter(models.Booking.id == request.booking_id).first()
+        if booking and _get_team_package(booking, db) is None:
+            visible_by_booking[booking.id] = request
 
     memberships = (
         db.query(models.BookingWorker)
