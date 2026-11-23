@@ -522,15 +522,22 @@
             btn.disabled = true;
             btn.textContent += '...';
 
-            api.apiFetch(endpoint, { method: 'PUT' }).then(function (response) {
+            api.apiFetch(endpoint, { method: 'PUT' }).then(async function (response) {
                 if (response.status === 401) {
                     redirectToLogin();
                     return;
                 }
                 if (!response.ok) {
+                    let errorMessage = 'Unable to update booking status. Please try again.';
+                    try {
+                        const errorData = await response.json();
+                        if (errorData && errorData.detail) {
+                            errorMessage = String(errorData.detail);
+                        }
+                    } catch (e) {}
                     btn.disabled = false;
                     btn.textContent = newStatus === 'in_progress' ? 'Start Job' : 'Request Completion';
-                    showError('Unable to update booking status. Please try again.');
+                    showError(errorMessage);
                     return;
                 }
                 loadBooking();
