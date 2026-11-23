@@ -445,7 +445,11 @@ def create_package(
     if payload.package_type == "team":
         # The package creator is automatically included as a team member.
         team_worker_ids = _validate_team_workers(
-            list(payload.worker_ids or []) + [current_user.id],
+            (
+                list(payload.worker_ids or [])
+                if current_user.id in (payload.worker_ids or [])
+                else list(payload.worker_ids or []) + [current_user.id]
+            ),
             current_user.id,
             db,
         )
@@ -594,7 +598,11 @@ def update_package(
     if target_type == "team":
         if payload.worker_ids is not None:
             validated_worker_ids = _validate_team_workers(
-                list(payload.worker_ids or []) + [current_user.id],
+                (
+                list(payload.worker_ids or [])
+                if current_user.id in (payload.worker_ids or [])
+                else list(payload.worker_ids or []) + [current_user.id]
+            ),
                 current_user.id,
                 db,
             )
