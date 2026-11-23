@@ -311,17 +311,6 @@ function redirectToPackagePage() {
             .filter(function (worker) {
                 if (!worker.id) return false;
 
-                /*
-                 * Do not allow provider
-                 * to select themselves.
-                 */
-                if (
-                    currentUserId &&
-                    Number(worker.id) === Number(currentUserId)
-                ) {
-                    return false;
-                }
-
                 if (seen.has(worker.id)) {
                     return false;
                 }
