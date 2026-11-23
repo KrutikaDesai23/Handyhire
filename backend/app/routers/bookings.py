@@ -550,3 +550,39 @@ def upload_booking_photo(
         image_url=photo.image_url,
         created_at=photo.created_at.isoformat() if photo.created_at else None,
     )
+
+
+
+@router.post("/{booking_id}/cancel")
+def cancel_customer_booking(
+    booking_id: int,
+    current_user: models.User = Depends(get_current_customer),
+    db: Session = Depends(get_db),
+):
+    booking = (
+        db.query(models.Booking)
+        .filter(
+            models.Booking.id == booking_id,
+            models.Booking.customer_id == current_user.id,
+        )
+        .first()
+    )
+    if not booking:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Booking not found")
+
+    if booking.status not in {"accepted", "confirmed"}:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only accepted bookings can be cancelled.",
+        )
+
+    booking.status = "cancelled"
+    db.query(models.BookingRequest).filter(
+        models.BookingRequest.booking_id == booking.id
+    ).update({"status": "cancelled"}, synchronize_session=False)
+    db.query(models.BookingWorker).filter(
+        models.BookingWorker.booking_id == booking.id
+    ).update({"status": "cancelled"}, synchronize_session=False)
+
+    db.commit()
+    return {"message": "Booking cancelled successfully", "booking_id": booking.id, "status": booking.status}
