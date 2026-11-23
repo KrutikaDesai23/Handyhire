@@ -319,6 +319,27 @@ function redirectToPackagePage() {
 
                 return true;
             });
+
+        // Keep the logged-in provider available even if /api/workers
+        // omits the current account from its results.
+        if (currentUserId && !seen.has(currentUserId)) {
+            const currentUser = api.getCurrentUser() || {};
+            const ownWorker = normalizeWorker(currentUser);
+            ownWorker.id = currentUserId;
+            ownWorker.full_name =
+                currentUser.full_name ||
+                currentUser.name ||
+                currentUser.username ||
+                'My profile';
+            allWorkers.unshift(ownWorker);
+        }
+
+        // New team packages start with the creator already selected
+        // and set as the default leader. Editing keeps saved selections.
+        if (!isEditMode && currentUserId) {
+            selectedWorkerIds = [currentUserId];
+            selectedLeaderWorkerId = currentUserId;
+        }
     }
 
     function getWorkerById(workerId) {
