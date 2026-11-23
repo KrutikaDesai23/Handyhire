@@ -452,12 +452,13 @@ def create_booking(
                 worker_id=row.worker_id,
                 status="pending",
             ))
-        db.add(models.BookingRequest(
-            booking_id=booking.id,
-            worker_id=leader_row.worker_id,
-            customer_id=current_user.id,
-            status="pending",
-        ))
+            # Each team member receives the shared booking request.
+            db.add(models.BookingRequest(
+                booking_id=booking.id,
+                worker_id=row.worker_id,
+                customer_id=current_user.id,
+                status="pending",
+            ))
     else:
         db.add(models.BookingRequest(
             booking_id=booking.id,
