@@ -61,7 +61,7 @@ def list_workers(
         .join(models.User, models.WorkerProfile.user_id == models.User.id)
         .outerjoin(rating_subq, rating_subq.c.worker_id == models.User.id)
         .filter(models.User.role == "worker")
-        .filter(models.WorkerProfile.availability != "hidden")
+        .filter(or_(models.WorkerProfile.availability.is_(None), models.WorkerProfile.availability != "hidden"))
     )
 
     if profession:
