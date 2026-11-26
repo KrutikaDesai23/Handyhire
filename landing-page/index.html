@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description" content="HandyHire connects you with trusted professionals for every home job. Discover services, choose the right person and book with confidence." />
+  <meta name="theme-color" content="#68865C" />
+  <title>HandyHire — Trusted help for every corner of your home</title>
+  <link rel="icon" href="assets/handyhire-logo.jpeg" type="image/jpeg" />
+  <link rel="preload" href="assets/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="assets/fonts/inter-tight-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="style.css" />
+  <script>document.documentElement.classList.add('js');</script>
+</head>
+<body class="hh-landing">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <div class="scroll-progress" aria-hidden="true"><span id="scrollProgress"></span></div>
+
+  <header class="site-header" id="siteHeader">
+    <div class="container nav-shell">
+      <a class="brand" href="#home" aria-label="HandyHire home">
+        <span class="brand-mark"><img src="assets/handyhire-logo.jpeg" alt="" width="42" height="42" fetchpriority="high" /></span>
+        <span class="brand-word">Handy<span>Hire</span></span>
+      </a>
+
+      <nav class="desktop-nav" aria-label="Primary navigation">
+        <a class="nav-link is-active" href="#home" data-nav="home">Home</a>
+        <a class="nav-link" href="#how-it-works" data-nav="how-it-works">How It Works</a>
+        <a class="nav-link" href="#services" data-nav="services">Services</a>
+        <a class="nav-link" href="#about" data-nav="about">About</a>
+      </nav>
+
+      <div class="nav-actions">
+        <a class="nav-login" href="../pages/login.html">Login</a>
+        <a class="btn btn-primary btn-sm" href="../pages/handyhire-animation.html">Get Started</a>
+      </div>
+
+      <button class="nav-toggle" id="navToggle" type="button" aria-expanded="false" aria-controls="mobileMenu" aria-label="Open menu">
+        <span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+    <nav class="mobile-nav" aria-label="Mobile navigation">
+      <a href="#home" class="mobile-link">Home</a>
+      <a href="#how-it-works" class="mobile-link">How It Works</a>
+      <a href="#services" class="mobile-link">Services</a>
+      <a href="#about" class="mobile-link">About</a>
+      <a href="#for-professionals" class="mobile-link">For Professionals</a>
+    </nav>
+    <div class="mobile-menu-actions">
+      <a class="btn btn-secondary" href="../pages/login.html">Login</a>
+      <a class="btn btn-primary" href="../pages/handyhire-animation.html">Get Started</a>
+    </div>
+    <p class="mobile-menu-note">Trusted help for every corner of your home.</p>
+  </div>
+
+  <main id="main">
+    <section class="hero" id="home">
+      <div class="hero-glow hero-glow--one" aria-hidden="true"></div>
+      <div class="hero-glow hero-glow--two" aria-hidden="true"></div>
+      <div class="hero-grid-lines" aria-hidden="true"></div>
+
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow hero-eyebrow" data-hero="eyebrow">
+            <span class="eyebrow-dot" aria-hidden="true"></span>
+            Trusted home services, on demand
+          </p>
+
+          <h1 class="hero-title">
+            <span class="hero-line"><span>Your home</span></span>
+            <span class="hero-line"><span>deserves the</span></span>
+            <span class="hero-line"><span><span class="accent-highlight">right hands.</span></span></span>
+          </h1>
+
+          <p class="hero-lede" data-hero="lede">
+            Find trusted professionals for every job. From everyday repairs to complete
+            home improvements, HandyHire makes getting things done effortless.
+          </p>
+
+          <div class="hero-actions" data-hero="actions">
+            <a class="btn btn-primary" href="../pages/login.html">
+              Find a Professional
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </a>
+            <a class="btn btn-secondary" href="../pages/provider-animation.html">
+              Become a Professional
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
+            </a>
+          </div>
+
+          <ul class="hero-points" data-hero="points" aria-label="HandyHire benefits">
+            <li>
+              <span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.2 4.2L19 6.8"/></svg></span>
+              Local professionals
+            </li>
+            <li>
+              <span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.2 4.2L19 6.8"/></svg></span>
+              Flexible booking
+            </li>
+            <li>
+              <span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.2 4.2L19 6.8"/></svg></span>
+              Every trade, one place
+            </li>
+          </ul>
+        </div>
+
+        <div class="hero-visual" data-hero="visual">
+          <div class="hero-scene" id="heroScene">
+            <div class="scene-loader" id="sceneLoader" aria-hidden="true">
+              <span class="scene-loader-mark">HH</span>
+              <span class="scene-loader-text">Preparing your home view</span>
+            </div>
+
+            <canvas id="heroCanvas" role="img" aria-label="Interactive three-dimensional illustration of a modern home surrounded by floating service icons"></canvas>
+
+            <div class="scene-fallback" id="sceneFallback" aria-hidden="true">
+              <svg class="fallback-house" viewBox="0 0 700 700" fill="none">
+                <defs>
+                  <linearGradient id="fbSky" x1="350" y1="0" x2="350" y2="700" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#FBF8F0"/><stop offset="1" stop-color="#E8E5D8"/>
+                  </linearGradient>
+                  <linearGradient id="fbWall" x1="250" y1="330" x2="440" y2="560" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#F7F2E7"/><stop offset="1" stop-color="#E8E1D3"/>
+                  </linearGradient>
+                  <linearGradient id="fbGlass" x1="300" y1="380" x2="340" y2="500" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#7F9178"/><stop offset="1" stop-color="#4C5D47"/>
+                  </linearGradient>
+                  <filter id="fbShadow" x="-40%" y="-40%" width="180%" height="180%">
+                    <feDropShadow dx="0" dy="30" stdDeviation="30" flood-color="#33452E" flood-opacity=".22"/>
+                  </filter>
+                </defs>
+                <rect width="700" height="700" fill="url(#fbSky)"/>
+                <circle cx="540" cy="180" r="170" fill="#68865C" fill-opacity=".06"/>
+                <circle cx="150" cy="540" r="210" fill="#68865C" fill-opacity=".05"/>
+                <ellipse cx="350" cy="590" rx="250" ry="58" fill="#33452E" fill-opacity=".10"/>
+                <g filter="url(#fbShadow)">
+                  <path d="M190 560V365h150v195" fill="url(#fbWall)"/>
+                  <path d="M340 560V300h180v260" fill="url(#fbWall)"/>
+                  <path d="M170 365h190v-16H170z" fill="#3F5138"/>
+                  <path d="M320 300h220v-15H320z" fill="#3F5138"/>
+                  <path d="M320 365h200v-14H320z" fill="#57734D" fill-opacity=".9"/>
+                  <path d="M352 560V445h64v115" fill="#3F5138"/>
+                  <path d="M360 452h48v94h-48z" fill="#FBF8F0" fill-opacity=".12"/>
+                  <path d="M230 410h78v92h-78z" fill="url(#fbGlass)"/>
+                  <path d="M252 410v92M282 410v92M230 456h78" stroke="#FBF8F0" stroke-opacity=".38" stroke-width="3"/>
+                  <path d="M382 342h100v52H382z" fill="url(#fbGlass)"/>
+                  <path d="M414 342v52M446 342v52" stroke="#FBF8F0" stroke-opacity=".34" stroke-width="3"/>
+                  <path d="M330 366h180v10H330z" fill="#FBF8F0" fill-opacity=".7"/>
+                  <path d="M352 386h130v40H352z" fill="#FBF8F0" fill-opacity=".22"/>
+                  <path d="M470 366v42" stroke="#FBF8F0" stroke-opacity=".5" stroke-width="3"/>
+                  <path d="M450 292h30v-58h-30z" fill="#3F5138"/>
+                  <path d="M444 234h42v10h-42z" fill="#57734D"/>
+                  <path d="M180 560h420" stroke="#3F5138" stroke-opacity=".2" stroke-width="2"/>
+                </g>
+                <g stroke="#4F6B45" stroke-width="2" stroke-linecap="round" stroke-opacity=".7">
+                  <path d="M160 300h54M160 300l12-12M160 300l12 12"/>
+                  <path d="M560 250h-60M560 250l-12-12M560 250l-12 12"/>
+                </g>
+              </svg>
+              <span class="fallback-chip fallback-chip--one">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/></svg>
+              </span>
+              <span class="fallback-chip fallback-chip--two">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s6 6.2 6 10a6 6 0 0 1-12 0c0-3.8 6-10 6-10Z"/></svg>
+              </span>
+              <span class="fallback-chip fallback-chip--three">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2L12 3Z"/></svg>
+              </span>
+            </div>
+
+            <div class="scene-shade" aria-hidden="true"></div>
+            <div class="scene-hint" aria-hidden="true"><span></span> Move to explore</div>
+          </div>
+
+          <div class="scene-badge" aria-hidden="true">
+            <span class="scene-badge-dot"></span>
+            Interactive 3D
+          </div>
+
+          <div class="scene-float-card" aria-hidden="true">
+            <span class="float-card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.2 4.2L19 6.8"/></svg>
+            </span>
+            <span class="float-card-copy">
+              <strong>Right help, right time</strong>
+              <small>One platform for every home job</small>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="container hero-foot" data-hero="foot">
+        <a class="scroll-cue" href="#trust" aria-label="Scroll to explore HandyHire">
+          <span class="scroll-cue-line" aria-hidden="true"></span>
+          Scroll to explore
+        </a>
+        <span class="hero-foot-note">A demonstration landing page for HandyHire</span>
+      </div>
+    </section>
+
+    <section class="trust" id="trust" aria-label="Why HandyHire">
+      <div class="container">
+        <div class="trust-panel" data-stagger>
+          <article class="trust-item">
+            <span class="trust-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/><path d="M11 8v6M8 11h6"/></svg>
+            </span>
+            <div><h3>Find professionals easily</h3><p>Search by trade, skill or the kind of help you need.</p></div>
+          </article>
+          <article class="trust-item">
+            <span class="trust-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2.2"/><circle cx="8" cy="17" r="2.2"/></svg>
+            </span>
+            <div><h3>Flexible service options</h3><p>Plan ahead or find help for the job in front of you.</p></div>
+          </article>
+          <article class="trust-item">
+            <span class="trust-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/><path d="m9 15 2 2 4-4"/></svg>
+            </span>
+            <div><h3>Convenient booking</h3><p>Clear requests, updates and completion in one flow.</p></div>
+          </article>
+          <article class="trust-item">
+            <span class="trust-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4.4 7.8 7.6 4.3 7.6-4.3M12 12.1V21"/></svg>
+            </span>
+            <div><h3>One platform, multiple services</h3><p>From quick fixes to bigger projects, keep it together.</p></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section services-section" id="services">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> What we cover</p>
+            <h2 class="section-title" data-split="words">Every trade. <span class="accent">One trusted platform.</span></h2>
+          </div>
+          <p class="section-copy" data-reveal>
+            From the flickering light in the hallway to the room you have been meaning to refresh,
+            HandyHire brings the right kind of professional within reach.
+          </p>
+        </div>
+
+        <div class="services-grid" data-stagger>
+          <article class="service-card">
+            <span class="service-index">01</span>
+            <span class="service-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/></svg>
+            </span>
+            <h3>Electrician</h3>
+            <p>Lighting, wiring and electrical fixes handled safely and precisely.</p>
+            <span class="service-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </article>
+
+          <article class="service-card">
+            <span class="service-index">02</span>
+            <span class="service-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s6 6.2 6 10a6 6 0 0 1-12 0c0-3.8 6-10 6-10Z"/><path d="M9.5 14.2a2.8 2.8 0 0 0 2.5 2.4"/></svg>
+            </span>
+            <h3>Plumbing</h3>
+            <p>Leaks, fittings and water systems looked after with care.</p>
+            <span class="service-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </article>
+
+          <article class="service-card">
+            <span class="service-index">03</span>
+            <span class="service-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m14 3 7 7-3 3-7-7 3-3Z"/><path d="m11 6 3 3-7.5 7.5a2.1 2.1 0 0 1-3-3L11 6Z"/><path d="m5 19 3 3"/></svg>
+            </span>
+            <h3>Carpentry</h3>
+            <p>Custom woodwork, repairs and built-in details made to last.</p>
+            <span class="service-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </article>
+
+          <article class="service-card">
+            <span class="service-index">04</span>
+            <span class="service-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2L12 3Z"/><path d="M19 17.5 19.8 20l2.2.8-2.2.7-.8 2.5-.8-2.5-2.2-.7 2.2-.8.8-2.5Z"/></svg>
+            </span>
+            <h3>Cleaning</h3>
+            <p>Deep cleans and regular upkeep for a fresher, calmer home.</p>
+            <span class="service-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </article>
+
+          <article class="service-card">
+            <span class="service-index">05</span>
+            <span class="service-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="13" height="7" rx="1.6"/><path d="M16 7h3.2a1.8 1.8 0 0 1 0 3.6H16"/><path d="M9.5 12v7M7 21h5"/></svg>
+            </span>
+            <h3>Painting</h3>
+            <p>Interior and exterior finishes with a precise, considered touch.</p>
+            <span class="service-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </article>
+
+          <article class="service-card">
+            <span class="service-index">06</span>
+            <span class="service-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2.2"/><circle cx="12" cy="13" r="4"/><path d="M8 7h2M14 7h2M8 18h8"/></svg>
+            </span>
+            <h3>Appliance Repair</h3>
+            <p>Diagnostics and repairs for the appliances your home relies on.</p>
+            <span class="service-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </article>
+
+          <article class="service-card">
+            <span class="service-index">07</span>
+            <span class="service-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V21h13V9.5"/><path d="M9.5 21v-6h5v6"/></svg>
+            </span>
+            <h3>Home Maintenance</h3>
+            <p>The smaller jobs that keep everything running smoothly.</p>
+            <span class="service-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </article>
+
+          <article class="service-card service-card--cta">
+            <div class="service-cta-copy">
+              <span class="service-cta-kicker">Not sure where to start?</span>
+              <h3>Tell us what needs doing.</h3>
+              <p>Start with the job, not the job title. HandyHire helps you find the right fit.</p>
+            </div>
+            <a class="btn btn-cream" href="../pages/handyhire-animation.html">
+              Get started
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </a>
+            <span class="service-cta-ring" aria-hidden="true"></span>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section process-section" id="how-it-works">
+      <div class="container">
+        <div class="section-head process-head">
+          <div>
+            <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> Simple by design</p>
+            <h2 class="section-title" data-split="words">Three steps between you and a job well done.</h2>
+          </div>
+          <p class="section-copy" data-reveal>
+            No guesswork, no chasing messages. HandyHire keeps the whole process clear from the
+            first search to the final confirmation.
+          </p>
+        </div>
+
+        <div class="process-track">
+          <div class="process-rail" aria-hidden="true"><span class="process-rail-fill" id="processRail"></span></div>
+          <ol class="process-steps">
+            <li class="process-step">
+              <span class="process-marker">01</span>
+              <div class="process-body">
+                <span class="process-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+                </span>
+                <h3>Discover professionals</h3>
+                <p>Browse skilled local professionals and compare the services they offer.</p>
+              </div>
+            </li>
+            <li class="process-step">
+              <span class="process-marker">02</span>
+              <div class="process-body">
+                <span class="process-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2.2"/><circle cx="8" cy="17" r="2.2"/></svg>
+                </span>
+                <h3>Choose the right service</h3>
+                <p>Review the details and pick the booking option that fits the job.</p>
+              </div>
+            </li>
+            <li class="process-step">
+              <span class="process-marker">03</span>
+              <div class="process-body">
+                <span class="process-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/><path d="m9 15 2 2 4-4"/></svg>
+                </span>
+                <h3>Book and get the work done</h3>
+                <p>Send your request, follow each update, and confirm when the job is complete.</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="section why-section" id="about">
+      <div class="container why-grid">
+        <div class="why-copy">
+          <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> Why HandyHire</p>
+          <h2 class="section-title" data-split="words">A calmer way to care for your home.</h2>
+          <p class="section-copy section-copy--left" data-reveal>
+            A good home service experience should feel considered from start to finish. HandyHire
+            brings the people, options and updates together so you always know what happens next.
+          </p>
+
+          <div class="why-benefits" data-stagger>
+            <article class="why-benefit">
+              <span class="why-benefit-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h11M19 7h1M4 17h1M9 17h11"/><circle cx="17" cy="7" r="2.2"/><circle cx="7" cy="17" r="2.2"/></svg>
+              </span>
+              <div>
+                <h3>Clarity from request to review</h3>
+                <p>A shared booking flow keeps both sides aligned at every stage.</p>
+              </div>
+            </article>
+            <article class="why-benefit">
+              <span class="why-benefit-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.2 2"/></svg>
+              </span>
+              <div>
+                <h3>Flexible by design</h3>
+                <p>Plan a visit ahead or find help for the job in front of you.</p>
+              </div>
+            </article>
+            <article class="why-benefit">
+              <span class="why-benefit-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4.4 7.8 7.6 4.3 7.6-4.3M12 12.1V21"/></svg>
+              </span>
+              <div>
+                <h3>One place for every trade</h3>
+                <p>From a flickering light to a full refresh, keep it all in one platform.</p>
+              </div>
+            </article>
+          </div>
+
+          <a class="text-link" href="#how-it-works">
+            See how it works
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+        </div>
+
+        <div class="why-visual">
+          <div class="blueprint" data-reveal="scale">
+            <svg class="blueprint-art" viewBox="0 0 600 720" fill="none" aria-hidden="true">
+              <defs>
+                <pattern id="bpGrid" width="30" height="30" patternUnits="userSpaceOnUse">
+                  <path d="M30 0H0V30" stroke="#68865C" stroke-opacity=".10"/>
+                </pattern>
+                <linearGradient id="bpWash" x1="300" y1="0" x2="300" y2="720" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#F7F3EA" stop-opacity="0"/><stop offset="1" stop-color="#E9E3D6" stop-opacity=".7"/>
+                </linearGradient>
+              </defs>
+              <rect width="600" height="720" fill="#EFEADF"/>
+              <rect width="600" height="720" fill="url(#bpGrid)"/>
+              <rect width="600" height="720" fill="url(#bpWash)"/>
+              <circle cx="478" cy="150" r="116" fill="#68865C" fill-opacity=".08"/>
+              <circle cx="112" cy="560" r="150" fill="#68865C" fill-opacity=".05"/>
+              <g stroke="#5E7854" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M78 566H522"/>
+                <path d="M112 566V420H352V566"/>
+                <path d="M352 420V292H500V420"/>
+                <path d="M94 420H370M334 292H518"/>
+                <path d="M142 470H302V548H142Z"/>
+                <path d="M182 470V548M222 470V548M262 470V548"/>
+                <path d="M382 328H470V394H382Z"/>
+                <path d="M411 328V394M440 328V394"/>
+                <path d="M312 470v96M352 470v96"/>
+                <path d="M314 566v-82h36v82"/>
+                <path d="M286 566h84M304 580h50"/>
+                <path d="M476 566v-46"/>
+                <circle cx="476" cy="480" r="40"/>
+                <path d="M456 452c14 8 26 20 34 36M448 486c14-6 30-6 44 0"/>
+                <path d="M112 470h190M112 420v-20M352 420v-20"/>
+                <path d="M352 292v-22M500 292v-22"/>
+                <path d="M78 604H522" stroke-dasharray="4 7" stroke-opacity=".7"/>
+                <path d="M78 594v20M522 594v20" stroke-dasharray="4 7" stroke-opacity=".7"/>
+                <circle cx="142" cy="470" r="3" fill="#5E7854"/>
+                <circle cx="302" cy="470" r="3" fill="#5E7854"/>
+                <circle cx="352" cy="420" r="3" fill="#5E7854"/>
+                <circle cx="500" cy="420" r="3" fill="#5E7854"/>
+                <circle cx="382" cy="328" r="3" fill="#5E7854"/>
+              </g>
+              <g fill="#4C6246" font-family="Inter, sans-serif">
+                <text x="78" y="644" font-size="10" letter-spacing="2.4">WHOLE-HOME CARE</text>
+                <text x="440" y="644" font-size="10" letter-spacing="2.4">PLAN 01</text>
+                <text x="78" y="78" font-family="Inter Tight, sans-serif" font-size="27" letter-spacing="-.8" fill="#263224">A home, considered.</text>
+                <text x="78" y="102" font-size="10" letter-spacing="2.4" fill="#6A7467">TRUST · CARE · CLARITY</text>
+              </g>
+              <g stroke="#68865C" stroke-opacity=".45" fill="none" stroke-width="1">
+                <path d="M420 112h34M437 95v34"/>
+                <circle cx="112" cy="566" r="5"/>
+              </g>
+            </svg>
+
+            <div class="blueprint-card">
+              <span class="blueprint-card-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.2 4.2L19 6.8"/></svg>
+              </span>
+              <div><strong>Booking confirmed</strong><span>Sample · Tomorrow, 10:00</span></div>
+            </div>
+            <div class="blueprint-tag">Illustrative visual</div>
+          </div>
+
+          <div class="why-stats" data-stagger>
+            <article class="stat">
+              <span class="stat-number" data-count="7" data-pad="2">07</span>
+              <span class="stat-label">Service categories</span>
+            </article>
+            <article class="stat">
+              <span class="stat-number" data-count="3" data-pad="2">03</span>
+              <span class="stat-label">Steps to book</span>
+            </article>
+            <article class="stat">
+              <span class="stat-number" data-count="1" data-pad="2">01</span>
+              <span class="stat-label">Platform for it all</span>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section pros-section" id="professionals">
+      <div class="container">
+        <div class="section-head pros-head">
+          <div>
+            <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> Featured professionals</p>
+            <h2 class="section-title" data-split="words">Skilled. Considered. Ready to help.</h2>
+          </div>
+          <p class="pros-note" data-reveal>
+            <span class="sample-pill">Sample profiles</span>
+            A look at the kind of professional experience HandyHire is designed for.
+          </p>
+        </div>
+
+        <div class="pros-grid" data-stagger>
+          <article class="pro-card">
+            <div class="pro-portrait pro-portrait--one">
+              <span class="pro-sample-tag">Sample profile</span>
+              <span class="pro-monogram">AM</span>
+              <span class="pro-service-chip">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/></svg>
+                Electrician
+              </span>
+            </div>
+            <div class="pro-body">
+              <h3>Amara Mensah</h3>
+              <p class="pro-trade">Sample professional</p>
+              <ul class="pro-meta">
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-5.4 7-11a7 7 0 1 0-14 0c0 5.6 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+                  Northbank
+                </li>
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.2 2"/></svg>
+                  Weekday mornings
+                </li>
+              </ul>
+              <div class="pro-footer">
+                <span class="pro-tags">Lighting · Wiring</span>
+                <span class="pro-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+              </div>
+            </div>
+          </article>
+
+          <article class="pro-card">
+            <div class="pro-portrait pro-portrait--two">
+              <span class="pro-sample-tag">Sample profile</span>
+              <span class="pro-monogram">DO</span>
+              <span class="pro-service-chip">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 3 7 7-3 3-7-7 3-3Z"/><path d="m11 6 3 3-7.5 7.5a2.1 2.1 0 0 1-3-3L11 6Z"/><path d="m5 19 3 3"/></svg>
+                Carpenter
+              </span>
+            </div>
+            <div class="pro-body">
+              <h3>Daniel Okafor</h3>
+              <p class="pro-trade">Sample professional</p>
+              <ul class="pro-meta">
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-5.4 7-11a7 7 0 1 0-14 0c0 5.6 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+                  Riverside
+                </li>
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>
+                  Available this week
+                </li>
+              </ul>
+              <div class="pro-footer">
+                <span class="pro-tags">Built-ins · Repairs</span>
+                <span class="pro-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+              </div>
+            </div>
+          </article>
+
+          <article class="pro-card">
+            <div class="pro-portrait pro-portrait--three">
+              <span class="pro-sample-tag">Sample profile</span>
+              <span class="pro-monogram">SA</span>
+              <span class="pro-service-chip">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V21h13V9.5"/><path d="M9.5 21v-6h5v6"/></svg>
+                Home Maintenance
+              </span>
+            </div>
+            <div class="pro-body">
+              <h3>Sofia Alvarez</h3>
+              <p class="pro-trade">Sample professional</p>
+              <ul class="pro-meta">
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-5.4 7-11a7 7 0 1 0-14 0c0 5.6 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+                  Hillcrest
+                </li>
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.2 2"/></svg>
+                  Weekends
+                </li>
+              </ul>
+              <div class="pro-footer">
+                <span class="pro-tags">Odd jobs · Seasonal care</span>
+                <span class="pro-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <p class="pros-disclaimer" data-reveal>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 10v6M12 7.2v.1"/></svg>
+          Demonstration content only. These sample profiles are not real HandyHire members and do not
+          represent verified users, ratings, availability or completed work.
+        </p>
+      </div>
+    </section>
+
+    <section class="section experience-section" id="experience">
+      <div class="container experience-grid">
+        <div class="experience-copy">
+          <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> For customers</p>
+          <h2 class="section-title" data-split="words">Book around your life, not the other way around.</h2>
+          <p class="section-copy section-copy--left" data-reveal>
+            Tell HandyHire what needs doing, choose a professional and a time that works, then
+            follow every update in one clear flow.
+          </p>
+
+          <ul class="check-list" data-stagger>
+            <li>
+              <span class="check-list-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.2 4.2L19 6.8"/></svg></span>
+              Browse services and booking options without the back-and-forth.
+            </li>
+            <li>
+              <span class="check-list-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.2 4.2L19 6.8"/></svg></span>
+              Keep every request, update and completion in one place.
+            </li>
+            <li>
+              <span class="check-list-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.2 4.2L19 6.8"/></svg></span>
+              Confirm the work and leave a review when it is done.
+            </li>
+          </ul>
+
+          <a class="btn btn-primary experience-cta" href="../pages/login.html">
+            Find a Professional
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+        </div>
+
+        <div class="experience-visual">
+          <div class="booking-demo" data-reveal="scale">
+            <div class="booking-card">
+              <div class="booking-head">
+                <div>
+                  <span class="booking-kicker">Booking overview</span>
+                  <h3>Kitchen lighting repair</h3>
+                </div>
+                <span class="booking-status"><span></span>In progress</span>
+              </div>
+
+              <div class="booking-pro">
+                <span class="avatar">AO</span>
+                <div>
+                  <strong>Alex Osei</strong>
+                  <span>Electrician · Sample professional</span>
+                </div>
+                <span class="booking-tag">Sample</span>
+              </div>
+
+              <div class="booking-timeline" aria-label="Sample booking status: in progress">
+                <span class="timeline-track" aria-hidden="true"><span class="timeline-fill" id="bookingFill"></span></span>
+                <div class="timeline-step is-done">
+                  <span class="timeline-dot" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.2 4.2L19 6.8"/></svg></span>
+                  <span class="timeline-label">Requested</span>
+                </div>
+                <div class="timeline-step is-done">
+                  <span class="timeline-dot" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.2 4.2L19 6.8"/></svg></span>
+                  <span class="timeline-label">Accepted</span>
+                </div>
+                <div class="timeline-step is-active">
+                  <span class="timeline-dot" aria-hidden="true"></span>
+                  <span class="timeline-label">In progress</span>
+                </div>
+                <div class="timeline-step">
+                  <span class="timeline-dot" aria-hidden="true"></span>
+                  <span class="timeline-label">Completed</span>
+                </div>
+              </div>
+
+              <div class="booking-meta">
+                <span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>
+                  Tomorrow · 10:00
+                </span>
+                <span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-5.4 7-11a7 7 0 1 0-14 0c0 5.6 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+                  Riverside
+                </span>
+              </div>
+
+              <div class="booking-footer">
+                <span>Sample booking</span>
+                <span class="booking-footer-note">Demonstration only</span>
+              </div>
+            </div>
+
+            <div class="booking-float" aria-hidden="true">
+              <span class="booking-float-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h4l2.2-5 3.6 10 2.2-5H20"/></svg>
+              </span>
+              <span><strong>Clear updates</strong><small>Every step, in one place</small></span>
+            </div>
+          </div>
+          <p class="visual-note" data-reveal>Sample interface · Not connected to live bookings</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section provider-section" id="for-professionals">
+      <div class="provider-glow" aria-hidden="true"></div>
+      <div class="container provider-grid">
+        <div class="provider-copy">
+          <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> For professionals</p>
+          <h2 class="section-title" data-split="words">Your craft deserves a better way to reach customers.</h2>
+          <p class="section-copy section-copy--left" data-reveal>
+            Create a professional profile, set out the services you offer, and receive booking
+            requests from customers who are looking for your skills.
+          </p>
+
+          <ul class="provider-benefits" data-stagger>
+            <li>
+              <span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c.7-4 3-6 7-6s6.3 2 7 6"/><path d="M19 5v6M16 8h6"/></svg></span>
+              <div><strong>Showcase your skills</strong><p>Present your services, experience and availability in a clear profile.</p></div>
+            </li>
+            <li>
+              <span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/><path d="m9 15 2 2 4-4"/></svg></span>
+              <div><strong>Choose the jobs that fit</strong><p>Review incoming requests and accept the work that suits your schedule.</p></div>
+            </li>
+            <li>
+              <span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L12 16.9 6.4 20.1l1.4-6.3L3 9.5l6.4-.6L12 3Z"/></svg></span>
+              <div><strong>Build your reputation</strong><p>Let completed work and customer reviews speak for the quality you bring.</p></div>
+            </li>
+          </ul>
+
+          <a class="btn btn-cream provider-cta" href="../pages/provider-animation.html">
+            Join as a Professional
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <p class="provider-note">Opens the HandyHire provider onboarding flow.</p>
+        </div>
+
+        <div class="provider-visual" data-reveal="right">
+          <div class="provider-card">
+            <div class="provider-card-head">
+              <span class="provider-card-title">
+                <span class="provider-avatar">AM</span>
+                Amara's workspace
+              </span>
+              <span class="availability">
+                <span id="availabilityLabel">Available</span>
+                <button class="switch" id="availabilitySwitch" type="button" role="switch" aria-checked="true" aria-label="Toggle sample availability">
+                  <span class="switch-thumb" aria-hidden="true"></span>
+                </button>
+              </span>
+            </div>
+
+            <div class="request-card">
+              <div class="request-top">
+                <span class="request-kicker">New booking request</span>
+                <span class="request-sample">Sample</span>
+              </div>
+              <h3>Hallway lighting installation</h3>
+              <p class="request-meta">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-5.4 7-11a7 7 0 1 0-14 0c0 5.6 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+                Riverside · Thursday · 09:00
+              </p>
+              <div class="request-tags" aria-hidden="true">
+                <span>Electrical</span><span>About 1 hour</span><span>Pre-booking</span>
+              </div>
+              <div class="request-actions">
+                <button class="request-btn request-btn--primary" type="button" data-placeholder="This is a sample request. Live booking actions are not connected.">Review request</button>
+                <button class="request-btn" type="button" data-placeholder="This is a sample request. Live booking actions are not connected.">Later</button>
+              </div>
+            </div>
+
+            <div class="provider-card-footer">
+              <span>Illustrative interface</span>
+              <span class="provider-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            </div>
+          </div>
+
+          <div class="provider-float" aria-hidden="true">
+            <span class="provider-float-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4.4 7.8 7.6 4.3 7.6-4.3M12 12.1V21"/></svg>
+            </span>
+            <span><strong>Your services</strong><small>All in one profile</small></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="final-cta" id="final-cta">
+      <div class="container">
+        <div class="cta-panel" data-reveal="scale">
+          <span class="cta-orb cta-orb--one" data-parallax="0.08" aria-hidden="true"></span>
+          <span class="cta-orb cta-orb--two" data-parallax="-0.06" aria-hidden="true"></span>
+          <span class="cta-ring" data-parallax="0.04" aria-hidden="true"></span>
+          <span class="cta-grid" aria-hidden="true"></span>
+
+          <div class="cta-content">
+            <p class="eyebrow cta-eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> Ready when you are</p>
+            <h2 class="cta-title">Let's get things done.</h2>
+            <p class="cta-copy">
+              Find the right professional for your next job, or bring your skills to a
+              platform built around them.
+            </p>
+            <div class="cta-actions">
+              <a class="btn btn-cream" href="../pages/login.html">
+                Find a Professional
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+              </a>
+              <a class="btn btn-outline-light" href="../pages/provider-animation.html">
+                Join as a Professional
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
+              </a>
+            </div>
+            <p class="cta-small">Demo content. Sign-in and provider onboarding open in the HandyHire app.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <a class="brand" href="#home" aria-label="HandyHire home">
+            <span class="brand-mark"><img src="assets/handyhire-logo.jpeg" alt="" width="42" height="42" loading="lazy" /></span>
+            <span class="brand-word">Handy<span>Hire</span></span>
+          </a>
+          <p>Trusted help for every corner of your home. Considered services, clear bookings and the right people for the job.</p>
+          <div class="footer-socials">
+            <a class="social-link" href="#" aria-label="HandyHire on Instagram (placeholder)" data-placeholder="Social links are placeholders in this demonstration.">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.4 6.6v.1"/></svg>
+            </a>
+            <a class="social-link" href="#" aria-label="HandyHire on LinkedIn (placeholder)" data-placeholder="Social links are placeholders in this demonstration.">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9v9M6 5.8v.1M10.5 18v-5.2a3 3 0 0 1 6 0V18M10.5 9v9"/></svg>
+            </a>
+            <a class="social-link" href="#" aria-label="HandyHire on X (placeholder)" data-placeholder="Social links are placeholders in this demonstration.">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 4 16 16M20 4 4 20"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <div class="footer-cols">
+          <div class="footer-col">
+            <h3>Platform</h3>
+            <ul>
+              <li><a href="#how-it-works">How It Works</a></li>
+              <li><a href="#services">Services</a></li>
+              <li><a href="#for-professionals">For Professionals</a></li>
+              <li><a href="../pages/handyhire-animation.html">Get Started</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h3>Company</h3>
+            <ul>
+              <li><a href="#about">About</a></li>
+              <li><a href="../pages/contact.html">Contact</a></li>
+              <li><a href="#professionals">Featured Professionals</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h3>Legal</h3>
+            <ul>
+              <li><a href="#" data-placeholder="Privacy policy is not connected in this demonstration.">Privacy Policy</a></li>
+              <li><a href="#" data-placeholder="Terms of service are not connected in this demonstration.">Terms</a></li>
+              <li><a href="#" data-placeholder="The cancellation policy is not connected in this demonstration.">Cancellation Policy</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <span>© 2026 HandyHire. All rights reserved.</span>
+        <span>Navigation connects to HandyHire. Sample content is illustrative.</span>
+      </div>
+    </div>
+    <div class="footer-wordmark" aria-hidden="true">HandyHire</div>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true">
+    <span class="toast-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 10v6M12 7.2v.1"/></svg>
+    </span>
+    <span class="toast-text"></span>
+  </div>
+
+  <noscript>
+    <style>
+      .js [data-reveal], .js [data-stagger] > *, .js .split-word-inner,
+      .js .hero-title .hero-line > span, .js .hero-eyebrow, .js .hero-lede,
+      .js .hero-actions, .js .hero-points, .js .hero-visual, .js .hero-foot {
+        opacity: 1 !important;
+        transform: none !important;
+      }
+      .scene-loader { display: none !important; }
+      #heroCanvas { display: none !important; }
+      .scene-fallback { display: block !important; }
+      .scene-hint,
+      .scene-badge { display: none !important; }
+    </style>
+  </noscript>
+
+  <script src="assets/vendor/gsap.min.js"></script>
+  <script src="assets/vendor/ScrollTrigger.min.js"></script>
+  <script src="assets/vendor/three.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
