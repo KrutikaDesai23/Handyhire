@@ -262,7 +262,7 @@
                     '<div class="hh-live-meta-item"><span>Estimated total</span><strong>' + escapeHtml(amount) + '</strong></div>' +
                 '</div>' +
                 '<div class="hh-live-progress" aria-label="Quick Hire progress">' + progressHtml(info.step, terminal) + '</div>' +
-                '<div class="hh-live-actions' + (userRole === 'customer' && (status === 'accepted' || status === 'confirmed') ? ' hh-live-actions--customer' : '') + '">' +
+                '<div class="hh-live-actions' + (userRole === 'customer' && (status === 'pending' || status === 'accepted' || status === 'confirmed') ? ' hh-live-actions--customer' : '') + '">' +
                     '<a class="hh-live-btn" href="' + detailsHref + '">View booking ' + arrowSvg() + '</a>' +
                     (userRole === 'customer' && (status === 'accepted' || status === 'confirmed')
                         ? '<button type="button" class="hh-live-btn hh-live-btn--cancel" data-booking-id="' + escapeHtml(bookingId) + '">Cancel Booking</button>'
