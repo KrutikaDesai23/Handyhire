@@ -60,6 +60,8 @@ def list_workers(
         )
         .join(models.User, models.WorkerProfile.user_id == models.User.id)
         .outerjoin(rating_subq, rating_subq.c.worker_id == models.User.id)
+        .filter(models.User.role == "worker")
+        .filter(models.WorkerProfile.availability != "hidden")
     )
 
     if profession:
@@ -124,7 +126,12 @@ def list_workers(
 
 @router.get("/{worker_id}", response_model=WorkerResponse)
 def get_worker_detail(worker_id: int, db: Session = Depends(get_db)):
-    worker_profile = db.query(models.WorkerProfile).filter(models.WorkerProfile.user_id == worker_id).first()
+    worker_profile = (
+        db.query(models.WorkerProfile)
+        .filter(models.WorkerProfile.user_id == worker_id)
+        .filter(models.WorkerProfile.availability != "hidden")
+        .first()
+    )
     if not worker_profile:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Worker not found")
 
