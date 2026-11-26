@@ -1,16 +1,39 @@
 #!/usr/bin/env bash
-# Starts the HandyHire FastAPI backend on http://127.0.0.1:8000 (macOS/Linux).
-set -e
+# HandyHire backend launcher for macOS/Linux.
+# Creates a local virtual environment on first run, installs dependencies,
+# initializes missing SQLite tables, then starts the FastAPI server.
+set -Eeuo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR/backend"
+BACKEND_DIR="$SCRIPT_DIR/backend"
+cd "$BACKEND_DIR"
 
-VENV_PYTHON="./venv/bin/python"
-if [ ! -x "$VENV_PYTHON" ]; then
-    echo "ERROR: Python venv not found at $VENV_PYTHON" >&2
-    echo "Create it with: python3 -m venv venv && ./venv/bin/pip install -r requirements.txt" >&2
+if ! command -v python3 >/dev/null 2>&1; then
+    echo "ERROR: Python 3 is not installed. Install Python 3.10+ and try again." >&2
     exit 1
 fi
 
-echo "Starting HandyHire backend on http://127.0.0.1:8000 ..."
-exec "$VENV_PYTHON" -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+VENV_DIR="$BACKEND_DIR/venv"
+if [ ! -x "$VENV_DIR/bin/python" ]; then
+    echo "Creating Python virtual environment..."
+    python3 -m venv "$VENV_DIR"
+fi
+
+PYTHON="$VENV_DIR/bin/python"
+PIP="$VENV_DIR/bin/pip"
+
+echo "Installing/checking backend dependencies..."
+"$PIP" install --disable-pip-version-check -r requirements.txt
+
+# Local development defaults. Existing shell/.env settings are preserved.
+export APP_ENV="${APP_ENV:-development}"
+export DATABASE_URL="${DATABASE_URL:-sqlite:///./handyhire.db}"
+export SECRET_KEY="${SECRET_KEY:-CHANGE_ME_TO_A_STRONG_RANDOM_SECRET}"
+
+mkdir -p uploads/profile-images uploads/worker-work-photos uploads/booking-photos
+
+echo "Initializing database tables (existing data is preserved)..."
+"$PYTHON" -m app.create_tables
+
+echo "Checking backend health at http://127.0.0.1:8000 ..."
+exec "$PYTHON" -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
