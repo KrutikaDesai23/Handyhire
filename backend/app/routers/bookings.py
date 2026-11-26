@@ -570,10 +570,10 @@ def cancel_customer_booking(
     if not booking:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Booking not found")
 
-    if booking.status not in {"accepted", "confirmed"}:
+    if booking.status not in {"pending", "accepted", "confirmed"}:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Only accepted bookings can be cancelled.",
+            detail="Only pending or accepted bookings can be cancelled.",
         )
 
     booking.status = "cancelled"
